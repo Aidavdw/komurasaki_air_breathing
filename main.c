@@ -510,6 +510,7 @@ int main()
             mean_p_sup[k] = mean_at_valve(fem_index_inf[k],fem_n[k],NGHOST,n_cell_p_fem,p[dom_up]);
             mean_rho_sup[k] = mean_at_valve(fem_index_inf[k],fem_n[k],NGHOST,n_cell_p_fem,rho[dom_up]);
             mean_p_inf[k] = mean_at_valve(fem_index_inf[k],fem_n[k],NYtot[dom_low]-NGHOST-n_cell_p_fem,n_cell_p_fem,p[dom_low]);
+            // Q: Why does it read a _sup and an _inf value for the pressure, but not for the density?
 	    }
 
         // DEFINE INTERFACE PRESSURE DIFFERENCE VECTOR

@@ -67,6 +67,7 @@ double compute_mfr(double p_inf, double p_sup, double rho_sup, double y_tip, dou
         double p_crit = pow(2.0/(gamma+1.0),gamma/(gamma-1.0));
         
         // OpenFOAM fitting of discharge coefficient (Cd) is specified here!
+        // The fit function (equation 2.3 in Florian (2017)) based on cfd simulations to get a discharge coefficient.
         double cd_3d = fmax(0.0,fmin(1.0,0.9193*pow(1.0+0.5*y_tip*1000.0,-0.596)));
         // printf("CD3D: %f\n", cd_3d);
 
@@ -104,7 +105,10 @@ double compute_mfr(double p_inf, double p_sup, double rho_sup, double y_tip, dou
     return mfr_out;
 }
 
-/* Compute the total source term based on mass flow rate and fluid variables around the reed valve. */ 
+/* Compute the total source term based on mass flow rate and fluid variables around the reed valve.
+Sets the source[4] by reference, where the index corresponds to the euler equation it will be coupled to: [density term, x-axis velocity, y/r-axis velocity, and specific internal energy]
+
+*/ 
 void compute_cell_source(int k_dom, int k_inf, int k_sup, double r_low, double r_up, double mfr_valve, double y_tip, double theta_tip, double dy, int n_per_stage, double gamma,double radius, double l_hole, double hole_factor, double dx, double b_hole, int mfr_n_cell,double rho_mean_sup, double p_mean_sup,double p_mean_inf, double rho_sup, double u_sup, double v_sup, double p_sup, double b0, double b1, double l, double source[4])
 {   
     source[0] = 0.0;
@@ -119,8 +123,13 @@ void compute_cell_source(int k_dom, int k_inf, int k_sup, double r_low, double r
         // double A_eq = n_per_stage*l_hole/2.0*b_hole/mfr_n_cell;
         // Same but applied to pressure
         // double A_hole = n_per_stage*l_hole*b_hole/mfr_n_cell;
+
+        // The fit function (equation 2.3 in Florian (2017)) based on cfd simulations to get a discharge coefficient.
+        // This function call is only referred to by the area, which itself is not used- remove?
         double cd_3d = fmax(0.0,fmin(1.0,0.9193*pow(1.0+0.5*y_tip*1000.0,-0.596)));
         // double A_eq = cd_3d*n_per_stage*y_tip*(b1 + sqrt(l*l + 0.5*pow(b0-b1,2)));
+
+        // This equivalent area is never used!
         double A_eq = cd_3d*n_per_stage*l_hole*b_hole/mfr_n_cell;
         // double A_eq = n_per_stage*l_hole*b_hole*sin(theta_tip)/mfr_n_cell;
         double r_cell, v_cell;

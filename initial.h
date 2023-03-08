@@ -70,7 +70,7 @@ void apply_initial_conditions(char *sim_case, int ndom, int *nx, int *ny, double
         }
     }
 
-    /* Second case... etc. */ 
+    /* Detonation tube for the Microwave configuration. This appears to be identical to det_tube. */ 
 	else if (strcmp(sim_case,"mw_tube")==0)
 	{
 		for (int k = 0; k < ndom; ++k)
