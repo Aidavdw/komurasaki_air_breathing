@@ -42,7 +42,8 @@ int main()
     clock_gettime( CLOCK_REALTIME, &start_time);
 
     // INITIALIZE CASE
-    double L_T;                 // Length of the rocket tube
+    // TODO: This variable is vague? define what it really is- the reed valve total length or the entire rocket length.
+    double L_T;                 // Reed valve total length
     double M0;                  // Reference mach number. I assume of the flow outside of the domain?
 
     // The values below are on a per-domain basis; each index is for a new domain.

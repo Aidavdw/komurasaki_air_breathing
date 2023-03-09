@@ -7,6 +7,8 @@ This file needs to be adapted to the case the user wants to run (number of domai
 //TODO: Change these from variables into macros
 // Alternatively, a nice thing to do would be to have it read everything from a file, but that would require revamping a lot of code.
 
+// TODO: Make the size and placement of the reed valves individually change-able
+
 
 /* SIMULATION CASES DEFINED BY PREVIOUS USERS */
 //char *SIM_CASE = "det_tube"; // A Sod shock tube case solved in 2D
@@ -158,9 +160,11 @@ char *** init_boundary_type(int Ndom, char *boundary_type[][4])
 
     return bounds;
 }
+
 /* Memory allocation of the boundary condition array. */
 char * init_boundary_location(char boundary_location[4])
 {
+    // The only thing this does is place [L,R,U,D] into memory
     char *bounds = malloc(4*sizeof(char));
     for (int i = 0; i < 4; ++i)
     {
@@ -202,6 +206,7 @@ void init_case(char *case_name, double *l_v_tot, double *M_ref, int *lower_domai
         double graded_ratio_x[] = {1.0,1.0};
         double graded_ratio_y[] = {1.0,1.0};
 
+        // Need to allocate memory in the jank way because of how it's defined in main.c. will fix this by using struct.
         double *XSTART = malloc(*ndom*sizeof(double));
         double *YSTART = malloc(*ndom*sizeof(double));
         double *XLENGTH = malloc(*ndom*sizeof(double));
@@ -217,6 +222,7 @@ void init_case(char *case_name, double *l_v_tot, double *M_ref, int *lower_domai
         B_TYPE[0][0]="slip";
         B_TYPE[1][0]="con0";
 
+        // Actually just forwarding it, not filling in any of the values yet.
         *x0 = XSTART;
         *y0 = YSTART;
         *length_x = XLENGTH;
@@ -228,6 +234,7 @@ void init_case(char *case_name, double *l_v_tot, double *M_ref, int *lower_domai
         *bound_loc = B_LOC;
         *bound_type = B_TYPE;
 
+        // Filling in the arrays based on the previously defined temporary variables.
         for (int i = 0; i < *ndom; ++i)
         {
             XSTART[i] = xstart[i];
