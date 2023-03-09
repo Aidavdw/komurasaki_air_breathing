@@ -42,15 +42,26 @@ int main()
     clock_gettime( CLOCK_REALTIME, &start_time);
 
     // INITIALIZE CASE
-    double L_T, M0, *XSTART, *YSTART, *XLENGTH, *YLENGTH, *GRID_RATIO_X, *GRID_RATIO_Y, *X_V_START;
+    double L_T;                 // Length of the rocket tube
+    double M0;                  // Reference mach number. I assume of the flow outside of the domain?
+
+    // The values below are on a per-domain basis; each index is for a new domain.
+	double *XSTART;             // the x coordinate of the most bottom left point for the domains.
+	double *YSTART;             // the y coordinate of the most bottom left point for the domains.
+	double *XLENGTH;            // The length of the domains in the x-direction
+	double *YLENGTH;            // The length of the domains in the y-direction
+	double *GRID_RATIO_X;
+	double *GRID_RATIO_Y;
+	double *X_V_START;
     char *B_LOC, ***B_TYPE;
-    int *NXtot, *NYtot, NDOMAIN=0, N_VALVE=0, SOLID_ON=0, dom_low, dom_up, PLENUM_ON=0;
+    int *NXtot, *NYtot, N_VALVE=0, SOLID_ON=0, dom_low, dom_up, PLENUM_ON=0;
+    int NDOMAIN = 0; // The total number of domain blocks that are in this simulation case. Note that right now, this variable has a problem in that it is passed as a parameter for array size, which is C-illegal.
     init_case(SIM_CASE,&L_T,&M0,&dom_low,&dom_up,&XSTART,&YSTART,&XLENGTH,&YLENGTH,&GRID_RATIO_X,&GRID_RATIO_Y,&X_V_START,&B_LOC,&B_TYPE,&NXtot,&NYtot,&NDOMAIN,&N_VALVE,&SOLID_ON,&PLENUM_ON);
 
     /* TIME STEP, EXPORT SPAN AND BASIC GRID SIZE */
     int Ntstep = (int)(1+TSIM/DT);                           // Number of time steps
-    int N_CFL = (int)fmax(1,(int)(Ntstep)/N_STEP_CFL);       // Iterations between two displays of CFL
-    int N_EXPORT = (int)fmax(1,(int)(Ntstep)/N_STEP_EXP);    // Iterations between two exports of data
+    int N_CFL = (int)fmax(1,(int)(Ntstep)/N_STEP_CFL);       // Amount of iterations that are done between two displays of CFL
+    int N_EXPORT = (int)fmax(1,(int)(Ntstep)/N_STEP_EXP);    // Amount of iterations that are done between two exports of data
 
 
     /* CREATE OUTPUT FOLDER */
@@ -58,7 +69,7 @@ int main()
 
 
     /* TOTAL NUMBER OF CELLS IN CURRENT SIMULATION, ORDER OF DX/DY */
-    int Ncell = 0;
+    int Ncell = 0; // The total number of cells in the simulation, spread over all the domains
     for (int i = 0; i < NDOMAIN; ++i)
     {
         Ncell += (NXtot[i]-2*NGHOST)*(NYtot[i]-2*NGHOST);
@@ -83,11 +94,18 @@ int main()
 
 
     /* VARIABLE DEFINITION AND ALLOCATION FOR FLUID MODEL */
-    double ***x, ***y, ***xc, ***yc, ***xold, ***yold;
-    double ***p, ***rho, ***u, ***v, ***E, ***T, ***H;
-    double ***pt, ***rhot, ***ut, ***vt, ***Et, ***Tt, ***Ht;
-    double ***pRK, ***rhoRK, ***uRK, ***vRK, ***ERK, ***TRK, ***HRK, ***sonic_x, ***sonic_y;
-    init_domain(NDOMAIN,NXtot,NYtot,&rho,&u,&v,&p,&E,&T,&H);
+    double*** x, *** y; //Contains a variable over the entire field. [domain][x-pos][r-pos]
+    double ***p, ***rho, ***u, ***v, ***E, ***T, ***H;//Contains a variable over the entire field. [domain][x-pos][r-pos]
+    // Initialise all the arrays created above. 
+    init_domain(NDOMAIN, NXtot, NYtot, &rho, &u, &v, &p, &E, &T, &H);
+
+    double*** xc, *** yc, *** xold, *** yold; // Not sure what these are- they are domain variables though!
+
+    double ***pt, ***rhot, ***ut, ***vt, ***Et, ***Tt, ***Ht;// Not sure what these are- they are domain variables though!
+    double ***pRK, ***rhoRK, ***uRK, ***vRK, ***ERK, ***TRK, ***HRK, ***sonic_x, ***sonic_y; // Not sure what these are- they are domain variables though!
+
+    
+    
     init_domain(NDOMAIN,NXtot,NYtot,&rhot,&ut,&vt,&pt,&Et,&Tt,&Ht);
     init_domain(NDOMAIN,NXtot,NYtot,&rhoRK,&uRK,&vRK,&pRK,&ERK,&TRK,&HRK);
     x = init_variable(NDOMAIN,NXtot,NYtot,1);

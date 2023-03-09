@@ -132,6 +132,7 @@ void compute_cell_source(int k_dom, int k_inf, int k_sup, double r_low, double r
         // This equivalent area is never used!
         double A_eq = cd_3d*n_per_stage*l_hole*b_hole/mfr_n_cell;
         // double A_eq = n_per_stage*l_hole*b_hole*sin(theta_tip)/mfr_n_cell;
+
         double r_cell, v_cell;
         if (k_dom == k_inf)
         {
@@ -343,9 +344,9 @@ double *** init_variable(int Ndom, int Nx[Ndom], int Ny[Ndom],int gridOrCell)
     return data;
 }
 
-/* Initialize the special arrays regrouping all domains at once.
+/* Initialize the arrays representing variables for each cell in all domains, all at once.
     Ndom,Nx[],Ny[]: Same as before
-    rho,u,v,p,E,T,H: Variables to initialize (memory allocation) */
+    rho,u,v,p,E,T,H: Variables to initialize*/
 void init_domain(int Ndom,int Nx[Ndom],int Ny[Ndom],double ****rho,double ****u,double ****v,double ****p,double ****E,double ****T,double ****H)
 {
     // Fluid variables

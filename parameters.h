@@ -4,6 +4,9 @@
 This file needs to be adapted to the case the user wants to run (number of domains, use of previously obtained numerical data, choice of initial solution, etc.) so be careful what you do!
 */
 
+//TODO: Change these from variables into macros
+// Alternatively, a nice thing to do would be to have it read everything from a file, but that would require revamping a lot of code.
+
 
 /* SIMULATION CASES DEFINED BY PREVIOUS USERS */
 //char *SIM_CASE = "det_tube"; // A Sod shock tube case solved in 2D
@@ -99,7 +102,7 @@ double S0          = 2E6;   // Total microwave beam power (W)
 double ETA         = 1.0;        // Energy absorption coefficient
 
 
-/* ALGORITHM PARAMETERS (CHANGE TO YOUR OWN RISK) */
+/* ALGORITHM PARAMETERS (CHANGE AT YOUR OWN RISK) */
 int NGHOST         = 2;      // Number of ghost cells added at boundaries (MUSCL)
 double MUSCL_BIAS  = 1.0/3;  // MUSCL bias coefficient between upwind and downwind differences
 int LIMITERNAME    = 0;      // Flux Limiter function for MUSCL (-1: none / 0:minmod / 1:superbee / 2:vanAlbada1 / 3:vanAlbada2)
@@ -171,6 +174,9 @@ char * init_boundary_location(char boundary_location[4])
 /* Initialization procedure of parameters depending on case name specified by the user. New IF loops should be added if the user decides to add new cases. */
 void init_case(char *case_name, double *l_v_tot, double *M_ref, int *lower_domain, int *upper_domain,double **x0, double **y0, double **length_x, double **length_y, double **x_ratio, double **y_ratio, double **xv0, char **bound_loc, char ****bound_type, int **nx, int **ny, int *ndom, int *nv, int *solid_on, int *plenum_on)
 {
+    //TODO: Make Ndom etc actual macros so that the program can compile.
+    //TODO: Put case variables into a struct?
+
     /* Common to all cases: boundary definition */
     char BOUNDARY_ORDER[]  = {'L'   ,'R'   ,'D'   ,'U'};
 
