@@ -120,9 +120,11 @@ int main()
 
 
     /* INITIAL CONDITIONS BASED ON MICROWAVE DETONATION THEORY */
-    double M_MSD, P1, U1, RHO1, M1, P2, RHO2, L_EXP;
-    double p_prerun, T_prerun;
+    // This works pretty stand-alone. Only refactoring I've done here is inlined the dependency on the values in parameters.h.
+    double detonationMachNumber, P1, U1, RHO1, M1, P2, RHO2, L_EXP;
+    //double p_prerun, T_prerun;
     int N_ITER_MSD;
+    N_ITER_MSD = solve_MSD(&detonationMachNumber, &P1, &U1, &RHO1, &M1, &P2, &RHO2, &L_EXP);
 
     //TODO: See if the code below is still relevant? For now, let's just focus on the others.
     // If prerun case is involved, replace the reference P/T couple for post-MSD calculation
@@ -132,14 +134,15 @@ int main()
         // rho_prerun = import_average(dom_up-3,"rho",Nxtot[dom_up-3],NYtot[dom_up-3],NGHOST);
         p_prerun = import_average(dom_up-3,"p",NXtot[dom_up-3],NYtot[dom_up-3],NGHOST);
         T_prerun = import_average(dom_up-3,"T",NXtot[dom_up-3],NYtot[dom_up-3],NGHOST);
-        N_ITER_MSD = solve_MSD(&M_MSD, &P1, &U1, &RHO1, &M1, &P2, &RHO2, &L_EXP,T_prerun,p_prerun,ETA,S0,R,GAMMA,L_TUBE,R0);
+        N_ITER_MSD = solve_MSD(&detonationMachNumber, &P1, &U1, &RHO1, &M1, &P2, &RHO2, &L_EXP,T_prerun,p_prerun,ETA,S0,R,GAMMA,L_TUBE,R0);
         printf("\nPRERUN CONDITIONS ARE: \nP=%f, \nT=%f. \n",p_prerun,T_prerun);
     }
     else
     {
+    
+        N_ITER_MSD = solve_MSD(&detonationMachNumber, &P1, &U1, &RHO1, &M1, &P2, &RHO2, &L_EXP);
+    }
     */
-        N_ITER_MSD = solve_MSD(&M_MSD, &P1, &U1, &RHO1, &M1, &P2, &RHO2, &L_EXP,T0,P0,ETA,S0,R,GAMMA,L_TUBE,R0);
-    //}
     printf("MSD conditions in the rocket were estimated after %d iterations.\n",N_ITER_MSD);
 
 
@@ -361,7 +364,7 @@ int main()
         
     }
 
-    //apply_initial_conditions(SIM_CASE,NDOMAIN,NXtot,NYtot,x,rho,u,v,p,E,T,H,NGHOST,M_MSD,P1,U1,RHO1,M1,P2,RHO2,L_EXP,L_TUBE,T0,P0,M0,R,GAMMA, ini_u, ini_v, ini_rho, ini_p);
+    //apply_initial_conditions(SIM_CASE,NDOMAIN,NXtot,NYtot,x,rho,u,v,p,E,T,H,NGHOST,detonationMachNumber,P1,U1,RHO1,M1,P2,RHO2,L_EXP,L_TUBE,T0,P0,M0,R,GAMMA, ini_u, ini_v, ini_rho, ini_p);
     printf("\nInitial conditions applied...\n");
 
 

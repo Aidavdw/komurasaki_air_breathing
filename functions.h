@@ -296,54 +296,6 @@ int ** init_int_matrix(int Nx, int Ny, int gridOrCell)
     return data;
 }
 
-/* Allocates and initializes a special sized matrix avoiding memory waste.
-    Ndom: Number of domains
-    Nx[]: List of x-wise sizes of domains
-    Ny[]: Same along y direction
-    gridOrCell: Same as before
-*/
-double *** init_variable(int Ndom, int Nx[Ndom], int Ny[Ndom],int gridOrCell)
-{
-    int size=0;
-    for (int i = 0; i < Ndom; ++i)
-    {
-        size += (Nx[i]+gridOrCell)*(Ny[i]+gridOrCell);
-    }
-
-    double *** data = malloc(size*sizeof(double *));
-    if(data == NULL)
-    {
-        printf("\nERROR: Out of memory in matrix-pool allocation (1)!");
-    }
-    // For each domain...
-    for (int k = 0; k < Ndom; ++k)
-    {
-        // First index points to a matrix of size Nx[kDOMAIN]xNy[kDOMAIN] (if cell)
-        data[k] = malloc((Nx[k]+gridOrCell)*(Ny[k]+gridOrCell)*sizeof(double));
-        if (data[k] == NULL)
-        {
-            printf("\nERROR: Out of memory in matrix-pool allocation (2)!");
-        }
-        // For each line...
-        for (int i = 0; i < Nx[k]+gridOrCell; ++i)
-        {
-            // Each line has the size of its respective number of columns Ny[kDomain] (if cell)
-            data[k][i] = malloc((Ny[k]+gridOrCell)*sizeof(double));
-            if ( data[k][i]==NULL )
-            {
-                printf("\nERROR: Out of memory in matrix-pool allocation (3)!");
-            }
-            // For each column...
-            for (int j = 0; j < Ny[k]+gridOrCell; ++j)
-            {
-                // All coefficients are initialized to 0.0
-                data[k][i][j]=0.0;
-            }
-        }
-    }
-    return data;
-}
-
 /* Initialize the arrays representing variables for each cell in all domains, all at once.
     Ndom,Nx[],Ny[]: Same as before
     rho,u,v,p,E,T,H: Variables to initialize*/

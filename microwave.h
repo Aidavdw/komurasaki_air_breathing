@@ -1,3 +1,5 @@
+#include "parameters.h"
+
 /*  This file contains functions that are related with Microwave Beaming and MSD theory:
     - eval_msd_function: Evaluates the value of function to solve to derive MSD Mach number.
     - eval_msd_deriv: Evaluates the value of the derivative of the former function.
@@ -18,61 +20,60 @@ double eval_msd_deriv(double x, double c)
     return -c/pow(x,2)*(0.5*sqrt(c/x+1)+0.5*sqrt(c/x))-1;
 }
 
-
+// T0,P0,ETA,S0,R,GAMMA,L_TUBE,R0
 /* Compute initial pressure, density and temperature conditions based on Newton-Raphson's method */
-int solve_MSD(double *m_msd, double *p1, double *u1, double *rho1, double *m1, double *p2, double *rho2, double *l_exp, double T0, double P0, double eta, double beam_power, double r, double gamma, double l_tube, double r_tube)
+int solve_MSD(double *m_msd, double *p1, double *u1, double *rho1, double *m1, double *p2, double *rho2, double *l_exp)
 {
     const double static THRESHOLD = 1.0E-10;
 
-    // Calculating ambient density, speed of sound, and mean power density
-    double rho0 = P0/(r*T0);
-    double a0 = sqrt(gamma*r*T0);
-    // double Sd = 2*eta*pow(beam_waist/diameter,2)*peak_power;
-    double Sd = eta*beam_power/(M_PI*r_tube*r_tube);
-    printf("Microwave surface power density is: %f MW/cm^2.\n",Sd/1.0E6/100.0/100.0);
+    double rho0 = P0/(R*T0); // Ambient density
+    double a0 = sqrt(GAMMA*R*T0); // Ambient speed of sound
+    double Sd = ETA*S0/(M_PI*R0*R0); // Mean power density
+
+    //printf("Microwave surface power density is: %f MW/cm^2.\n",Sd/1.0E6/100.0/100.0);
     // printf("Ionization velocity is: %f m/s.\n",4190.0*Sd/1.0E6/100.0/100.0-14.9);
     // Constant factor for Newton-Raphson method
-    double C = (pow(gamma,2)-1)/(2*pow(a0,3)*rho0)*Sd;
+    const double C = (pow(GAMMA,2)-1)/(2*pow(a0,3)*rho0)*Sd;
 
-    double Mcur=0.0, Mnext=0.0;
-    Mnext = eval_msd_function(1.0,C);
-    int i = 0;
+    double Mcur=1, Mnext=0.0;
+    //Mnext = eval_msd_function(1.0,C);
+    int iters_performed = 0;
 
     while(fabs(Mcur-Mnext) > THRESHOLD)
     {
         Mcur = Mnext;
         Mnext = Mcur - eval_msd_function(Mcur,C)/eval_msd_deriv(Mcur,C);
-        i++;
+        iters_performed++;
     }
 
-    // Detonation Mach number
+    // Return detonation Mach number by reference
     *m_msd = Mnext;
 
-    // With eta factor for comparison
-    C = (pow(gamma,2)-1)/(2*pow(a0,3)*rho0)*0.49*Sd;
+    // Do the same calculation, but now with ETA factor for comparison
+    const double C_eta = (pow(GAMMA,2)-1)/(2*pow(a0,3)*rho0)*0.49*Sd;
     Mcur=0.0;
     double Meta = 0.0;
-    Meta = eval_msd_function(1.0,C);
+    Meta = eval_msd_function(1.0,C_eta);
     while(fabs(Mcur-Meta) > THRESHOLD)
     {
         Mcur = Meta;
-        Meta = Mcur - eval_msd_function(Mcur,C)/eval_msd_deriv(Mcur,C);
+        Meta = Mcur - eval_msd_function(Mcur, C_eta)/eval_msd_deriv(Mcur, C_eta);
     }
-    printf("Detonation velocity with ETA=0.49 is: %f m/s.\n",Meta*a0);
+    //printf("Detonation velocity with ETA=0.49 is: %f m/s.\n",Meta*a0);
 
     // Post-detonation conditions
-    *m1 = (pow(Mnext,2)-1.0)/(1.0+gamma*pow(Mnext,2));
-    *p1 = (1.0+gamma*pow(Mnext,2))/(gamma+1)*P0;
-    *u1 = a0*Mnext*(pow(Mnext,2.0)-1.0)/pow(Mnext,2.0)/(gamma+1.0);
-    *rho1 = (1.0+gamma)*pow(Mnext,2)/(1.0+gamma*pow(Mnext,2))*rho0;
+    *m1 = (pow(Mnext,2)-1.0)/(1.0+GAMMA*pow(Mnext,2));
+    *p1 = (1.0+GAMMA*pow(Mnext,2))/(GAMMA+1)*P0;
+    *u1 = a0*Mnext*(pow(Mnext,2.0)-1.0)/pow(Mnext,2.0)/(GAMMA+1.0);
+    *rho1 = (1.0+GAMMA)*pow(Mnext,2)/(1.0+GAMMA*pow(Mnext,2))*rho0;
 
     // Post-expansion wave conditions
-    *p2 = pow(1.0-0.5*(gamma-1)*(*m1),2.0*gamma/(gamma-1))*(*p1);
-    *rho2 = pow((1.0-0.5*(gamma-1)*(*m1)),2.0/(gamma-1))*(*rho1);
-    double a2 = (1.0-0.5*(gamma-1.0)*(*m1))/(gamma+1.0)*(pow(Mnext,2)*gamma+1.0)/pow(Mnext,2)*Mnext*a0;
+    *p2 = pow(1.0-0.5*(GAMMA-1)*(*m1),2.0*GAMMA/(GAMMA-1))*(*p1);
+    *rho2 = pow((1.0-0.5*(GAMMA-1)*(*m1)),2.0/(GAMMA-1))*(*rho1);
+    double a2 = (1.0-0.5*(GAMMA-1.0)*(*m1))/(GAMMA+1.0)*(pow(Mnext,2)*GAMMA+1.0)/pow(Mnext,2)*Mnext*a0;
 
     // Computing position of expansion wave front and rear
-    *l_exp = (l_tube/Mnext/a0)*a2;
+    *l_exp = (L_TUBE/Mnext/a0)*a2;
 
 
     // printf("\nMean Microwave Power is: %f W/m^2.\n",Sd);
@@ -80,8 +81,10 @@ int solve_MSD(double *m_msd, double *p1, double *u1, double *rho1, double *m1, d
     printf("Ambient conditions are: \nP0 = %f Pa, \nRHO0 = %f, \na0 = %f.",P0,rho0,a0);
     printf("Post-MSD conditions are: \nM1 = %f, \nP1 = %f Pa, \nU1 = %f m/s, \nRHO1 = %f.\n",*m1,*p1,*u1,*rho1);
     printf("Post-expansion conditions are: \nP2 = %f Pa, \nRHO2 = %f, \na2 = %f.\n",*p2,*rho2,a2);
-    printf("Tube length is %f m. The tail of the expansion region is at %f m.\n",l_tube,*l_exp);
-    return i;
+    printf("Tube length is %f m. The tail of the expansion region is at %f m.\n",L_TUBE,*l_exp);
+    return iters_performed;
 }
+
+
 
 /* End of file */
