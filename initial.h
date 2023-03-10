@@ -604,8 +604,10 @@ double mesh_ratio(int n_cell,double dx0,double l,double grid_ratio)
 }
 
 /* Generate the mesh for the whole domain, more precisely every subdomain of the total fluid domain */
+// Not looked at yet- i think this is not necessary with the better layout that i've implemented now.
 void compute_mesh(int ndom,int *nx, int *ny, double ***x, double ***y, double ***xc, double ***yc, double *xstart, double *ystart, double *xlength, double *ylength, double *xratio, double *yratio, int nghost)
 {
+    
 	double dx0,dy0,alpha_x,alpha_y;
 
     for (int k = 0; k < ndom; ++k)

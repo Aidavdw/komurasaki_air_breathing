@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include "field_quantity.h"
 
 
 class SimCase;
@@ -60,6 +61,16 @@ struct Domain
 	double X_V_START = 0;
 	int gridResolution[2] = {0,0};		// total amount of cells in the axis direction. This includes the ghost cells.
 	Boundary boundaries[4];
+
+	FieldQuantity rho; // Density
+	FieldQuantity u; // velocity x-component
+	FieldQuantity v; // velocity y-component
+	FieldQuantity p; // pressure
+	FieldQuantity E; // Internal energy?
+	FieldQuantity T; // Temperature
+	FieldQuantity H; // enthalpy ?
+
+
 
 	void SetBoundaryType(const EBoundaryLocation location, const EBoundaryType type);
 

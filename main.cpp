@@ -70,6 +70,9 @@ int main()
 
 
     /* VARIABLE DEFINITION AND ALLOCATION FOR FLUID MODEL */
+
+    /*
+    
     double*** x, *** y; //Contains a variable over the entire field. [domain][x-pos][r-pos]
     double ***p, ***rho, ***u, ***v, ***E, ***T, ***H;//Contains a variable over the entire field. [domain][x-pos][r-pos]
     // Initialise all the arrays created above. 
@@ -86,12 +89,13 @@ int main()
     init_domain(NDOMAIN,NXtot,NYtot,&rhoRK,&uRK,&vRK,&pRK,&ERK,&TRK,&HRK);
     x = init_variable(NDOMAIN,NXtot,NYtot,1);
     y = init_variable(NDOMAIN,NXtot,NYtot,1);
-    xold = init_variable(NDOMAIN,NXtot,NYtot,1);
-    yold = init_variable(NDOMAIN,NXtot,NYtot,1);
+    xold = init_variable(NDOMAIN,NXtot,NYtot,1); // Not sure yet what it does; apparently only used when updating ghost cells?
+    yold = init_variable(NDOMAIN,NXtot,NYtot,1); // Not sure yet what it does; apparently only used when updating ghost cells?
     xc = init_variable(NDOMAIN,NXtot,NYtot,0);
     yc = init_variable(NDOMAIN,NXtot,NYtot,0);
-    sonic_x = init_variable(NDOMAIN,NXtot,NYtot,0);
-    sonic_y = init_variable(NDOMAIN,NXtot,NYtot,0);
+    
+    sonic_x = init_variable(NDOMAIN,NXtot,NYtot,0); // I think this is a mask over whether or not a flow is sonic at a given cell?
+    sonic_y = init_variable(NDOMAIN,NXtot,NYtot,0); // I think this is a mask over whether or not a flow is sonic at a given cell?
 
     if (p==NULL || u==NULL || v==NULL || rho==NULL || T==NULL || H==NULL || pt==NULL || ut==NULL || vt==NULL || rhot==NULL || Tt==NULL || Ht==NULL || pRK==NULL || uRK==NULL || vRK==NULL || rhoRK==NULL || TRK==NULL || HRK==NULL || x==NULL || y==NULL || xc==NULL || yc==NULL)
     {
@@ -100,18 +104,29 @@ int main()
     }
     printf("\nAll variables generated successfully...\n");
 
+    */
+
+    double*** xc, *** yc, *** xold, *** yold; // Not sure what these are- they are domain variables though!
+
+    double*** pt, *** rhot, *** ut, *** vt, *** Et, *** Tt, *** Ht;// Not sure what these are- they are domain variables though!
+    double*** pRK, *** rhoRK, *** uRK, *** vRK, *** ERK, *** TRK, *** HRK, *** sonic_x, *** sonic_y; // Not sure what these are- they are domain variables though!
+
     /* MESHING ALL DOMAINS (NEW AND OLD ALIKE) */
+    // This has not yet been touched: I hope I can leave this out?
     compute_mesh(NDOMAIN,NXtot,NYtot,x,y,xc,yc,XSTART,YSTART,XLENGTH,YLENGTH,GRID_RATIO_X,GRID_RATIO_Y,NGHOST);
 
     /* EXPORT PARAMETERS REQUIRED FOR POST-PROCESSING AND SOLUTION RECONSTRUCTION */
-    export_parameters(NDOMAIN,TSIM,DT,XSTART,YSTART,XLENGTH,YLENGTH,N_VALVE,N_FEM,NXtot,NYtot,NGHOST,numberOfIterationsBetweenDataExport,W_FORMAT,PAR_FILENAME);
+    //export_parameters(NDOMAIN,TSIM,DT,XSTART,YSTART,XLENGTH,YLENGTH,N_VALVE,N_FEM,NXtot,NYtot,NGHOST,numberOfIterationsBetweenDataExport,W_FORMAT,PAR_FILENAME);
 
 
     /* INITIAL CONDITIONS BASED ON MICROWAVE DETONATION THEORY */
     double M_MSD, P1, U1, RHO1, M1, P2, RHO2, L_EXP;
     double p_prerun, T_prerun;
     int N_ITER_MSD;
+
+    //TODO: See if the code below is still relevant? For now, let's just focus on the others.
     // If prerun case is involved, replace the reference P/T couple for post-MSD calculation
+    /*
     if (strcmp(SIM_CASE,"sup_plen_rocket")==0)
     {
         // rho_prerun = import_average(dom_up-3,"rho",Nxtot[dom_up-3],NYtot[dom_up-3],NGHOST);
@@ -122,8 +137,9 @@ int main()
     }
     else
     {
+    */
         N_ITER_MSD = solve_MSD(&M_MSD, &P1, &U1, &RHO1, &M1, &P2, &RHO2, &L_EXP,T0,P0,ETA,S0,R,GAMMA,L_TUBE,R0);
-    }
+    //}
     printf("MSD conditions in the rocket were estimated after %d iterations.\n",N_ITER_MSD);
 
 
