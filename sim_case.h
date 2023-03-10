@@ -1,20 +1,19 @@
 #pragma once
 #include "domain.h"
 #include <map>
+#include "runtime_parameters.h"
 
 
 struct SimCase {
-	SimCase()
-	{
-		
-	}
+	SimCase();
+	
+	RuntimeParameters runtimeParameters;
 
 	std::map<int, Domain> domains; // The domains that are part of this SimCase
 	std::map<std::string, int> domainIDS;
 
 	double reference_mach = 0.; // Reference mach number. I assume of the flow outside of the domain?. Formerly M0.
-
-	
+	int totalSimulationTimeStepCount;
 
 	// Reed valve setup
 	int numberOfReedValves = 0;

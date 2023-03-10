@@ -1,6 +1,15 @@
 #include "sim_case.h"
 #include <stdexcept>
 
+#include "parameters.h"  // List of parameters specified by user
+
+SimCase::SimCase()
+{
+	totalSimulationTimeStepCount = (int)(1 + TSIM / DT);  // Number of time steps
+	runtimeParameters = RuntimeParameters(*this);
+
+}
+
 Domain* SimCase::AddDomain(const int id, const std::string name)
 {
 	auto it = domains.insert({ id, Domain(name) });

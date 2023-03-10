@@ -328,6 +328,7 @@ void init_case(char *case_name, double *l_v_tot, double *M_ref, int *lower_domai
             GRID_RATIO_X[i] = graded_ratio_x[i];
             GRID_RATIO_Y[i] = graded_ratio_y[i];
 
+            // Why use a graded ratio here??? If you're setting a dx anyway...
             NXtot[i] = (int)fmax(2+2*NGHOST,(XLENGTH[i]/dx/graded_ratio_x[i]+2*NGHOST));
             NYtot[i] = (int)fmax(2+2*NGHOST,(YLENGTH[i]/dy/graded_ratio_y[i]+2*NGHOST));
         }

@@ -75,11 +75,12 @@ struct Domain
 	double YSTART;             // the y coordinate of the most bottom left point for the domains.
 	double XLENGTH;            // The length of the domains in the x-direction
 	double YLENGTH;            // The length of the domains in the y-direction
-	double GRID_RATIO_X;
-	double GRID_RATIO_Y;
 	double X_V_START;
+	int NXtot;					// total amount of cells in the x-direction
+	int NYtot;					// total amount of cells in the y-direction
 	Boundary boundaries[4];
-	SimCase* simCase = nullptr;
 
-	void SetBoundaryType(const EBoundaryLocation location, const EBoundaryType type)
+	void SetBoundaryType(const EBoundaryLocation location, const EBoundaryType type);
+
+	void InitialiseDomain();
 };
