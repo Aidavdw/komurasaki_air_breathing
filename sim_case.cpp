@@ -24,9 +24,29 @@ void SimCase::ConnectBoundaries(const int domainOneIdx, const EBoundaryLocation 
 		throw std::invalid_argument("Cannot connect two boundaries on the same domain");
 	}
 
-	// Setting it for one boundary
 	Boundary* b1 = &domains.at(domainOneIdx).boundaries[domainOneLocation];
 	Boundary* b2 = &domains.at(domainTwoIdx).boundaries[domainTwoLocation];
+
+	// Boundaries can only be connected if they align axis-wise.
+	int axis1 = (domainOneLocation < 1);
+	int axis2 = (domainTwoLocation < 1);
+	if (axis1 != axis2)
+	{
+		throw std::invalid_argument("Cannot connect two boundaries that are not aligned.");
+	}
+
+	// Can only connect if they have the same size
+	if (domains.at(domainOneIdx).size[axis1] != domains.at(domainTwoIdx).size[axis1])
+	{
+		throw std::invalid_argument("Cannot connect two boundaries that are not the same size.");
+	}
+
+	// Can only connect if they have the same resolution
+	if (domains.at(domainOneIdx).gridResolution[axis1] != domains.at(domainTwoIdx).gridResolution[axis1])
+	{
+		throw std::invalid_argument("Cannot connect two boundaries that do not have the same amount of cells.");
+	}
+
 	b1->boundaryType = EBoundaryType::CONNECTED;
 	b2->boundaryType = EBoundaryType::CONNECTED;
 	b1->connectedBoundary = b2;

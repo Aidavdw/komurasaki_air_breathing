@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 
+
 class SimCase;
 
 // Determines how the flow will interact with the boundary of the domain.
@@ -49,38 +50,27 @@ struct Boundary
 struct Domain
 {
 	Domain(std::string& name) :
-		name(name),
-		XSTART(0),
-		YSTART(0),
-		XLENGTH(0),
-		YLENGTH(0),
-		GRID_RATIO_X(0),
-		GRID_RATIO_Y(0),
-		X_V_START(0)
-	{};
-	Domain(std::string& name, double XSTART, double YSTART, double XLENGTH, double YLENGTH, double GRID_RATIO_X, double GRID_RATIO_Y, double X_V_START) :
-		name(name),
-		XSTART(XSTART),
-		YSTART(YSTART),
-		XLENGTH(XLENGTH),
-		YLENGTH(YLENGTH),
-		GRID_RATIO_X(GRID_RATIO_X),
-		GRID_RATIO_Y(GRID_RATIO_Y),
-		X_V_START(X_V_START)
-	{};
+		name(name)
+	{};	
 
 	std::string name;
 
-	double XSTART;             // the x coordinate of the most bottom left point for the domains.
-	double YSTART;             // the y coordinate of the most bottom left point for the domains.
-	double XLENGTH;            // The length of the domains in the x-direction
-	double YLENGTH;            // The length of the domains in the y-direction
-	double X_V_START;
-	int NXtot;					// total amount of cells in the x-direction
-	int NYtot;					// total amount of cells in the y-direction
+	double position[2] = {0,0};			// the coordinate of the most bottom left point for the domains.
+	double size[2] = {0,0};				// The total extents of the domain
+	double X_V_START = 0;
+	int gridResolution[2] = {0,0};		// total amount of cells in the axis direction. This includes the ghost cells.
 	Boundary boundaries[4];
 
 	void SetBoundaryType(const EBoundaryLocation location, const EBoundaryType type);
 
-	void InitialiseDomain();
+	// Function replacing NXtot/NYtot
+	int GetAmountOfCellsInAxis(const unsigned int axis) const;
+
+	// Gets the total amount of cells in a specific axis.
+	int GetCellResolutionInAxis(const int axis) const;
+
+	int GetTotalAmountOfCells() const;
 };
+
+
+void ValidateAxisInput(const int axis);

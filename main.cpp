@@ -44,33 +44,15 @@ int main()
     struct timespec start_time, end_time,start_time_loop,end_time_loop;
     clock_gettime( CLOCK_REALTIME, &start_time);
 
+    
+    int SOLID_ON = 0; // Not sure what this parameter does yet. It's 0 in all cases, except the rocket ones, where it's 1.
+    int dom_low = 0; // index of the domain that was below
+    int dom_up = 0; // index of the domain that was above
+    int PLENUM_ON = 0; // I think this is a flag on whether or not to use the plenum calculation
+
     // Load the case. For now, this is hardcoded as the case_det_tube, but should be relatively easy to swap out later when serialisation is properly implemented.
     SimCase simCase;
     LoadCase(&simCase);
-
-
-    // INITIALIZE CASE
-    // TODO: This variable is vague? define what it really is- the reed valve total length or the entire rocket length.
-    double L_T;                 // Reed valve total length
-    double M0;                  // Reference mach number. I assume of the flow outside of the domain?
-
-    // The values below are on a per-domain basis; each index is for a new domain.
-	double *XSTART;             // the x coordinate of the most bottom left point for the domains.
-	double *YSTART;             // the y coordinate of the most bottom left point for the domains.
-	double *XLENGTH;            // The length of the domains in the x-direction
-	double *YLENGTH;            // The length of the domains in the y-direction
-	double *GRID_RATIO_X;
-	double *GRID_RATIO_Y;
-	double *X_V_START;
-    char *B_LOC, ***B_TYPE;
-    int *NXtot, *NYtot, N_VALVE=0, SOLID_ON=0, dom_low, dom_up, PLENUM_ON=0;
-    int NDOMAIN = 0; // The total number of domain blocks that are in this simulation case. Note that right now, this variable has a problem in that it is passed as a parameter for array size, which is C-illegal.
-    init_case(SIM_CASE,&L_T,&M0,&dom_low,&dom_up,&XSTART,&YSTART,&XLENGTH,&YLENGTH,&GRID_RATIO_X,&GRID_RATIO_Y,&X_V_START,&B_LOC,&B_TYPE,&NXtot,&NYtot,&NDOMAIN,&N_VALVE,&SOLID_ON,&PLENUM_ON);
-
-    /* TIME STEP, EXPORT SPAN AND BASIC GRID SIZE */
-    int Ntstep = (int)(1+TSIM/DT);                           // Number of time steps
-    int N_CFL = (int)fmax(1,(int)(Ntstep)/N_STEP_CFL);       // Amount of iterations that are done between two displays of CFL
-    int N_EXPORT = (int)fmax(1,(int)(Ntstep)/N_STEP_EXP);    // Amount of iterations that are done between two exports of data
 
 
     /* CREATE OUTPUT FOLDER */
@@ -78,28 +60,13 @@ int main()
 
 
     /* TOTAL NUMBER OF CELLS IN CURRENT SIMULATION, ORDER OF DX/DY */
-    int Ncell = 0; // The total number of cells in the simulation, spread over all the domains
-    for (int i = 0; i < NDOMAIN; ++i)
+    int totalNumberOfCellsInAllDomainsCombined = 0; // The total number of cells in the simulation, spread over all the domains
+    for (auto& domain : simCase.domains)
     {
-        Ncell += (NXtot[i]-2*NGHOST)*(NYtot[i]-2*NGHOST);
-    }
-	printf("Total number of cells (without ghost cells) is: " BLU "%d" RESET " cells.\n",Ncell);
-    printf("Reference cell size based on domain 0 is: DX="BLU "%f" RESET " m and DY=" BLU "%f" RESET " m.\n",XLENGTH[0]/(NXtot[0]-2*NGHOST),YLENGTH[0]/(NYtot[0]-2*NGHOST));
-    
-
-    /* CHECKING DOMAIN BOUNDARIES */
-    printf("\nVerification of boundaries for each domain:\n");
-    for (int i = 0; i < NDOMAIN; ++i)
-    {
-        printf("DOMAIN %d (%d x %d cells) boundaries: %s - %s - %s - %s.\n",i,NXtot[i]-2*NGHOST,NYtot[i]-2*NGHOST,B_TYPE[i][0],B_TYPE[i][1],B_TYPE[i][2],B_TYPE[i][3]);
+        totalNumberOfCellsInAllDomainsCombined += domain.second.GetTotalAmountOfCells();
     }
 
-
-    /* DISPLAY INFORMATION ON TERMINAL */
-    printf("\nCFL will be displayed every " BLU "%d" RESET " iterations (%.2f ms).\n",N_CFL,N_CFL*DT*1000);
-    printf("Results will be exported every " BLU "%d " RESET "iterations (%.2f ms).\n",N_EXPORT,N_EXPORT*DT*1000);
-    printf("Total number of iterations is: " BLU "%d " RESET "iterations.\n",Ntstep-1);
-    printf("(Pref,Tref,Mref) = " BLU "(%f, %f, %f)" RESET ".\n", P0,T0,M0);
+	printf("Total number of cells (without ghost cells) is: " BLU "%d" RESET " cells.\n",totalNumberOfCellsInAllDomainsCombined);
 
 
     /* VARIABLE DEFINITION AND ALLOCATION FOR FLUID MODEL */
@@ -137,7 +104,7 @@ int main()
     compute_mesh(NDOMAIN,NXtot,NYtot,x,y,xc,yc,XSTART,YSTART,XLENGTH,YLENGTH,GRID_RATIO_X,GRID_RATIO_Y,NGHOST);
 
     /* EXPORT PARAMETERS REQUIRED FOR POST-PROCESSING AND SOLUTION RECONSTRUCTION */
-    export_parameters(NDOMAIN,TSIM,DT,XSTART,YSTART,XLENGTH,YLENGTH,N_VALVE,N_FEM,NXtot,NYtot,NGHOST,N_EXPORT,W_FORMAT,PAR_FILENAME);
+    export_parameters(NDOMAIN,TSIM,DT,XSTART,YSTART,XLENGTH,YLENGTH,N_VALVE,N_FEM,NXtot,NYtot,NGHOST,numberOfIterationsBetweenDataExport,W_FORMAT,PAR_FILENAME);
 
 
     /* INITIAL CONDITIONS BASED ON MICROWAVE DETONATION THEORY */
@@ -620,7 +587,7 @@ int main()
 
     printf("Starting main time loop...\n");
     /* START TIME LOOP */
-    for (int t = 1; t < Ntstep; ++t)
+    for (int t = 1; t < totalSimulationTimeStepCount; ++t)
     {
         /* 4TH ORDER RUNGE-KUTTA PREDICTOR-CORRECTOR LOOP */
         for (int trk = 0; trk < RK_ORDER; ++trk)
@@ -1192,7 +1159,7 @@ int main()
         }
 
         /* EXPORT ALL FLUID AND SOLID DATA EVERY N STEPS */
-        if(t%N_EXPORT==0)
+        if(t%numberOfIterationsBetweenDataExport==0)
         {
             // Fluid data export
             export_fluid_data(NDOMAIN,NXtot,NYtot,x,y,xc,yc,rho,u,v,p,E,T,H,DT*t,OUT_FOLDERNAME,EXP_EXTENSION,W_FORMAT);
@@ -1207,7 +1174,7 @@ int main()
 
 
         /* DISPLAY CFL */
-        if(t%N_CFL==0)
+        if(t%numberOfIterationsBetweenCFLLog==0)
         {
             // COMPUTE CFL (BASED ON TOTAL VELOCITY)
             CFL = get_cfl(x,y,u,v,T,R,GAMMA,NDOMAIN,NXtot,NYtot,DT);
@@ -1215,7 +1182,7 @@ int main()
             // COUNTING TIME BETWEEN ITERATIONS
             clock_gettime(CLOCK_REALTIME,&end_time_loop);
             SIM_TIME_LOOP = (end_time_loop.tv_sec - start_time_loop.tv_sec)+(end_time_loop.tv_nsec - start_time_loop.tv_nsec)/1E9;
-            printf("Iteration %d (%.1f %%)... Max. CFL at t=%.5f sec is: %f. \n[completed in %f sec]\n",t,(double)(t)/Ntstep*100.0,DT*t,CFL,SIM_TIME_LOOP);
+            printf("Iteration %d (%.1f %%)... Max. CFL at t=%.5f sec is: %f. \n[completed in %f sec]\n",t,(double)(t)/totalSimulationTimeStepCount*100.0,DT*t,CFL,SIM_TIME_LOOP);
             clock_gettime(CLOCK_REALTIME,&start_time_loop);
 
             // RESET BEFORE NEXT LOOP
@@ -1232,7 +1199,7 @@ int main()
     printf("\nSimulation time was: %f s.",SIM_TIME);
     printf("\nSimulation time was: %f min.",SIM_TIME/60.0);
     printf("\nSimulation time was: %f hours.",SIM_TIME/3600.0);
-    printf("\nSimulation time per cell and 1000 iterations was: %f s.",SIM_TIME/Ncell/Ntstep*1000);
+    printf("\nSimulation time per cell and 1000 iterations was: %f s.",SIM_TIME/totalNumberOfCellsInAllDomainsCombined/totalSimulationTimeStepCount*1000);
     printf("\nSIMULATION COMPLETE! -Florian   ");
 
 }

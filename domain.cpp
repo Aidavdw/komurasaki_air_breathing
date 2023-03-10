@@ -5,7 +5,6 @@
 #include "parameters.h"
 
 
-
 void Domain::SetBoundaryType(const EBoundaryLocation location, const EBoundaryType type)
 {
 	if (type == EBoundaryType::CONNECTED)
@@ -16,8 +15,27 @@ void Domain::SetBoundaryType(const EBoundaryLocation location, const EBoundaryTy
 	boundaries[location] = Boundary(type);
 }
 
-void Domain::InitialiseDomain()
+int Domain::GetAmountOfCellsInAxis(const unsigned int axis) const
 {
-	NXtot = std::max(2 + 2 * NGHOST, (XLENGTH[i] / dx / graded_ratio_x[i] + 2 * NGHOST));
-	NYtot = std::max(2 + 2 * NGHOST, (YLENGTH[i] / dy / graded_ratio_y[i] + 2 * NGHOST));
+	ValidateAxisInput(axis);
+	std::max(2 + 2 * NGHOST, gridResolution[axis] + 2 * NGHOST);
+}
+
+int Domain::GetCellResolutionInAxis(const int axis) const
+{
+	ValidateAxisInput(axis);
+	return size[axis] / gridResolution[axis];
+}
+
+int Domain::GetTotalAmountOfCells() const
+{
+	return gridResolution[0] * gridResolution[y]
+}
+
+void ValidateAxisInput(const int axis)
+{
+	if (axis > 1 || axis < 0)
+	{
+		throw std::invalid_argument("Cannot get access axis with the required index; there are only 2, X and Y!");
+	}
 }
