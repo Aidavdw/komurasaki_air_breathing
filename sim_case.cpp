@@ -1,14 +1,14 @@
 #include "sim_case.h"
 #include <stdexcept>
 
-Domain* SimCase::AddDomain(int id, std::string name)
+Domain* SimCase::AddDomain(const int id, const std::string name)
 {
 	auto it = domains.insert({ id, Domain(name) });
 	domainIDS.insert({ name, id });
 	return &it.first->second;
 }
 
-void SimCase::ConnectBoundaries(int domainOneIdx, EBoundaryLocation domainOneLocation, int domainTwoIdx, EBoundaryLocation domainTwoLocation)
+void SimCase::ConnectBoundaries(const int domainOneIdx, const EBoundaryLocation domainOneLocation, const int domainTwoIdx, const EBoundaryLocation domainTwoLocation)
 {
 	if (domainOneIdx == domainTwoIdx)
 	{
@@ -24,7 +24,7 @@ void SimCase::ConnectBoundaries(int domainOneIdx, EBoundaryLocation domainOneLoc
 	b2->connectedBoundary = b1;
 }
 
-void SimCase::ConnectBoundaries(std::string domainOneName, EBoundaryLocation domainOneLocation, std::string domainTwoName, EBoundaryLocation domainTwoLocation)
+void SimCase::ConnectBoundaries(const std::string domainOneName, const EBoundaryLocation domainOneLocation, const std::string domainTwoName, const EBoundaryLocation domainTwoLocation)
 {
 	int domainOneIdx = domainIDS.at(domainOneName);
 	int domainTwoIdx = domainIDS.at(domainTwoName);

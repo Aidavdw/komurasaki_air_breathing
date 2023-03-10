@@ -4,7 +4,7 @@
 
 
 
-void Domain::SetBoundaryType(EBoundaryLocation location, EBoundaryType type)
+void Domain::SetBoundaryType(const EBoundaryLocation location, const EBoundaryType type)
 {
 	if (type == EBoundaryType::CONNECTED)
 	{

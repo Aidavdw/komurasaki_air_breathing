@@ -20,9 +20,9 @@ struct SimCase {
 	int numberOfReedValves = 0;
 	double reed_valve_total_length = 0.; // Total length of the reed valve, with the fixed part and the flexible part combined.
 
-	Domain* AddDomain(int id, std::string name);
+	Domain* AddDomain(const int id, const std::string name);
 
-	void ConnectBoundaries(int domainOneIdx, EBoundaryLocation domainOneLocation, int domainTwoIdx, EBoundaryLocation domainTwoLocation);
-	void ConnectBoundaries(std::string domainOneName, EBoundaryLocation domainOneLocation, std::string domainTwoName, EBoundaryLocation domainTwoLocation);
+	void ConnectBoundaries(const int domainOneIdx, const EBoundaryLocation domainOneLocation, const int domainTwoIdx, const EBoundaryLocation domainTwoLocation);
+	void ConnectBoundaries(const std::string domainOneName, const EBoundaryLocation domainOneLocation, const std::string domainTwoName, const EBoundaryLocation domainTwoLocation);
 
 };

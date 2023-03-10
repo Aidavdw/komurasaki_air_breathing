@@ -81,5 +81,5 @@ struct Domain
 	Boundary boundaries[4];
 	SimCase* simCase = nullptr;
 
-	void SetBoundaryType(EBoundaryLocation location, EBoundaryType type)
+	void SetBoundaryType(const EBoundaryLocation location, const EBoundaryType type)
 };
