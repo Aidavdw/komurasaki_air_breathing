@@ -31,6 +31,9 @@
 #include "bound_cond.h"  // Boundary conditions
 #include "fem_model.h"   // FEM model of the reed valve
 
+#include "sim_case.h"
+#include "case_det_tube.cpp" // Temporary hard-code of specific case implementation
+
 
 /* MAIN ROUTINE */
 int main()
@@ -40,6 +43,11 @@ int main()
     printf("\nProgram starting...\n");
     struct timespec start_time, end_time,start_time_loop,end_time_loop;
     clock_gettime( CLOCK_REALTIME, &start_time);
+
+    // Load the case. For now, this is hardcoded as the case_det_tube, but should be relatively easy to swap out later when serialisation is properly implemented.
+    SimCase simCase;
+    LoadCase(&simCase);
+
 
     // INITIALIZE CASE
     // TODO: This variable is vague? define what it really is- the reed valve total length or the entire rocket length.
