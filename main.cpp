@@ -121,6 +121,7 @@ int main()
 
     /* INITIAL CONDITIONS BASED ON MICROWAVE DETONATION THEORY */
     // This works pretty stand-alone. Only refactoring I've done here is inlined the dependency on the values in parameters.h.
+    // These values don't appear to be referenced anywhere though
     double detonationMachNumber, P1, U1, RHO1, M1, P2, RHO2, L_EXP;
     //double p_prerun, T_prerun;
     int N_ITER_MSD;
@@ -148,11 +149,12 @@ int main()
 
     /* INITIAL CONDITIONS ON DOMAINS */
 
+    // These are not the comments you want to find in your code..... morituri te salutant.
+    //int ARRAY_WIDTH=567;  //We will meet dimension problem due to the size of the grid and number of cells 
+    //int ARRAY_LEN=63;      //add +1 to the normal size (don't know why) BE SURE TO MATCH WITH NX CELLS AND NY CELLS TO THE ONE IN parameters.h
 
-    int ARRAY_WIDTH=567;  //We will meet dimension problem due to the size of the grid and number of cells 
-    int ARRAY_LEN=63;      //add +1 to the normal size (don't know why) BE SURE TO MATCH WITH NX CELLS AND NY CELLS TO THE ONE IN parameters.h
 
-
+    // Old: Initialising arrays for initial conditions.
     double *ini_p[ARRAY_WIDTH];
     double *ini_u[ARRAY_WIDTH];
     double *ini_v[ARRAY_WIDTH];
@@ -172,6 +174,8 @@ int main()
 
     fp = fopen ("p_new.csv", "r");      //open file , read only
 
+
+    // why read values if they're initial values?
 
     while ((read = getline (&buffer, &len, fp)) != -1) {
 
@@ -298,12 +302,15 @@ int main()
         printf (" %f", ini_u[2][3]);    //just proved what I have is a really big 2D array but what is useful is just in between [0:2500][0:40]
     puts ("");                            //it starts at 0 be careful
 
+    
+    // End allocating heap memory for initial condition arrays.
 
 
 
     
     /* Microwave Rocket at ground */
-        
+    // I think this is again just reading the files, but now for the microwave rocket at ground case.
+
 
     for (int k = 0; k < NDOMAIN; ++k)
     {
@@ -318,7 +325,7 @@ int main()
                     
                 for (int j = NGHOST; j < NYtot[k]-NGHOST; ++j)
                 {
-                    
+                    // A: Only here does it actually start reading off the initial values
                     p[k][i][j]=ini_p[i-2][j-2]; 
                     rho[k][i][j]=ini_rho[i-2][j-2];
                     T[k][i][j]=ini_p[i-2][j-2]/(ini_rho[i-2][j-2]*R);
@@ -364,7 +371,7 @@ int main()
         
     }
 
-    //apply_initial_conditions(SIM_CASE,NDOMAIN,NXtot,NYtot,x,rho,u,v,p,E,T,H,NGHOST,detonationMachNumber,P1,U1,RHO1,M1,P2,RHO2,L_EXP,L_TUBE,T0,P0,M0,R,GAMMA, ini_u, ini_v, ini_rho, ini_p);
+    apply_initial_conditions(SIM_CASE,NDOMAIN,NXtot,NYtot,x,rho,u,v,p,E,T,H,NGHOST,detonationMachNumber,P1,U1,RHO1,M1,P2,RHO2,L_EXP,L_TUBE,T0,P0,M0,R,GAMMA, ini_u, ini_v, ini_rho, ini_p);
     printf("\nInitial conditions applied...\n");
 
 
