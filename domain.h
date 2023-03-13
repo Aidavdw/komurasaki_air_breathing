@@ -50,16 +50,14 @@ struct Boundary
 // Contains information on a specific domain.
 struct Domain
 {
-	Domain(std::string& name) :
-		name(name)
-	{};	
+	Domain(std::string& name, const double position[2], const double size[2], const int amountOfCells[2]);
 
 	std::string name;
 
-	double position[2] = {0,0};			// the coordinate of the most bottom left point for the domains.
-	double size[2] = {0,0};				// The total extents of the domain
+	double position[2] = {0,0};					// the coordinate of the most bottom left point for the domains.
+	double size[2] = {0,0};						// The total extents of the domain
 	double X_V_START = 0;
-	int gridResolution[2] = {0,0};		// total amount of cells in the axis direction. This includes the ghost cells.
+	int amountOfCells[2] = {0,0};				// total amount of cells in the axis direction. This includes the ghost cells.
 	Boundary boundaries[4];
 
 	FieldQuantity rho; // Density

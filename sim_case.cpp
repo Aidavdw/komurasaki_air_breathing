@@ -6,7 +6,7 @@
 SimCase::SimCase()
 {
 	totalSimulationTimeStepCount = (int)(1 + TSIM / DT);  // Number of time steps
-	runtimeParameters = RuntimeParameters(*this);
+	runtimeParameters = RuntimeParameters(this);
 
 }
 
@@ -42,7 +42,7 @@ void SimCase::ConnectBoundaries(const int domainOneIdx, const EBoundaryLocation 
 	}
 
 	// Can only connect if they have the same resolution
-	if (domains.at(domainOneIdx).gridResolution[axis1] != domains.at(domainTwoIdx).gridResolution[axis1])
+	if (domains.at(domainOneIdx).amountOfCells[axis1] != domains.at(domainTwoIdx).amountOfCells[axis1])
 	{
 		throw std::invalid_argument("Cannot connect two boundaries that do not have the same amount of cells.");
 	}

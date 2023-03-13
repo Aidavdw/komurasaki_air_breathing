@@ -3,8 +3,8 @@
 #include "parameters.h"
 #include "sim_case.h"
 
-RuntimeParameters::RuntimeParameters(const SimCase& simCase)
+RuntimeParameters::RuntimeParameters(const int totalSimulationTimeStepCount)
 {
-	numberOfIterationsBetweenCFLLog = std::max(1, simCase.totalSimulationTimeStepCount / N_STEP_CFL);       // Amount of iterations that are done between two displays of CFL
-	numberOfIterationsBetweenDataExport = std::max(1, simCase.totalSimulationTimeStepCount / N_STEP_EXP);    // Amount of iterations that are done between two exports of data
+	numberOfIterationsBetweenCFLLog = std::max(1, totalSimulationTimeStepCount / N_STEP_CFL);       // Amount of iterations that are done between two displays of CFL
+	numberOfIterationsBetweenDataExport = std::max(1, totalSimulationTimeStepCount / N_STEP_EXP);    // Amount of iterations that are done between two exports of data
 }
