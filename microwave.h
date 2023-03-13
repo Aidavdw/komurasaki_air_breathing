@@ -7,12 +7,17 @@
 
 */
 
+// Represents a solution to a 1-d Chapman-Jouget detonation problem
 struct ChapmanJougetDetonationSolution
 {
+    ChapmanJougetDetonationSolution();
+
+    int iters_performed = 0;
+
     double m_msd = 0;
     double p1 = 0;
     double u1 = 0;
-    double rho = 0;
+    double rho1 = 0;
     double m1 = 0;
     double p2 = 0;
     double rho2 = 0;
@@ -25,10 +30,9 @@ double eval_msd_function(double x, double c);
 /* Derivative of function to solve to find MSD Mach number */
 double eval_msd_deriv(double x, double c);
 
-
-// T0,P0,ETA,S0,R,GAMMA,L_TUBE,R0
-/* Compute initial pressure, density and temperature conditions based on Newton-Raphson's method */
-int solve_MSD(double* m_msd, double* p1, double* u1, double* rho1, double* m1, double* p2, double* rho2, double* l_exp);
+//todo: rename R0 parameter, as its confusing. I think that R0 here is the radius of the tube!
+/* Compute initial pressure, density and temperature conditions based on Newton-Raphson's method.  */
+ChapmanJougetDetonationSolution SolveChapmanJougetDetonationProblem(const double T0, const double P0, const double ETA, const double S0, const double R, const double GAMMA, const double L_TUBE, const double R0, const double convergenceThreshold = 1.0E-10);
 
 
 

@@ -36,19 +36,18 @@ int main()
     make_dir(OUT_FOLDERNAME);
 
     /* DISPLAY INFORMATION ON TERMINAL */
-    std::cout << "Total length of the simulation is " << TSIM << "s, with dt = " << DT << " ms (" << simCase.totalSimulationTimeStepCount << " steps).";
-    std::cout << "CFL will be displayed every " << simCase.runtimeParameters.numberOfIterationsBetweenCFLLog << "timesteps (" << simCase.runtimeParameters.numberOfIterationsBetweenCFLLog * DT*1000 <<"ms).";
-    std::cout << "Field properties will be exported every " << simCase.runtimeParameters.numberOfIterationsBetweenDataExport << "timesteps (" << simCase.runtimeParameters.numberOfIterationsBetweenDataExport * DT*1000 <<"ms).";
+    std::cout << "Total length of the simulation is " << TSIM << "s, with dt = " << DT << " ms (" << simCase.totalSimulationTimeStepCount << " steps)." << std::endl;
+    std::cout << "CFL will be displayed every " << simCase.runtimeParameters.numberOfIterationsBetweenCFLLog << "timesteps (" << simCase.runtimeParameters.numberOfIterationsBetweenCFLLog * DT*1000 <<"ms)." << std::endl;
+    std::cout << "Field properties will be exported every " << simCase.runtimeParameters.numberOfIterationsBetweenDataExport << "timesteps (" << simCase.runtimeParameters.numberOfIterationsBetweenDataExport * DT*1000 <<"ms)." << std::endl;
 
     /* EXPORT PARAMETERS REQUIRED FOR POST-PROCESSING AND SOLUTION RECONSTRUCTION */
     //export_parameters(NDOMAIN,TSIM,DT,XSTART,YSTART,XLENGTH,YLENGTH,N_VALVE,N_FEM,NXtot,NYtot,NGHOST,N_EXPORT,W_FORMAT,PAR_FILENAME);
 
 
     /* INITIAL CONDITIONS BASED ON MICROWAVE DETONATION THEORY */
-    double M_MSD, P1, U1, RHO1, M1, P2, RHO2, L_EXP;
-    int N_ITER_MSD;
-    N_ITER_MSD = solve_MSD(&M_MSD, &P1, &U1, &RHO1, &M1, &P2, &RHO2, &L_EXP, T0, P0, ETA, S0, R, GAMMA, L_TUBE, R0);
-    printf("MSD conditions in the rocket were estimated after %d iterations.\n",N_ITER_MSD);
+    ChapmanJougetDetonationSolution initialDetonationSolution = SolveChapmanJougetDetonationProblem(T0, P0, ETA, S0, R, GAMMA, L_TUBE, R0);
+    std::cout << "Chapman-Jouget Detonation solution for initial conditions found after " << initialDetonationSolution.iters_performed << " iterations." << std::endl;
+    std::cout << "Pre-"
 
 
     /* INITIAL CONDITIONS ON DOMAINS */
