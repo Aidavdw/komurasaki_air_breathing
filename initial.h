@@ -6,14 +6,18 @@ void apply_initial_conditions(char *sim_case, int ndom, int *nx, int *ny, double
     /* First case defined by user... */
     if (strcmp(sim_case,"det_tube")==0)
     {
+        // Iterate over domains
         for (int k = 0; k < ndom; ++k)
         {
             double x_center;
             switch(k)
             {
                 case 0:
+                // If it is domain 0? I think this is always hardcoded to be the inside of the detonation tube.
+                // Iterate over x coordinates (columns!) that are not fully ghost cells
                 for (int i = nghost; i < nx[k]-nghost; ++i)
                 {
+                    // Depending on if this column
                     x_center = 0.5*(x[k][i][nghost]+x[k][i+1][nghost]);
                     if (x_center <= l_exp)
                     {

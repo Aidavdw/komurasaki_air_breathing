@@ -1,5 +1,3 @@
-#include "parameters.h"
-
 /*  This file contains functions that are related with Microwave Beaming and MSD theory:
     - eval_msd_function: Evaluates the value of function to solve to derive MSD Mach number.
     - eval_msd_deriv: Evaluates the value of the derivative of the former function.
@@ -10,18 +8,22 @@
 // Represents a solution to a 1-d Chapman-Jouget detonation problem
 struct ChapmanJougetDetonationSolution
 {
-    ChapmanJougetDetonationSolution();
+    ChapmanJougetDetonationSolution()
+    {
 
-    int iters_performed = 0;
+    };
 
-    double m_msd = 0;
-    double p1 = 0;
-    double u1 = 0;
-    double rho1 = 0;
-    double m1 = 0;
-    double p2 = 0;
-    double rho2 = 0;
-    double l_exp = 0;
+    int iters_performed = 0;            // The amount of iterations performed solving the Chapman-Jouget equation before this solution was achieved.
+
+    double m_msd = 0;                   // Mach number at which the detonation front propogates.
+    double detonation_velocity = 0;     // Velocity of the detonation front
+    double p1 = 0;                      // post-detonation pressure
+    double u1 = 0;                      // post-detonation speed ? not sure what it represents
+    double rho1 = 0;                    // post-detonation density
+    double m1 = 0;                      // post-expansion mach number
+    double p2 = 0;                      // post-expansion pressure
+    double rho2 = 0;                    // post-expansion density
+    double l_exp = 0;                   // The position of the tail of the expansion region
 };
 
 /* Function to solve to find MSD Mach number */
@@ -34,6 +36,3 @@ double eval_msd_deriv(double x, double c);
 /* Compute initial pressure, density and temperature conditions based on Newton-Raphson's method.  */
 ChapmanJougetDetonationSolution SolveChapmanJougetDetonationProblem(const double T0, const double P0, const double ETA, const double S0, const double R, const double GAMMA, const double L_TUBE, const double R0, const double convergenceThreshold = 1.0E-10);
 
-
-
-/* End of file */

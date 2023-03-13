@@ -79,7 +79,11 @@ struct Domain
 	int GetCellResolutionInAxis(const int axis) const;
 
 	int GetTotalAmountOfCells() const;
+
+	//todo: implement output in format of CellQuantities
+	//CellValues GetValuesInCell(const int xidx, const int yidx);
 };
+
 
 
 void ValidateAxisInput(const int axis);

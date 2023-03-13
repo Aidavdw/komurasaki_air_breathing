@@ -29,6 +29,7 @@ struct MeshSpacing
 	double length = 0;
 	int amountOfElements = 1;
 
+	// Gets a the cell size for the size at a certain index. For the ghost cells, the thickness is constant and equal at their edge position.
 	double GetCellSize(const int index);
 	double GetCellPosition(const int index);
 
