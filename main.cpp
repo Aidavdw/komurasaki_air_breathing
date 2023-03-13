@@ -40,30 +40,14 @@ int main()
     std::cout << "CFL will be displayed every " << simCase.runtimeParameters.numberOfIterationsBetweenCFLLog << "timesteps (" << simCase.runtimeParameters.numberOfIterationsBetweenCFLLog * DT*1000 <<"ms).";
     std::cout << "Field properties will be exported every " << simCase.runtimeParameters.numberOfIterationsBetweenDataExport << "timesteps (" << simCase.runtimeParameters.numberOfIterationsBetweenDataExport * DT*1000 <<"ms).";
 
-    /* MESHING ALL DOMAINS (NEW AND OLD ALIKE) */
-    compute_mesh(NDOMAIN,NXtot,NYtot,x,y,xc,yc,XSTART,YSTART,XLENGTH,YLENGTH,GRID_RATIO_X,GRID_RATIO_Y,NGHOST);
-
     /* EXPORT PARAMETERS REQUIRED FOR POST-PROCESSING AND SOLUTION RECONSTRUCTION */
     //export_parameters(NDOMAIN,TSIM,DT,XSTART,YSTART,XLENGTH,YLENGTH,N_VALVE,N_FEM,NXtot,NYtot,NGHOST,N_EXPORT,W_FORMAT,PAR_FILENAME);
 
 
     /* INITIAL CONDITIONS BASED ON MICROWAVE DETONATION THEORY */
     double M_MSD, P1, U1, RHO1, M1, P2, RHO2, L_EXP;
-    double p_prerun, T_prerun;
     int N_ITER_MSD;
-    // If prerun case is involved, replace the reference P/T couple for post-MSD calculation
-    if (strcmp(SIM_CASE,"sup_plen_rocket")==0)
-    {
-        // rho_prerun = import_average(dom_up-3,"rho",Nxtot[dom_up-3],NYtot[dom_up-3],NGHOST);
-        p_prerun = import_average(dom_up-3,"p",NXtot[dom_up-3],NYtot[dom_up-3],NGHOST);
-        T_prerun = import_average(dom_up-3,"T",NXtot[dom_up-3],NYtot[dom_up-3],NGHOST);
-        N_ITER_MSD = solve_MSD(&M_MSD, &P1, &U1, &RHO1, &M1, &P2, &RHO2, &L_EXP,T_prerun,p_prerun,ETA,S0,R,GAMMA,L_TUBE,R0);
-        printf("\nPRERUN CONDITIONS ARE: \nP=%f, \nT=%f. \n",p_prerun,T_prerun);
-    }
-    else
-    {
-        N_ITER_MSD = solve_MSD(&M_MSD, &P1, &U1, &RHO1, &M1, &P2, &RHO2, &L_EXP,T0,P0,ETA,S0,R,GAMMA,L_TUBE,R0);
-    }
+    N_ITER_MSD = solve_MSD(&M_MSD, &P1, &U1, &RHO1, &M1, &P2, &RHO2, &L_EXP, T0, P0, ETA, S0, R, GAMMA, L_TUBE, R0);
     printf("MSD conditions in the rocket were estimated after %d iterations.\n",N_ITER_MSD);
 
 
