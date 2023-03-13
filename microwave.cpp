@@ -1,5 +1,6 @@
 #include "microwave.h"
 #include <math.h>
+#include <stdexcept>
 
 ChapmanJougetDetonationSolution::ChapmanJougetDetonationSolution()
 {
@@ -21,6 +22,7 @@ ChapmanJougetDetonationSolution SolveChapmanJougetDetonationProblem(const double
     ChapmanJougetDetonationSolution solution;
     // todo: This value was defined in main.c, not sure where it came from. Move to different scope?
     const static int M_PI = 4.0 * atan(1.0);
+    const static int MAX_ITERS = 200;
 
     double rho0 = P0 / (R * T0); // Ambient density
     double a0 = sqrt(GAMMA * R * T0); // Ambient speed of sound
@@ -37,6 +39,8 @@ ChapmanJougetDetonationSolution SolveChapmanJougetDetonationProblem(const double
 
     while (fabs(Mcur - Mnext) > convergenceThreshold)
     {
+        if (iters_performed > MAX_ITERS)
+            throw std::runtime_error("Chapman-Jouget detonation took more than the maximum amount of iterations to solve. Are you sure you're doing this right?");
         Mcur = Mnext;
         Mnext = Mcur - eval_msd_function(Mcur, C) / eval_msd_deriv(Mcur, C);
         iters_performed++;
@@ -46,6 +50,9 @@ ChapmanJougetDetonationSolution SolveChapmanJougetDetonationProblem(const double
     solution.m_msd = Mnext;
 
     // Do the same calculation, but now with ETA factor for comparison
+    // A: This appears to not have been implemented fully. Leaving here for the time being
+    //TODO: either remove this eta case, or implement it.
+    /*
     const double C_eta = (pow(GAMMA, 2) - 1) / (2 * pow(a0, 3) * rho0) * 0.49 * Sd;
     Mcur = 0.0;
     double Meta = 0.0;
@@ -56,6 +63,7 @@ ChapmanJougetDetonationSolution SolveChapmanJougetDetonationProblem(const double
         Meta = Mcur - eval_msd_function(Mcur, C_eta) / eval_msd_deriv(Mcur, C_eta);
     }
     //printf("Detonation velocity with ETA=0.49 is: %f m/s.\n",Meta*a0);
+    */
 
     // Post-detonation conditions
     solution.m1 = (pow(Mnext, 2) - 1.0) / (1.0 + GAMMA * pow(Mnext, 2));
@@ -70,6 +78,7 @@ ChapmanJougetDetonationSolution SolveChapmanJougetDetonationProblem(const double
 
     // Computing position of expansion wave front and rear
     solution.l_exp = (L_TUBE / Mnext / a0) * a2;
+    solution.detonation_velocity = Mnext * a0;
 
 
     // printf("\nMean Microwave Power is: %f W/m^2.\n",Sd);
