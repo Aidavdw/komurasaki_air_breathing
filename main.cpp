@@ -1,23 +1,9 @@
-/*  TITLE: 2D C# MICROWAVE BEAMED ENERGY ROCKET MODEL
-    AUTHOR: Florian NGUYEN - The University of Tokyo, 2016-2017
-
-    DESCRIPTION: 
-    A 2D compressible, inviscid solver modelling a microwave rocket tube, several stages of reed valves, and a plenum region compressing inlet flow.
-    Euler equations are solved by means of AUSM-DV scheme and piecewise parabolic MUSCL interpolation with Van Albada limiter (can be modified). 
-    The reed valve is modelled with a Finite Element model as a double tapered, cross-section varying beam, based on which stiffness and mass matrices are computed. Structural damping is assumed to be of Rayleigh type (a*M + b*K), where a and b are fitted with experimental data (free vibration of the valve by Fukunari).
+/* 
+* Rewrite of Florian's code, in cpp
 */
 
-#define getName(var)  #var
-#define M_PI (4.0*atan(1.0))
-#define _POSIX_C_SOURCE 199309L
-
-#include <stdio.h>      // Basic C# header
-#include <stdlib.h>     // Basic C# header
-#include <math.h>       // Mathematical expressions
-#include <string.h>     // To handle strings and char arrays
-#include <time.h>       // For CPU time calculation
-#include <omp.h>        // For multi-processing with Open MP
-#include <sys/stat.h>   // To create directories
+#include <ctime>
+#include <iostream>
 
 #include "colors.h"      // Colors for use in terminal
 #include "parameters.h"  // List of parameters specified by user
@@ -39,81 +25,26 @@
 int main()
 {
     /* STARTING PROGRAM, GETTING TIME... */
-    setbuf(stdout, NULL);
-    printf("\nProgram starting...\n");
-    struct timespec start_time, end_time,start_time_loop,end_time_loop;
-    clock_gettime( CLOCK_REALTIME, &start_time);
+    std::cout << "Program starting...\n";
+    std::time_t timeAtStartOfProgram = std::time(0);
 
     // INITIALIZE CASE
-    double L_T, M0, *XSTART, *YSTART, *XLENGTH, *YLENGTH, *GRID_RATIO_X, *GRID_RATIO_Y, *X_V_START;
-    char *B_LOC, ***B_TYPE;
-    int *NXtot, *NYtot, NDOMAIN=0, N_VALVE=0, SOLID_ON=0, dom_low, dom_up, PLENUM_ON=0;
-    init_case(SIM_CASE,&L_T,&M0,&dom_low,&dom_up,&XSTART,&YSTART,&XLENGTH,&YLENGTH,&GRID_RATIO_X,&GRID_RATIO_Y,&X_V_START,&B_LOC,&B_TYPE,&NXtot,&NYtot,&NDOMAIN,&N_VALVE,&SOLID_ON,&PLENUM_ON);
-
-    /* TIME STEP, EXPORT SPAN AND BASIC GRID SIZE */
-    int Ntstep = (int)(1+TSIM/DT);                           // Number of time steps
-    int N_CFL = (int)fmax(1,(int)(Ntstep)/N_STEP_CFL);       // Iterations between two displays of CFL
-    int N_EXPORT = (int)fmax(1,(int)(Ntstep)/N_STEP_EXP);    // Iterations between two exports of data
-
+    SimCase simCase;
+    LoadCase(&simCase);
 
     /* CREATE OUTPUT FOLDER */
     make_dir(OUT_FOLDERNAME);
 
-
-    /* TOTAL NUMBER OF CELLS IN CURRENT SIMULATION, ORDER OF DX/DY */
-    int Ncell = 0;
-    for (int i = 0; i < NDOMAIN; ++i)
-    {
-        Ncell += (NXtot[i]-2*NGHOST)*(NYtot[i]-2*NGHOST);
-    }
-	printf("Total number of cells (without ghost cells) is: " BLU "%d" RESET " cells.\n",Ncell);
-    printf("Reference cell size based on domain 0 is: DX="BLU "%f" RESET " m and DY=" BLU "%f" RESET " m.\n",XLENGTH[0]/(NXtot[0]-2*NGHOST),YLENGTH[0]/(NYtot[0]-2*NGHOST));
-    
-
-    /* CHECKING DOMAIN BOUNDARIES */
-    printf("\nVerification of boundaries for each domain:\n");
-    for (int i = 0; i < NDOMAIN; ++i)
-    {
-        printf("DOMAIN %d (%d x %d cells) boundaries: %s - %s - %s - %s.\n",i,NXtot[i]-2*NGHOST,NYtot[i]-2*NGHOST,B_TYPE[i][0],B_TYPE[i][1],B_TYPE[i][2],B_TYPE[i][3]);
-    }
-
-
     /* DISPLAY INFORMATION ON TERMINAL */
-    printf("\nCFL will be displayed every " BLU "%d" RESET " iterations (%.2f ms).\n",N_CFL,N_CFL*DT*1000);
-    printf("Results will be exported every " BLU "%d " RESET "iterations (%.2f ms).\n",N_EXPORT,N_EXPORT*DT*1000);
-    printf("Total number of iterations is: " BLU "%d " RESET "iterations.\n",Ntstep-1);
-    printf("(Pref,Tref,Mref) = " BLU "(%f, %f, %f)" RESET ".\n", P0,T0,M0);
-
-
-    /* VARIABLE DEFINITION AND ALLOCATION FOR FLUID MODEL */
-    double ***x, ***y, ***xc, ***yc, ***xold, ***yold;
-    double ***p, ***rho, ***u, ***v, ***E, ***T, ***H;
-    double ***pt, ***rhot, ***ut, ***vt, ***Et, ***Tt, ***Ht;
-    double ***pRK, ***rhoRK, ***uRK, ***vRK, ***ERK, ***TRK, ***HRK, ***sonic_x, ***sonic_y;
-    init_domain(NDOMAIN,NXtot,NYtot,&rho,&u,&v,&p,&E,&T,&H);
-    init_domain(NDOMAIN,NXtot,NYtot,&rhot,&ut,&vt,&pt,&Et,&Tt,&Ht);
-    init_domain(NDOMAIN,NXtot,NYtot,&rhoRK,&uRK,&vRK,&pRK,&ERK,&TRK,&HRK);
-    x = init_variable(NDOMAIN,NXtot,NYtot,1);
-    y = init_variable(NDOMAIN,NXtot,NYtot,1);
-    xold = init_variable(NDOMAIN,NXtot,NYtot,1);
-    yold = init_variable(NDOMAIN,NXtot,NYtot,1);
-    xc = init_variable(NDOMAIN,NXtot,NYtot,0);
-    yc = init_variable(NDOMAIN,NXtot,NYtot,0);
-    sonic_x = init_variable(NDOMAIN,NXtot,NYtot,0);
-    sonic_y = init_variable(NDOMAIN,NXtot,NYtot,0);
-
-    if (p==NULL || u==NULL || v==NULL || rho==NULL || T==NULL || H==NULL || pt==NULL || ut==NULL || vt==NULL || rhot==NULL || Tt==NULL || Ht==NULL || pRK==NULL || uRK==NULL || vRK==NULL || rhoRK==NULL || TRK==NULL || HRK==NULL || x==NULL || y==NULL || xc==NULL || yc==NULL)
-    {
-        fprintf(stderr, "\nERROR: out of memory during allocation! \n");
-        exit(0);
-    }
-    printf("\nAll variables generated successfully...\n");
+    std::cout << "Total length of the simulation is " << TSIM << "s, with dt = " << DT << " ms (" << simCase.totalSimulationTimeStepCount << " steps).";
+    std::cout << "CFL will be displayed every " << simCase.runtimeParameters.numberOfIterationsBetweenCFLLog << "timesteps (" << simCase.runtimeParameters.numberOfIterationsBetweenCFLLog * DT*1000 <<"ms).";
+    std::cout << "Field properties will be exported every " << simCase.runtimeParameters.numberOfIterationsBetweenDataExport << "timesteps (" << simCase.runtimeParameters.numberOfIterationsBetweenDataExport * DT*1000 <<"ms).";
 
     /* MESHING ALL DOMAINS (NEW AND OLD ALIKE) */
     compute_mesh(NDOMAIN,NXtot,NYtot,x,y,xc,yc,XSTART,YSTART,XLENGTH,YLENGTH,GRID_RATIO_X,GRID_RATIO_Y,NGHOST);
 
     /* EXPORT PARAMETERS REQUIRED FOR POST-PROCESSING AND SOLUTION RECONSTRUCTION */
-    export_parameters(NDOMAIN,TSIM,DT,XSTART,YSTART,XLENGTH,YLENGTH,N_VALVE,N_FEM,NXtot,NYtot,NGHOST,N_EXPORT,W_FORMAT,PAR_FILENAME);
+    //export_parameters(NDOMAIN,TSIM,DT,XSTART,YSTART,XLENGTH,YLENGTH,N_VALVE,N_FEM,NXtot,NYtot,NGHOST,N_EXPORT,W_FORMAT,PAR_FILENAME);
 
 
     /* INITIAL CONDITIONS BASED ON MICROWAVE DETONATION THEORY */
