@@ -2,10 +2,6 @@
 #include <math.h>
 #include <stdexcept>
 
-ChapmanJougetDetonationSolution::ChapmanJougetDetonationSolution()
-{
-}
-
 
 double eval_msd_function(double x, double c)
 {
@@ -19,7 +15,9 @@ double eval_msd_deriv(double x, double c)
 
 ChapmanJougetDetonationSolution SolveChapmanJougetDetonationProblem(const double T0, const double P0, const double ETA, const double S0, const double R, const double GAMMA, const double L_TUBE, const double R0, const double convergenceThreshold)
 {
-    ChapmanJougetDetonationSolution solution;
+    CellValues postDetonation;          // The values of the flow after the detonation
+    CellValues postExpansion;           // The values of the flow after the expansion
+
     // todo: This value was defined in main.c, not sure where it came from. Move to different scope?
     const static int M_PI = 4.0 * atan(1.0);
     const static int MAX_ITERS = 200;
@@ -46,8 +44,7 @@ ChapmanJougetDetonationSolution SolveChapmanJougetDetonationProblem(const double
         iters_performed++;
     }
 
-    // Return detonation Mach number by reference
-    solution.m_msd = Mnext;
+
 
     // Do the same calculation, but now with ETA factor for comparison
     // A: This appears to not have been implemented fully. Leaving here for the time being
@@ -65,17 +62,24 @@ ChapmanJougetDetonationSolution SolveChapmanJougetDetonationProblem(const double
     //printf("Detonation velocity with ETA=0.49 is: %f m/s.\n",Meta*a0);
     */
 
+    //TODO: I think this is the post-detonation mach number, but it could be the post-expansion mach number to. Check which one it is.
+    double m1 = (pow(Mnext, 2) - 1.0) / (1.0 + GAMMA * pow(Mnext, 2));
+
     // Post-detonation conditions
-    solution.m1 = (pow(Mnext, 2) - 1.0) / (1.0 + GAMMA * pow(Mnext, 2));
-    solution.p1 = (1.0 + GAMMA * pow(Mnext, 2)) / (GAMMA + 1) * P0;
-    solution.u1 = a0 * Mnext * (pow(Mnext, 2.0) - 1.0) / pow(Mnext, 2.0) / (GAMMA + 1.0);
-    solution.rho1 = (1.0 + GAMMA) * pow(Mnext, 2) / (1.0 + GAMMA * pow(Mnext, 2)) * rho0;
+    postDetonation.p = (1.0 + GAMMA * pow(Mnext, 2)) / (GAMMA + 1) * P0;
+    postDetonation.u = a0 * Mnext * (pow(Mnext, 2.0) - 1.0) / pow(Mnext, 2.0) / (GAMMA + 1.0);
+    postDetonation.rho = (1.0 + GAMMA) * pow(Mnext, 2) / (1.0 + GAMMA * pow(Mnext, 2)) * rho0;
 
     // Post-expansion wave conditions
-    solution.p2 = pow(1.0 - 0.5 * (GAMMA - 1) * (solution.m1), 2.0 * GAMMA / (GAMMA - 1)) * (solution.p1);
-    solution.rho2 = pow((1.0 - 0.5 * (GAMMA - 1) * (solution.m1)), 2.0 / (GAMMA - 1)) * (solution.rho1);
-    double a2 = (1.0 - 0.5 * (GAMMA - 1.0) * (solution.m1)) / (GAMMA + 1.0) * (pow(Mnext, 2) * GAMMA + 1.0) / pow(Mnext, 2) * Mnext * a0;
+    postExpansion.p = pow(1.0 - 0.5 * (GAMMA - 1) * (m1), 2.0 * GAMMA / (GAMMA - 1)) * (postDetonation.p);
+    postExpansion.rho = pow((1.0 - 0.5 * (GAMMA - 1) * (m1)), 2.0 / (GAMMA - 1)) * (postDetonation.rho);
+    double a2 = (1.0 - 0.5 * (GAMMA - 1.0) * (m1)) / (GAMMA + 1.0) * (pow(Mnext, 2) * GAMMA + 1.0) / pow(Mnext, 2) * Mnext * a0;
 
+
+
+    ChapmanJougetDetonationSolution solution = ChapmanJougetDetonationSolution(postDetonation, postExpansion);
+    solution.m_msd = Mnext;
+    solution.m1 = m1;
     // Computing position of expansion wave front and rear
     solution.l_exp = (L_TUBE / Mnext / a0) * a2;
     solution.detonation_velocity = Mnext * a0;

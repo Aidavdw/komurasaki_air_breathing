@@ -5,10 +5,14 @@
 
 */
 
+#include "cell_values_container.h"
+
 // Represents a solution to a 1-d Chapman-Jouget detonation problem
 struct ChapmanJougetDetonationSolution
 {
-    ChapmanJougetDetonationSolution()
+    ChapmanJougetDetonationSolution(const CellValues& postDetonation, const CellValues& postExpansion) :
+        postDetonation(postDetonation),
+        postExpansion(postExpansion)
     {
 
     };
@@ -16,11 +20,16 @@ struct ChapmanJougetDetonationSolution
     int iters_performed = 0;            // The amount of iterations performed solving the Chapman-Jouget equation before this solution was achieved.
 
     double m_msd = 0;                   // Mach number at which the detonation front propogates.
+    double m1 = 0;                      // post-detonation mach number
     double detonation_velocity = 0;     // Velocity of the detonation front
+
+    CellValues postDetonation;          // The values of the flow after the detonation
+    CellValues postExpansion;           // The values of the flow after the expansion
+
     double p1 = 0;                      // post-detonation pressure
     double u1 = 0;                      // post-detonation speed ? not sure what it represents
     double rho1 = 0;                    // post-detonation density
-    double m1 = 0;                      // post-expansion mach number
+
     double p2 = 0;                      // post-expansion pressure
     double rho2 = 0;                    // post-expansion density
     double l_exp = 0;                   // The position of the tail of the expansion region
