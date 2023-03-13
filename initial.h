@@ -1,11 +1,7 @@
 /*
 Depending on the case name, initial conditions are specified for all the domains and fields of the total fluid domain. If new cases are defined by the user and new case names are defined, the user should also define an initial condition for the new "reference" case he created. This initial condition should be defined in this function.
 */
-
-const int ARRAY_LEN=14;
-const int ARRAY_WIDTH=250; 
-
-void apply_initial_conditions(char *sim_case, int ndom, int *nx, int *ny, double ***x, double ***rho, double ***u, double ***v, double ***p, double ***E, double ***T, double ***H, int nghost, double m_msd, double p1, double u1, double rho1, double m1, double p2, double rho2, double l_exp, double l_tube, double t0, double p0, double m0, double r, double gamma, double *INI_u[ARRAY_WIDTH], double *INI_v[ARRAY_WIDTH], double *INI_rho[ARRAY_WIDTH], double *INI_p[ARRAY_WIDTH])
+void apply_initial_conditions(char *sim_case, int ndom, int *nx, int *ny, double ***x, double ***rho, double ***u, double ***v, double ***p, double ***E, double ***T, double ***H, int nghost, double m_msd, double p1, double u1, double rho1, double m1, double p2, double rho2, double l_exp, double l_tube, double t0, double p0, double m0, double r, double gamma)
 {
     /* First case defined by user... */
     if (strcmp(sim_case,"det_tube")==0)
@@ -391,74 +387,45 @@ void apply_initial_conditions(char *sim_case, int ndom, int *nx, int *ny, double
     /* Microwave Rocket at ground */
     else if (strcmp(sim_case,"ground_rocket")==0)
     {
-        
-
         for (int k = 0; k < ndom; ++k)
         {
             double x_center;
             switch(k)
             {
-                case 0: //the tube case which can be modified with new field obtained from code/measurement
-                
-                
+                case 0:
                 for (int i = nghost; i < nx[k]-nghost; ++i)
-                { 
-                    
-                    for (int j = nghost; j < ny[k]-nghost; ++j)
+                {
+                    x_center = 0.5*(x[k][i][nghost]+x[k][i+1][nghost]);
+                    if (x_center <= l_exp)
                     {
-                        printf("\nInitial conditions applied...\n");
-                        printf("%d", i);
-                        printf("%d", j);
-                        p[k][i][j]=INI_p[i][j]; 
-                        rho[k][i][j]=INI_rho[i][j];
-                        T[k][i][j]=INI_p[i][j]/(INI_rho[i][j]*r);
-                        u[k][i][j]=INI_u[i][j];
-                        v[k][i][j]=INI_v[i][j];
+                        for (int j = nghost; j < ny[k]-nghost; ++j)
+                        {
+                            p[k][i][j]=p2;
+                            rho[k][i][j]=rho2;
+                            T[k][i][j]=p2/(rho2*r);
+                            u[k][i][j]=0.0;
+                            v[k][i][j]=0.0;
 
-                        E[k][i][j]=p[k][i][j]/(gamma-1.0) + 0.5*rho[k][i][j]*(pow(u[k][i][j],2)+pow(v[k][i][j],2));
-                        H[k][i][j]=(E[k][i][j]+p[k][i][j])/rho[k][i][j];
-                        printf("\nInitial conditions applied...\n");
+                            E[k][i][j]=p[k][i][j]/(gamma-1.0) + 0.5*rho[k][i][j]*(pow(u[k][i][j],2)+pow(v[k][i][j],2));
+                            H[k][i][j]=(E[k][i][j]+p[k][i][j])/rho[k][i][j];
+                        }
                     }
-                    
-                  
+                    else if (x_center > l_exp)
+                    {
+                        for (int j = nghost; j < ny[k]-nghost; ++j)
+                        {
+                            p[k][i][j]=p2*pow(1.0 - (gamma - 1.0)/(gamma + 1.0)*(1.0-x_center/l_exp),2.0*gamma/(gamma-1.0));
+                            rho[k][i][j]=rho2*pow(p[k][i][j]/p2,1.0/gamma);
+                            T[k][i][j]=p2/(rho2*r)*pow(rho[k][i][j]/rho2,gamma-1.0);
+                            u[k][i][j]=-2.0/(gamma-1.0)*(sqrt(gamma*p2/rho2)-sqrt(gamma*r*T[k][i][j]));
+                            v[k][i][j]=0.0;
+
+                            E[k][i][j]=p[k][i][j]/(gamma-1.0) + 0.5*rho[k][i][j]*(pow(u[k][i][j],2)+pow(v[k][i][j],2));
+                            H[k][i][j]=(E[k][i][j]+p[k][i][j])/rho[k][i][j];
+                        }
+                    }
                 }
                 break;
-
-
-
-                // for (int i = nghost; i < nx[k]-nghost; ++i)
-                // {
-                //     x_center = 0.5*(x[k][i][nghost]+x[k][i+1][nghost]);
-                //     if (x_center <= l_exp)
-                //     {
-                //         for (int j = nghost; j < ny[k]-nghost; ++j)
-                //         {
-                //             p[k][i][j]=p2;
-                //             rho[k][i][j]=rho2;
-                //             T[k][i][j]=p2/(rho2*r);
-                //             u[k][i][j]=0.0;
-                //             v[k][i][j]=0.0;
-
-                //             E[k][i][j]=p[k][i][j]/(gamma-1.0) + 0.5*rho[k][i][j]*(pow(u[k][i][j],2)+pow(v[k][i][j],2));
-                //             H[k][i][j]=(E[k][i][j]+p[k][i][j])/rho[k][i][j];
-                //         }
-                //     }
-                //     else if (x_center > l_exp)
-                //     {
-                //         for (int j = nghost; j < ny[k]-nghost; ++j)
-                //         {
-                //             p[k][i][j]=p2*pow(1.0 - (gamma - 1.0)/(gamma + 1.0)*(1.0-x_center/l_exp),2.0*gamma/(gamma-1.0));
-                //             rho[k][i][j]=rho2*pow(p[k][i][j]/p2,1.0/gamma);
-                //             T[k][i][j]=p2/(rho2*r)*pow(rho[k][i][j]/rho2,gamma-1.0);
-                //             u[k][i][j]=-2.0/(gamma-1.0)*(sqrt(gamma*p2/rho2)-sqrt(gamma*r*T[k][i][j]));
-                //             v[k][i][j]=0.0;
-
-                //             E[k][i][j]=p[k][i][j]/(gamma-1.0) + 0.5*rho[k][i][j]*(pow(u[k][i][j],2)+pow(v[k][i][j],2));
-                //             H[k][i][j]=(E[k][i][j]+p[k][i][j])/rho[k][i][j];
-                //         }
-                //     }
-                // }
-                // break;
                 // case 0 :
                 // for (int i = nghost; i < nx[k]-nghost; ++i)
                 // {
@@ -479,7 +446,6 @@ void apply_initial_conditions(char *sim_case, int ndom, int *nx, int *ny, double
                 default:
                 for (int i = nghost; i < nx[k]-nghost; ++i)
                 {
-                    
                     for (int j = nghost; j < ny[k]-nghost; ++j)
                     {
                         T[k][i][j]=t0;
@@ -603,11 +569,10 @@ double mesh_ratio(int n_cell,double dx0,double l,double grid_ratio)
     return alpha_next;
 }
 
-/* Generate the mesh for the whole domain, more precisely every subdomain of the total fluid domain */
 // Not looked at yet- i think this is not necessary with the better layout that i've implemented now.
+/* Generate the mesh for the whole domain, more precisely every subdomain of the total fluid domain  */
 void compute_mesh(int ndom,int *nx, int *ny, double ***x, double ***y, double ***xc, double ***yc, double *xstart, double *ystart, double *xlength, double *ylength, double *xratio, double *yratio, int nghost)
 {
-    
 	double dx0,dy0,alpha_x,alpha_y;
 
     for (int k = 0; k < ndom; ++k)

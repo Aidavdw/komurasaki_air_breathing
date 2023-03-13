@@ -35,6 +35,7 @@
 #include "case_det_tube.cpp" // Temporary hard-code of specific case implementation
 
 
+
 /* MAIN ROUTINE */
 int main()
 {
@@ -44,15 +45,16 @@ int main()
     struct timespec start_time, end_time,start_time_loop,end_time_loop;
     clock_gettime( CLOCK_REALTIME, &start_time);
 
-    
-    int SOLID_ON = 0; // Not sure what this parameter does yet. It's 0 in all cases, except the rocket ones, where it's 1.
-    int dom_low = 0; // index of the domain that was below
-    int dom_up = 0; // index of the domain that was above
-    int PLENUM_ON = 0; // I think this is a flag on whether or not to use the plenum calculation
+    // INITIALIZE CASE
+    double L_T, M0, *XSTART, *YSTART, *XLENGTH, *YLENGTH, *GRID_RATIO_X, *GRID_RATIO_Y, *X_V_START;
+    char *B_LOC, ***B_TYPE;
+    int *NXtot, *NYtot, NDOMAIN=0, N_VALVE=0, SOLID_ON=0, dom_low, dom_up, PLENUM_ON=0;
+    init_case(SIM_CASE,&L_T,&M0,&dom_low,&dom_up,&XSTART,&YSTART,&XLENGTH,&YLENGTH,&GRID_RATIO_X,&GRID_RATIO_Y,&X_V_START,&B_LOC,&B_TYPE,&NXtot,&NYtot,&NDOMAIN,&N_VALVE,&SOLID_ON,&PLENUM_ON);
 
-    // Load the case. For now, this is hardcoded as the case_det_tube, but should be relatively easy to swap out later when serialisation is properly implemented.
-    SimCase simCase;
-    LoadCase(&simCase);
+    /* TIME STEP, EXPORT SPAN AND BASIC GRID SIZE */
+    int Ntstep = (int)(1+TSIM/DT);                           // Number of time steps
+    int N_CFL = (int)fmax(1,(int)(Ntstep)/N_STEP_CFL);       // Iterations between two displays of CFL
+    int N_EXPORT = (int)fmax(1,(int)(Ntstep)/N_STEP_EXP);    // Iterations between two exports of data
 
 
     /* CREATE OUTPUT FOLDER */
@@ -60,42 +62,46 @@ int main()
 
 
     /* TOTAL NUMBER OF CELLS IN CURRENT SIMULATION, ORDER OF DX/DY */
-    int totalNumberOfCellsInAllDomainsCombined = 0; // The total number of cells in the simulation, spread over all the domains
-    for (auto& domain : simCase.domains)
+    int Ncell = 0;
+    for (int i = 0; i < NDOMAIN; ++i)
     {
-        totalNumberOfCellsInAllDomainsCombined += domain.second.GetTotalAmountOfCells();
+        Ncell += (NXtot[i]-2*NGHOST)*(NYtot[i]-2*NGHOST);
+    }
+	printf("Total number of cells (without ghost cells) is: " BLU "%d" RESET " cells.\n",Ncell);
+    printf("Reference cell size based on domain 0 is: DX="BLU "%f" RESET " m and DY=" BLU "%f" RESET " m.\n",XLENGTH[0]/(NXtot[0]-2*NGHOST),YLENGTH[0]/(NYtot[0]-2*NGHOST));
+    
+
+    /* CHECKING DOMAIN BOUNDARIES */
+    printf("\nVerification of boundaries for each domain:\n");
+    for (int i = 0; i < NDOMAIN; ++i)
+    {
+        printf("DOMAIN %d (%d x %d cells) boundaries: %s - %s - %s - %s.\n",i,NXtot[i]-2*NGHOST,NYtot[i]-2*NGHOST,B_TYPE[i][0],B_TYPE[i][1],B_TYPE[i][2],B_TYPE[i][3]);
     }
 
-	printf("Total number of cells (without ghost cells) is: " BLU "%d" RESET " cells.\n",totalNumberOfCellsInAllDomainsCombined);
+
+    /* DISPLAY INFORMATION ON TERMINAL */
+    printf("\nCFL will be displayed every " BLU "%d" RESET " iterations (%.2f ms).\n",N_CFL,N_CFL*DT*1000);
+    printf("Results will be exported every " BLU "%d " RESET "iterations (%.2f ms).\n",N_EXPORT,N_EXPORT*DT*1000);
+    printf("Total number of iterations is: " BLU "%d " RESET "iterations.\n",Ntstep-1);
+    printf("(Pref,Tref,Mref) = " BLU "(%f, %f, %f)" RESET ".\n", P0,T0,M0);
 
 
     /* VARIABLE DEFINITION AND ALLOCATION FOR FLUID MODEL */
-
-    /*
-    
-    double*** x, *** y; //Contains a variable over the entire field. [domain][x-pos][r-pos]
-    double ***p, ***rho, ***u, ***v, ***E, ***T, ***H;//Contains a variable over the entire field. [domain][x-pos][r-pos]
-    // Initialise all the arrays created above. 
-    init_domain(NDOMAIN, NXtot, NYtot, &rho, &u, &v, &p, &E, &T, &H);
-
-    double*** xc, *** yc, *** xold, *** yold; // Not sure what these are- they are domain variables though!
-
-    double ***pt, ***rhot, ***ut, ***vt, ***Et, ***Tt, ***Ht;// Not sure what these are- they are domain variables though!
-    double ***pRK, ***rhoRK, ***uRK, ***vRK, ***ERK, ***TRK, ***HRK, ***sonic_x, ***sonic_y; // Not sure what these are- they are domain variables though!
-
-    
-    
+    double ***x, ***y, ***xc, ***yc, ***xold, ***yold;
+    double ***p, ***rho, ***u, ***v, ***E, ***T, ***H;
+    double ***pt, ***rhot, ***ut, ***vt, ***Et, ***Tt, ***Ht;
+    double ***pRK, ***rhoRK, ***uRK, ***vRK, ***ERK, ***TRK, ***HRK, ***sonic_x, ***sonic_y;
+    init_domain(NDOMAIN,NXtot,NYtot,&rho,&u,&v,&p,&E,&T,&H);
     init_domain(NDOMAIN,NXtot,NYtot,&rhot,&ut,&vt,&pt,&Et,&Tt,&Ht);
     init_domain(NDOMAIN,NXtot,NYtot,&rhoRK,&uRK,&vRK,&pRK,&ERK,&TRK,&HRK);
     x = init_variable(NDOMAIN,NXtot,NYtot,1);
     y = init_variable(NDOMAIN,NXtot,NYtot,1);
-    xold = init_variable(NDOMAIN,NXtot,NYtot,1); // Not sure yet what it does; apparently only used when updating ghost cells?
-    yold = init_variable(NDOMAIN,NXtot,NYtot,1); // Not sure yet what it does; apparently only used when updating ghost cells?
+    xold = init_variable(NDOMAIN,NXtot,NYtot,1);
+    yold = init_variable(NDOMAIN,NXtot,NYtot,1);
     xc = init_variable(NDOMAIN,NXtot,NYtot,0);
     yc = init_variable(NDOMAIN,NXtot,NYtot,0);
-    
-    sonic_x = init_variable(NDOMAIN,NXtot,NYtot,0); // I think this is a mask over whether or not a flow is sonic at a given cell?
-    sonic_y = init_variable(NDOMAIN,NXtot,NYtot,0); // I think this is a mask over whether or not a flow is sonic at a given cell?
+    sonic_x = init_variable(NDOMAIN,NXtot,NYtot,0);
+    sonic_y = init_variable(NDOMAIN,NXtot,NYtot,0);
 
     if (p==NULL || u==NULL || v==NULL || rho==NULL || T==NULL || H==NULL || pt==NULL || ut==NULL || vt==NULL || rhot==NULL || Tt==NULL || Ht==NULL || pRK==NULL || uRK==NULL || vRK==NULL || rhoRK==NULL || TRK==NULL || HRK==NULL || x==NULL || y==NULL || xc==NULL || yc==NULL)
     {
@@ -104,278 +110,36 @@ int main()
     }
     printf("\nAll variables generated successfully...\n");
 
-    */
-
-    double*** xc, *** yc, *** xold, *** yold; // Not sure what these are- they are domain variables though!
-
-    double*** pt, *** rhot, *** ut, *** vt, *** Et, *** Tt, *** Ht;// Not sure what these are- they are domain variables though!
-    double*** pRK, *** rhoRK, *** uRK, *** vRK, *** ERK, *** TRK, *** HRK, *** sonic_x, *** sonic_y; // Not sure what these are- they are domain variables though!
-
     /* MESHING ALL DOMAINS (NEW AND OLD ALIKE) */
-    // This has not yet been touched: I hope I can leave this out?
     compute_mesh(NDOMAIN,NXtot,NYtot,x,y,xc,yc,XSTART,YSTART,XLENGTH,YLENGTH,GRID_RATIO_X,GRID_RATIO_Y,NGHOST);
 
     /* EXPORT PARAMETERS REQUIRED FOR POST-PROCESSING AND SOLUTION RECONSTRUCTION */
-    //export_parameters(NDOMAIN,TSIM,DT,XSTART,YSTART,XLENGTH,YLENGTH,N_VALVE,N_FEM,NXtot,NYtot,NGHOST,numberOfIterationsBetweenDataExport,W_FORMAT,PAR_FILENAME);
+    export_parameters(NDOMAIN,TSIM,DT,XSTART,YSTART,XLENGTH,YLENGTH,N_VALVE,N_FEM,NXtot,NYtot,NGHOST,N_EXPORT,W_FORMAT,PAR_FILENAME);
 
 
     /* INITIAL CONDITIONS BASED ON MICROWAVE DETONATION THEORY */
-    // This works pretty stand-alone. Only refactoring I've done here is inlined the dependency on the values in parameters.h.
-    // These values don't appear to be referenced anywhere though
-    double detonationMachNumber, P1, U1, RHO1, M1, P2, RHO2, L_EXP;
-    //double p_prerun, T_prerun;
+    double M_MSD, P1, U1, RHO1, M1, P2, RHO2, L_EXP;
+    double p_prerun, T_prerun;
     int N_ITER_MSD;
-    N_ITER_MSD = solve_MSD(&detonationMachNumber, &P1, &U1, &RHO1, &M1, &P2, &RHO2, &L_EXP);
-
-    //TODO: See if the code below is still relevant? For now, let's just focus on the others.
     // If prerun case is involved, replace the reference P/T couple for post-MSD calculation
-    /*
     if (strcmp(SIM_CASE,"sup_plen_rocket")==0)
     {
         // rho_prerun = import_average(dom_up-3,"rho",Nxtot[dom_up-3],NYtot[dom_up-3],NGHOST);
         p_prerun = import_average(dom_up-3,"p",NXtot[dom_up-3],NYtot[dom_up-3],NGHOST);
         T_prerun = import_average(dom_up-3,"T",NXtot[dom_up-3],NYtot[dom_up-3],NGHOST);
-        N_ITER_MSD = solve_MSD(&detonationMachNumber, &P1, &U1, &RHO1, &M1, &P2, &RHO2, &L_EXP,T_prerun,p_prerun,ETA,S0,R,GAMMA,L_TUBE,R0);
+        N_ITER_MSD = solve_MSD(&M_MSD, &P1, &U1, &RHO1, &M1, &P2, &RHO2, &L_EXP,T_prerun,p_prerun,ETA,S0,R,GAMMA,L_TUBE,R0);
         printf("\nPRERUN CONDITIONS ARE: \nP=%f, \nT=%f. \n",p_prerun,T_prerun);
     }
     else
     {
-    
-        N_ITER_MSD = solve_MSD(&detonationMachNumber, &P1, &U1, &RHO1, &M1, &P2, &RHO2, &L_EXP);
+        N_ITER_MSD = solve_MSD(&M_MSD, &P1, &U1, &RHO1, &M1, &P2, &RHO2, &L_EXP,T0,P0,ETA,S0,R,GAMMA,L_TUBE,R0);
     }
-    */
     printf("MSD conditions in the rocket were estimated after %d iterations.\n",N_ITER_MSD);
 
 
     /* INITIAL CONDITIONS ON DOMAINS */
-
-    // These are not the comments you want to find in your code..... morituri te salutant.
-    //int ARRAY_WIDTH=567;  //We will meet dimension problem due to the size of the grid and number of cells 
-    //int ARRAY_LEN=63;      //add +1 to the normal size (don't know why) BE SURE TO MATCH WITH NX CELLS AND NY CELLS TO THE ONE IN parameters.h
-
-
-    // Old: Initialising arrays for initial conditions.
-    double *ini_p[ARRAY_WIDTH];
-    double *ini_u[ARRAY_WIDTH];
-    double *ini_v[ARRAY_WIDTH];
-    double *ini_rho[ARRAY_WIDTH];
-
-
-    int idx = 0;
-    int j = 0;
-    char *buffer = NULL;
-    size_t len = 0;
-    size_t read;
-    char *ptr = NULL;
-    FILE *fp;
-    FILE *fu;
-    FILE *fv;
-    FILE *frho;
-
-    fp = fopen ("p_new.csv", "r");      //open file , read only
-
-
-    // why read values if they're initial values?
-
-    while ((read = getline (&buffer, &len, fp)) != -1) {
-
-        ini_p[idx] = malloc (1000);
-
-        for (j = 0, ptr = buffer; j < ARRAY_LEN; j++, ptr++)
-                ini_p[idx][j] = strtod(ptr, &ptr);
-
-            idx++;
-        }
-
-    fclose (fp);
-
-    int i = 0;
-
-    for (i=0; i<idx; i++) {
-        printf ("\narray[%d][] =", i);
-
-            for (j=0; j<ARRAY_LEN; j++)
-                printf (" %f", ini_p[i][j]);
-    }
-
-    fu = fopen ("u_new.csv", "r");      //open file , read only
-    idx = 0;
-    j = 0;
-    char *buffer_u = NULL;
-    size_t len_u = 0;
-    size_t read_u;
-    char *ptr_u = NULL;
-
-    while ((read_u= getline (&buffer_u, &len_u, fu)) != -1) {
-
-        ini_u[idx] = malloc (1000);
-
-        for (j = 0, ptr_u = buffer_u; j < ARRAY_LEN; j++, ptr_u++)
-            ini_u[idx][j] = strtod(ptr_u, &ptr_u);
-
-        idx++;
-        }
-
-    fclose (fu);
-
-    i = 0;
-
-    for (i=0; i<idx; i++) {
-        printf ("\narray[%d][] =", i);
-
-        for (j=0; j<ARRAY_LEN; j++)
-            printf (" %f", ini_u[i][j]);
-
-
-        puts ("");
-    }
-
-    fv = fopen ("v_new.csv", "r");      //open file , read only
-    idx = 0;
-    j = 0;
-    char *buffer_v = NULL;
-    size_t len_v = 0;
-    size_t read_v;
-    char *ptr_v = NULL;
-
-    while ((read_v= getline (&buffer_v, &len_v, fv)) != -1) {
-
-        ini_v[idx] = malloc (1000);
-
-        for (j = 0, ptr_v = buffer_v; j < ARRAY_LEN; j++, ptr_v++)
-            ini_v[idx][j] = strtod(ptr_v, &ptr_v);
-
-            idx++;
-        }
-
-    fclose (fv);
-
-    i = 0;
-
-    for (i=0; i<idx; i++) {
-        printf ("\narray[%d][] =", i);
-
-        for (j=0; j<ARRAY_LEN; j++)
-            printf (" %f", ini_v[i][j]);
-
-
-        puts ("");
-        }
-
-    frho = fopen ("rho_new.csv", "r");      //open file , read only
-
-    idx = 0;
-    j = 0;
-    char *buffer_rho = NULL;
-    size_t len_rho = 0;
-    size_t read_rho;
-    char *ptr_rho = NULL;
-
-    while ((read_rho= getline (&buffer_rho, &len_rho, frho)) != -1) {
-
-        ini_rho[idx] = malloc (1000);
-
-        for (j = 0, ptr_rho = buffer_rho; j < ARRAY_LEN; j++, ptr_rho++)
-            ini_rho[idx][j] = strtod(ptr_rho, &ptr_rho);
-
-            idx++;
-        }
-
-    fclose (frho);
-
-    i = 0;
-
-    for (i=0; i<idx; i++) {
-        printf ("\narray[%d][] =", i);
-
-        for (j=0; j<ARRAY_LEN; j++)
-            printf (" %f", ini_rho[i][j]);    //just proved what I have is a really big 2D array but what is useful is just in between [0:2500][0:40]
-
-
-        puts ("");
-    }
-
-
-
-
-    for (j=0; j<ARRAY_LEN; j++)
-        printf (" %f", ini_u[2][3]);    //just proved what I have is a really big 2D array but what is useful is just in between [0:2500][0:40]
-    puts ("");                            //it starts at 0 be careful
-
-    
-    // End allocating heap memory for initial condition arrays.
-
-
-
-    
-    /* Microwave Rocket at ground */
-    // I think this is again just reading the files, but now for the microwave rocket at ground case.
-
-
-    for (int k = 0; k < NDOMAIN; ++k)
-    {
-        double x_center;
-        switch(k)
-        {
-            case 0: //the tube case which can be modified with new field obtained from code/measurement
-                
-                
-            for (int i = NGHOST; i < NXtot[k]-NGHOST; ++i)
-            { 
-                    
-                for (int j = NGHOST; j < NYtot[k]-NGHOST; ++j)
-                {
-                    // A: Only here does it actually start reading off the initial values
-                    p[k][i][j]=ini_p[i-2][j-2]; 
-                    rho[k][i][j]=ini_rho[i-2][j-2];
-                    T[k][i][j]=ini_p[i-2][j-2]/(ini_rho[i-2][j-2]*R);
-                    u[k][i][j]=ini_u[i-2][j-2];
-                    v[k][i][j]=ini_v[i-2][j-2];
-
-                    E[k][i][j]=p[k][i][j]/(GAMMA-1.0) + 0.5*rho[k][i][j]*(pow(u[k][i][j],2)+pow(v[k][i][j],2));
-                    H[k][i][j]=(E[k][i][j]+p[k][i][j])/rho[k][i][j];
-                      
-                    }
-                    
-                  
-                }
-            break;
-            
-            default:
-            for (int i = NGHOST; i < NXtot[k]-NGHOST; ++i)
-            {
-                    
-                for (int j = NGHOST; j < NYtot[k]-NGHOST; ++j)
-                {
-                    T[k][i][j]=T0;
-                    p[k][i][j]=P0;
-                    u[k][i][j]=0.0;
-                    v[k][i][j]=0.0;
-
-                    rho[k][i][j]=p[k][i][j]/(T[k][i][j]*R);
-                    E[k][i][j]=p[k][i][j]/(GAMMA-1.0) + 0.5*rho[k][i][j]*(pow(u[k][i][j],2)+pow(v[k][i][j],2));
-                    H[k][i][j]=(E[k][i][j]+p[k][i][j])/rho[k][i][j];
-                    }
-                }
-                break;
-            }
-    }
-
-    for (i=0; i<ARRAY_WIDTH; i++) {
-        
-
-        for (j=0; j<ARRAY_LEN; j++)
-            printf("%f", ini_u[i][j]);  //just proved what I have is a really big 2D array but what is useful is just in between [0:2500][0:40]
-
-
-        
-    }
-
-    apply_initial_conditions(SIM_CASE,NDOMAIN,NXtot,NYtot,x,rho,u,v,p,E,T,H,NGHOST,detonationMachNumber,P1,U1,RHO1,M1,P2,RHO2,L_EXP,L_TUBE,T0,P0,M0,R,GAMMA, ini_u, ini_v, ini_rho, ini_p);
+    apply_initial_conditions(SIM_CASE,NDOMAIN,NXtot,NYtot,x,rho,u,v,p,E,T,H,NGHOST,M_MSD,P1,U1,RHO1,M1,P2,RHO2,L_EXP,L_TUBE,T0,P0,M0,R,GAMMA);
     printf("\nInitial conditions applied...\n");
-
-
-    
 
     /* EXPORT INITIAL SOLUTION AND CREATE OUTPUT FOLDER, DEFINE WALL PRESSURE AND INTAKE MASS FLOW RATE */
     export_fluid_data(NDOMAIN,NXtot,NYtot,x,y,xc,yc,rho,u,v,p,E,T,H,0.0,OUT_FOLDERNAME,EXP_EXTENSION,W_FORMAT);
@@ -387,9 +151,6 @@ int main()
     double rho_tube = domain_average(NXtot[dom_low],NYtot[dom_low],x[dom_low],y[dom_low],rho[dom_low],NGHOST);
     double mfr_plenum = mfr_face(NXtot[dom_up],NYtot[dom_up],x[dom_up],y[dom_up],rho[dom_up],u[dom_up],NGHOST,NGHOST);
     double p_drag = average_face(NXtot[dom_up],NYtot[dom_up],x[dom_up],y[dom_up],p[dom_up],NXtot[dom_up]-NGHOST-1,NGHOST);
-    double temp_tube = domain_average(NXtot[dom_low],NYtot[dom_low],x[dom_low],y[dom_low],T[dom_low],NGHOST);
-
-
 
     append_data_to_file(p_wall,0.0,P_MEAN_WALL_FILENAME,EXP_EXTENSION);
     append_data_to_file(p_tube,0.0,P_TUBE_FILENAME,EXP_EXTENSION);
@@ -530,7 +291,6 @@ int main()
             mean_p_sup[k] = mean_at_valve(fem_index_inf[k],fem_n[k],NGHOST,n_cell_p_fem,p[dom_up]);
             mean_rho_sup[k] = mean_at_valve(fem_index_inf[k],fem_n[k],NGHOST,n_cell_p_fem,rho[dom_up]);
             mean_p_inf[k] = mean_at_valve(fem_index_inf[k],fem_n[k],NYtot[dom_low]-NGHOST-n_cell_p_fem,n_cell_p_fem,p[dom_low]);
-            // Q: Why does it read a _sup and an _inf value for the pressure, but not for the density?
 	    }
 
         // DEFINE INTERFACE PRESSURE DIFFERENCE VECTOR
@@ -543,7 +303,7 @@ int main()
             // fem_pressure(fem_n[k],fem_index_inf[k],x_FEM[k],NYtot[dom_low],n_cell_p_fem,p[dom_low],p[dom_up],NGHOST,dp_interface[k]);
             // fem_load(N_FEM,N_DOF,N_DOF_PER_NODE,N_CLAMP,NGHOST,X_V_START[k],p_neighbour[k],fem_n[k],dp_interface[k],x[dom_low],x_FEM[k],B0,B1,L_T,F_DOF[k]);
             // damping_load(N_FEM,N_DOF,N_DOF_PER_NODE,RHO_V,L_V,H0,H1,B0,B1,F_DOF[k]);
-            
+
             fem_pressure(N_NODE,fem_n[k],fem_index_inf[k],x_FEM[k],p_neighbour[k],p_coef[k],NYtot[dom_low],p[dom_low],p[dom_up],NGHOST,p_FEM[k]);
             fem_load(N_FEM,N_DOF,N_CLAMP,N_DOF_PER_NODE,p_FEM[k],U2_DOF[k],F_DOF[k],x_FEM[k],b);
 
@@ -613,7 +373,7 @@ int main()
 
     printf("Starting main time loop...\n");
     /* START TIME LOOP */
-    for (int t = 1; t < totalSimulationTimeStepCount; ++t)
+    for (int t = 1; t < Ntstep; ++t)
     {
         /* 4TH ORDER RUNGE-KUTTA PREDICTOR-CORRECTOR LOOP */
         for (int trk = 0; trk < RK_ORDER; ++trk)
@@ -1114,7 +874,7 @@ int main()
         }
 
         /* EXPORT SEVERAL FLUID-RELATED PARAMETERS */
-        p_wall = 0.0, mfr_intake = 0.0, p_tube = 0.0, rho_tube = 0.0; temp_tube=0.0;
+        p_wall = 0.0, mfr_intake = 0.0, p_tube = 0.0, rho_tube = 0.0;
         // for (int i = NGHOST; i < NYtot[dom_low]-NGHOST; ++i)
         // {
         //     p_wall += p[dom_low][NGHOST][i]*(pow(y[dom_low][NGHOST][i+1],2)-pow(y[dom_low][NGHOST][i],2))/pow(R0,2);
@@ -1124,15 +884,11 @@ int main()
         mfr_intake = mfr_face(NXtot[dom_low],NYtot[dom_low],x[dom_low],y[dom_low],rho[dom_low],u[dom_low],NXtot[dom_low]-NGHOST-1,NGHOST);
         p_tube = domain_average(NXtot[dom_low],NYtot[dom_low],x[dom_low],y[dom_low],p[dom_low],NGHOST);
         rho_tube = domain_average(NXtot[dom_low],NYtot[dom_low],x[dom_low],y[dom_low],rho[dom_low],NGHOST);
-        temp_tube = domain_average(NXtot[dom_low],NYtot[dom_low],x[dom_low],y[dom_low],T[dom_low],NGHOST);
-
 
         append_data_to_file(p_wall,DT*t,P_MEAN_WALL_FILENAME,EXP_EXTENSION);
         append_data_to_file(mfr_intake,DT*t,INTAKE_MFR_FILENAME,EXP_EXTENSION);
         append_data_to_file(p_tube,DT*t,P_TUBE_FILENAME,EXP_EXTENSION);
         append_data_to_file(rho_tube,DT*t,RHO_TUBE_FILENAME,EXP_EXTENSION);
-        append_data_to_file(temp_tube,DT*t,T_TUBE_FILENAME,EXP_EXTENSION);
-
 
         if (PLENUM_ON==1)
         {
@@ -1185,7 +941,7 @@ int main()
         }
 
         /* EXPORT ALL FLUID AND SOLID DATA EVERY N STEPS */
-        if(t%numberOfIterationsBetweenDataExport==0)
+        if(t%N_EXPORT==0)
         {
             // Fluid data export
             export_fluid_data(NDOMAIN,NXtot,NYtot,x,y,xc,yc,rho,u,v,p,E,T,H,DT*t,OUT_FOLDERNAME,EXP_EXTENSION,W_FORMAT);
@@ -1200,7 +956,7 @@ int main()
 
 
         /* DISPLAY CFL */
-        if(t%numberOfIterationsBetweenCFLLog==0)
+        if(t%N_CFL==0)
         {
             // COMPUTE CFL (BASED ON TOTAL VELOCITY)
             CFL = get_cfl(x,y,u,v,T,R,GAMMA,NDOMAIN,NXtot,NYtot,DT);
@@ -1208,7 +964,7 @@ int main()
             // COUNTING TIME BETWEEN ITERATIONS
             clock_gettime(CLOCK_REALTIME,&end_time_loop);
             SIM_TIME_LOOP = (end_time_loop.tv_sec - start_time_loop.tv_sec)+(end_time_loop.tv_nsec - start_time_loop.tv_nsec)/1E9;
-            printf("Iteration %d (%.1f %%)... Max. CFL at t=%.5f sec is: %f. \n[completed in %f sec]\n",t,(double)(t)/totalSimulationTimeStepCount*100.0,DT*t,CFL,SIM_TIME_LOOP);
+            printf("Iteration %d (%.1f %%)... Max. CFL at t=%.5f sec is: %f. \n[completed in %f sec]\n",t,(double)(t)/Ntstep*100.0,DT*t,CFL,SIM_TIME_LOOP);
             clock_gettime(CLOCK_REALTIME,&start_time_loop);
 
             // RESET BEFORE NEXT LOOP
@@ -1225,7 +981,7 @@ int main()
     printf("\nSimulation time was: %f s.",SIM_TIME);
     printf("\nSimulation time was: %f min.",SIM_TIME/60.0);
     printf("\nSimulation time was: %f hours.",SIM_TIME/3600.0);
-    printf("\nSimulation time per cell and 1000 iterations was: %f s.",SIM_TIME/totalNumberOfCellsInAllDomainsCombined/totalSimulationTimeStepCount*1000);
+    printf("\nSimulation time per cell and 1000 iterations was: %f s.",SIM_TIME/Ncell/Ntstep*1000);
     printf("\nSIMULATION COMPLETE! -Florian   ");
 
 }
