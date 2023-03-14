@@ -5,8 +5,9 @@
 #include "parameters.h"
 
 
-Domain::Domain(std::string& name, const double position_arg[2], const double size_arg[2], const int amountOfCells_arg[2], const MeshSpacing meshSpacing[2]) :
-	name(name)
+Domain::Domain(std::string& name, const double position_arg[2], const double size_arg[2], const int amountOfCells_arg[2], const MeshSpacing meshSpacing[2], const EInitialisationMethod initialisationMethod) :
+	name(name),
+	initialisationMethod(initialisationMethod)
 {
 	// Not a very pretty way to do this, but initialiser lists appear to break when using c style arrays
 	position[0] = position_arg[0];
