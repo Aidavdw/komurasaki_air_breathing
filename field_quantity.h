@@ -10,6 +10,8 @@ struct FieldQuantity
 	// The value of the field at a specific x/y place. value[x][y]. the first column is the x coordinate, the second one the y coordinate, because of compatibility with legacy compatibility.
 	std::vector<std::vector<double>> field;
 
+	// Todo: implement the ghost cells here!
+
 	// Sets all the values in the field to this value.
 	void SetAllToValue(const double value);
 };
