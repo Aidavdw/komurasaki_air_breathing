@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include "field_quantity.h"
+#include "mesh_spacing.h"
 
 
 class SimCase;
@@ -38,7 +39,7 @@ struct Boundary
 	{};
 
 	// This boundary itself:
-	Domain* domain; // The domain that this boundary is a part of
+	//Domain* domain; // The domain that this boundary is a part of
 	EBoundaryType boundaryType;
 
 	// If it's connected to another boundary too:
@@ -50,7 +51,7 @@ struct Boundary
 // Contains information on a specific domain.
 struct Domain
 {
-	Domain(std::string& name, const double position[2], const double size[2], const int amountOfCells[2]);
+	Domain(std::string& name, const double position[2], const double size[2], const int amountOfCells[2], const MeshSpacing meshSpacing[2]);
 
 	std::string name;
 
@@ -58,7 +59,8 @@ struct Domain
 	double size[2] = {0,0};						// The total extents of the domain
 	double X_V_START = 0;
 	int amountOfCells[2] = {0,0};				// total amount of cells in the axis direction. This includes the ghost cells.
-	Boundary boundaries[4];
+	Boundary boundaries[4];						// Left, right, bottom, and up boundaries. Access using EBoundaryLocation struct.
+	MeshSpacing meshSpacing[2];								
 
 	FieldQuantity rho; // Density
 	FieldQuantity u; // velocity x-component
@@ -67,8 +69,6 @@ struct Domain
 	FieldQuantity E; // Internal energy?
 	FieldQuantity T; // Temperature
 	FieldQuantity H; // enthalpy ?
-
-
 
 	void SetBoundaryType(const EBoundaryLocation location, const EBoundaryType type);
 
@@ -82,6 +82,9 @@ struct Domain
 
 	//todo: implement output in format of CellQuantities
 	//CellValues GetValuesInCell(const int xidx, const int yidx);
+
+	// Sets all the cells to some given ambient conditions.
+	void SetToAmbientConditions(const double T, const double p, const double u, const double v, const double R_ideal, const double gamma);
 };
 
 

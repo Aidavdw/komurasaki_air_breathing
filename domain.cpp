@@ -5,7 +5,7 @@
 #include "parameters.h"
 
 
-Domain::Domain(std::string& name, const double position_arg[2], const double size_arg[2], const int amountOfCells_arg[2]) :
+Domain::Domain(std::string& name, const double position_arg[2], const double size_arg[2], const int amountOfCells_arg[2], const MeshSpacing meshSpacing[2]) :
 	name(name)
 {
 	// Not a very pretty way to do this, but initialiser lists appear to break when using c style arrays
@@ -54,6 +54,21 @@ int Domain::GetTotalAmountOfCells() const
 	return amountOfCells[0] * amountOfCells[1];
 }
 
+void Domain::SetToAmbientConditions(const double TSet, const double pSet, const double uSet, const double vSet, const double R_ideal, const double gamma)
+{
+	T.SetAllToValue(TSet);
+	p.SetAllToValue(pSet);
+	u.SetAllToValue(uSet);
+	v.SetAllToValue(vSet);
+
+	const double rhoSet = pSet / (TSet * R_ideal);
+	const double ESet = pSet / (gamma - 1.0) + 0.5 * rhoSet * (pow(uSet, 2) + pow(vSet, 2));
+	const double HSet = (ESet + pSet) / rhoSet;
+	rho.SetAllToValue(rhoSet);
+	E.SetAllToValue(ESet);
+	H.SetAllToValue(HSet);
+}
+
 void ValidateAxisInput(const int axis)
 {
 	if (axis > 1 || axis < 0)
@@ -61,3 +76,5 @@ void ValidateAxisInput(const int axis)
 		throw std::invalid_argument("Cannot get access axis with the required index; there are only 2, X and Y!");
 	}
 }
+
+
