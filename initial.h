@@ -3,6 +3,16 @@ Depending on the case name, initial conditions are specified for all the domains
 */
 void apply_initial_conditions(char *sim_case, int ndom, int *nx, int *ny, double ***x, double ***rho, double ***u, double ***v, double ***p, double ***E, double ***T, double ***H, int nghost, double m_msd, double p1, double u1, double rho1, double m1, double p2, double rho2, double l_exp, double l_tube, double t0, double p0, double m0, double r, double gamma)
 {
+    /* not used:
+    * m_msd
+    * p1
+    * u1
+    * rho1
+    * m1
+    * l_tube
+    * m0
+    * /
+
     /* First case defined by user... */
     if (strcmp(sim_case,"det_tube")==0)
     {
@@ -12,12 +22,13 @@ void apply_initial_conditions(char *sim_case, int ndom, int *nx, int *ny, double
             double x_center;
             switch(k)
             {
+                //TODO: Move this code to microwave.h/cpp, and have it output to a CellValues, which can then be used to initialise.
                 case 0:
                 // If it is domain 0? I think this is always hardcoded to be the inside of the detonation tube.
                 // Iterate over x coordinates (columns!) that are not fully ghost cells
                 for (int i = nghost; i < nx[k]-nghost; ++i)
                 {
-                    // Depending on if this column
+                    // The plateau conditions
                     x_center = 0.5*(x[k][i][nghost]+x[k][i+1][nghost]);
                     if (x_center <= l_exp)
                     {
@@ -35,6 +46,7 @@ void apply_initial_conditions(char *sim_case, int ndom, int *nx, int *ny, double
                     }
                     else if (x_center > l_exp)
                     {
+                        // Non-plateau conditions. Should incline.
                         for (int j = nghost; j < ny[k]-nghost; ++j)
                         {
                             p[k][i][j]=p2*pow(1.0 - (gamma - 1.0)/(gamma + 1.0)*(1.0-x_center/l_exp),2.0*gamma/(gamma-1.0));
@@ -50,6 +62,7 @@ void apply_initial_conditions(char *sim_case, int ndom, int *nx, int *ny, double
                 }
                 break;
 
+                //TODO: Replace this by FieldQuantity::SetAllToValue()
                 default:
                 for (int i = nghost; i < nx[k]-nghost; ++i)
                 {
