@@ -93,10 +93,35 @@ int main()
 
 
     /* VARIABLE DEFINITION AND ALLOCATION FOR FLUID MODEL */
-    double ***x, ***y, ***xc, ***yc, ***xold, ***yold;
-    double ***p, ***rho, ***u, ***v, ***E, ***T, ***H;
-    double ***pt, ***rhot, ***ut, ***vt, ***Et, ***Tt, ***Ht;
-    double ***pRK, ***rhoRK, ***uRK, ***vRK, ***ERK, ***TRK, ***HRK, ***sonic_x, ***sonic_y;
+    double ***x;        // All the bottom-left x-positions for all cells
+	double  ***y;       // All the bottom-left y-positions for all cells
+	double  ***xc;      // the x coordinate of the centre for all cells
+	double  ***yc;      // the x coordinate of the centre for all cells
+	double  ***xold;
+	double  ***yold;
+    double ***p;        // the pressure for all cells 
+	double  ***rho;     // the pressure for all cells 
+	double  ***u;       // the pressure for all cells 
+	double  ***v;       // the pressure for all cells 
+	double  ***E;       // the internal energy for all cells
+	double  ***T;       // the temperature for all cells
+	double  ***H;       // the enthalpy for all cells 
+    double ***pt;       
+	double  ***rhot;
+	double  ***ut;
+	double  ***vt;
+	double  ***Et;
+	double  ***Tt;
+	double  ***Ht;
+    double*** pRK;      // 
+    double*** rhoRK;
+    double ***uRK;
+	double  *** vRK;
+	double  *** ERK;
+	double  *** TRK;
+	double  *** HRK;
+	double  *** sonic_x;
+	double  *** sonic_y;
     init_domain(NDOMAIN,NXtot,NYtot,&rho,&u,&v,&p,&E,&T,&H);
     init_domain(NDOMAIN,NXtot,NYtot,&rhot,&ut,&vt,&pt,&Et,&Tt,&Ht);
     init_domain(NDOMAIN,NXtot,NYtot,&rhoRK,&uRK,&vRK,&pRK,&ERK,&TRK,&HRK);
