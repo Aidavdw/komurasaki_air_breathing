@@ -37,12 +37,6 @@ void Domain::SetBoundaryType(const EBoundaryLocation location, const EBoundaryTy
 	boundaries[location] = Boundary(type);
 }
 
-int Domain::GetAmountOfCellsInAxis(const unsigned int axis) const
-{
-	ValidateAxisInput(axis);
-	std::max(2 + 2 * NGHOST, amountOfCells[axis] + 2 * NGHOST);
-}
-
 int Domain::GetCellResolutionInAxis(const int axis) const
 {
 	ValidateAxisInput(axis);
