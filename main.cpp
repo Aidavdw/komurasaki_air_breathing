@@ -260,15 +260,15 @@ int main()
 
     printf("Starting main time loop...\n");
     /* START TIME LOOP */
-    for (int timeStepNumber = 1; timeStepNumber < Ntstep; ++timeStepNumber)
+    for (int timeStepNumber = 1; timeStepNumber < simCase.totalSimulationTimeStepCount; ++timeStepNumber)
     {
-        /* 4TH ORDER RUNGE-KUTTA PREDICTOR-CORRECTOR LOOP */
+        /* 4TH ORDER RUNGE-KUTTA PREDICTOR-CORRECTOR LOOP (iterate 4 times)*/
         for (int rungeKuttaIterationNumber = 0; rungeKuttaIterationNumber < RK_ORDER; ++rungeKuttaIterationNumber)
         {
             /* FOR FIRST ITERATION, TAKE PARAMETERS OF PREVIOUS SOLUTION */
-            for (int domainNumber = 0; domainNumber < NDOMAIN; ++domainNumber)
+            for (int domainNumber = 0; domainNumber < simCase.domains.size(); ++domainNumber)
             {
-                #pragma omp parallel for
+                #pragma omp parallel for //START PARALLEL LOOP
                 for (int xIndex = 0; xIndex < NXtot[domainNumber]; ++xIndex)
                 {
                     for (int yIndex = 0; yIndex < NYtot[domainNumber]; ++yIndex)
