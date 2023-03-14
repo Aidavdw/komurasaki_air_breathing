@@ -3,9 +3,6 @@
 // Thin wrapper around a 2d array with doubles, representing a value over an entire domain (in a grid)
 struct FieldQuantity
 {
-	FieldQuantity()
-	{};
-
 	FieldQuantity(const unsigned int sizeX, const unsigned int sizeY, const bool bCell=false, const double initialValue = 0.);
 
 	//todo: Investigate how easy it is to switch the x/y order in which field vectors are stored, because this is going to cause a lot of headaches.
