@@ -50,7 +50,7 @@ int main()
 
 
     /* INITIAL CONDITIONS ON DOMAINS */
-    apply_initial_conditions(SIM_CASE,NDOMAIN,NXtot,NYtot,x,rho,u,v,p,E,T,H,NGHOST,M_MSD,P1,U1,RHO1,M1,P2,RHO2,L_EXP,L_TUBE,T0,P0,M0,R,GAMMA);
+    simCase.ApplyInitialConditions();
     printf("\nInitial conditions applied...\n");
 
     /* EXPORT INITIAL SOLUTION AND CREATE OUTPUT FOLDER, DEFINE WALL PRESSURE AND INTAKE MASS FLOW RATE */

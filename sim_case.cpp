@@ -2,6 +2,7 @@
 #include <stdexcept>
 
 #include "parameters.h"  // List of parameters specified by user
+#include "microwave.h"
 
 SimCase::SimCase()
 {
@@ -58,4 +59,25 @@ void SimCase::ConnectBoundaries(const std::string domainOneName, const EBoundary
 	int domainOneIdx = domainIDS.at(domainOneName);
 	int domainTwoIdx = domainIDS.at(domainTwoName);
 	ConnectBoundaries(domainOneIdx, domainOneLocation, domainTwoIdx, domainTwoLocation);
+}
+
+void SimCase::ApplyInitialConditions()
+{
+	for (auto& domainIter : domains)
+	{
+		Domain& domain = domainIter.second;
+		switch (domain.initialisationMethod)
+		{
+		case EInitialisationMethod::AMBIENTCONDITIONS:
+			domain.SetToAmbientConditions(ambientTemperature, ambientStaticPressure, 0, 0, R, GAMMA);
+			break;
+		case EInitialisationMethod::FROMCHAPMANJOUGETSOLUTION:
+			// TODO: Move logic for determining tube length and radius to this level to allow for standing-up rockets too.
+			const double tubeLength = domain.size[0];
+			auto detonationConditions = SolveChapmanJougetDetonationProblem(ambientTemperature, ambientStaticPressure, ETA, S0, R, GAMMA, tubeLength, domain.size[1]);
+			InitialiseDomainFromChapmanJougetDetonationSolution(&domain, detonationConditions, GAMMA);
+		default:
+			throw std::logic_error("The provided type of initialisation method is not (yet) implemented.");
+		}
+	}
 }
