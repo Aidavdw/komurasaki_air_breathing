@@ -53,34 +53,6 @@ int main()
     simCase.ApplyInitialConditions();
     printf("\nInitial conditions applied...\n");
 
-    /* EXPORT INITIAL SOLUTION AND CREATE OUTPUT FOLDER, DEFINE WALL PRESSURE AND INTAKE MASS FLOW RATE */
-    export_fluid_data(NDOMAIN,NXtot,NYtot,x,y,xc,yc,rho,u,v,p,E,T,H,0.0,OUT_FOLDERNAME,EXP_EXTENSION,W_FORMAT);
-    double p_wall = p[dom_low][NGHOST][NGHOST];
-    double mfr_intake = 0.0, p_tube_mean = 0.0, rho_tube_mean = 0.0;
-    double p_plenum = domain_average(NXtot[dom_up],NYtot[dom_up],x[dom_up],y[dom_up],p[dom_up],NGHOST);
-    double rho_plenum = domain_average(NXtot[dom_up],NYtot[dom_up],x[dom_up],y[dom_up],rho[dom_up],NGHOST);
-    double p_tube = domain_average(NXtot[dom_low],NYtot[dom_low],x[dom_low],y[dom_low],p[dom_low],NGHOST);
-    double rho_tube = domain_average(NXtot[dom_low],NYtot[dom_low],x[dom_low],y[dom_low],rho[dom_low],NGHOST);
-    double mfr_plenum = mfr_face(NXtot[dom_up],NYtot[dom_up],x[dom_up],y[dom_up],rho[dom_up],u[dom_up],NGHOST,NGHOST);
-    double p_drag = average_face(NXtot[dom_up],NYtot[dom_up],x[dom_up],y[dom_up],p[dom_up],NXtot[dom_up]-NGHOST-1,NGHOST);
-
-    append_data_to_file(p_wall,0.0,P_MEAN_WALL_FILENAME,EXP_EXTENSION);
-    append_data_to_file(p_tube,0.0,P_TUBE_FILENAME,EXP_EXTENSION);
-    append_data_to_file(rho_tube,0.0,RHO_TUBE_FILENAME,EXP_EXTENSION);
-    append_data_to_file(mfr_intake,0.0,INTAKE_MFR_FILENAME,EXP_EXTENSION);
-    append_data_to_file(0.0,0.0,PFR_FILENAME,EXP_EXTENSION);
-    append_data_to_file(0.0,0.0,MFR_TOT_FILENAME,EXP_EXTENSION);
-
-    if (PLENUM_ON)
-    {
-        append_data_to_file(p_drag,0.0,PLENUM_DRAG_PRESSURE_FILENAME,EXP_EXTENSION);
-        append_data_to_file(p_plenum,0.0,PLEN_P_FILENAME,EXP_EXTENSION);
-        append_data_to_file(rho_plenum,0.0,PLEN_RHO_FILENAME,EXP_EXTENSION);
-        append_data_to_file(mfr_plenum,0.0,PLENUM_MFR_FILENAME,EXP_EXTENSION);
-    }
-
-    printf("\nInitial fluid conditions exported...\n");
-
     /* DEFINITION AND ALLOCATION OF FEM VARIABLES */
 	int N_DOF, N_NODE, N_ACTIVE, N_INACTIVE, *act_DOF;
 	double **x_FEM, **y_FEM, *b, *h, *A, *I;
