@@ -113,7 +113,7 @@ int main()
 	double  ***Et;
 	double  ***Tt;
 	double  ***Ht;
-    double*** pRK;      // 
+    double*** pRK;      // temporary copy of the pressure to be used in runge-kutta iteration 
     double*** rhoRK;
     double ***uRK;
 	double  *** vRK;

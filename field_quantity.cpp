@@ -3,9 +3,12 @@
 
 FieldQuantity::FieldQuantity(const unsigned int sizeX, const unsigned int sizeY, const double initialValue)
 {
-	Resize2DVector(field, sizeX, sizeY, initialValue);
+	Resize2DVector(main, sizeX, sizeY, initialValue);
 
 	columnSize = sizeY;
+	bufferMap.insert({ EFieldQuantityBuffer::MAIN, main });
+	bufferMap.insert({ EFieldQuantityBuffer::RUNGEKUTTA, rungeKuttaBuffer });
+	bufferMap.insert({ EFieldQuantityBuffer::T, TBuffer });
 }
 
 void FieldQuantity::SetAllToValue(const double value, const EFieldQuantityBuffer bufferToWriteTo = EFieldQuantityBuffer::MAIN)

@@ -3,8 +3,9 @@
 
 enum EFieldQuantityBuffer
 {
-	MAIN, // The field that physically represents the value
-	RUNGEKUTTA, // to be used for runge kutta iteration. A temporary buffer.
+	MAIN,			// The field that physically represents the value
+	RUNGEKUTTA,		// to be used for runge kutta iteration. A temporary buffer.
+	T,				// not yet sure what this means but oh well!
 };
 
 // Thin wrapper around a 2d array with doubles, representing a value over an entire domain (in a grid). It is implemented as a flattened 2d arary.
@@ -21,8 +22,9 @@ struct FieldQuantity
 	// The value of the field at a specific x/y place. value[x][y]. the first column is the x coordinate, the second one the y coordinate, because of compatibility with legacy compatibility.
 	std::map<EFieldQuantityBuffer, std::vector<double>&> bufferMap;
 
-	std::vector<double> field;
+	std::vector<double> main;
 	std::vector<double> rungeKuttaBuffer;
+	std::vector<double> TBuffer;
 
 	// Sets all the values in the field to this value.
 	void SetAllToValue(const double value, const EFieldQuantityBuffer bufferToWriteTo=EFieldQuantityBuffer::MAIN);

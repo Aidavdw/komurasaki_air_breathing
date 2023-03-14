@@ -262,42 +262,36 @@ int main()
     /* START TIME LOOP */
     for (int timeStepNumber = 1; timeStepNumber < simCase.totalSimulationTimeStepCount; ++timeStepNumber)
     {
+
+
         /* 4TH ORDER RUNGE-KUTTA PREDICTOR-CORRECTOR LOOP (iterate 4 times)*/
         for (int rungeKuttaIterationNumber = 0; rungeKuttaIterationNumber < RK_ORDER; ++rungeKuttaIterationNumber)
         {
             /* FOR FIRST ITERATION, TAKE PARAMETERS OF PREVIOUS SOLUTION */
-            for (int domainNumber = 0; domainNumber < simCase.domains.size(); ++domainNumber)
+            //for (int domainNumber = 0; domainNumber < simCase.domains.size(); ++domainNumber)
+            for (auto& domainIter : simCase.domains)
             {
-                #pragma omp parallel for //START PARALLEL LOOP
-                for (int xIndex = 0; xIndex < NXtot[domainNumber]; ++xIndex)
+                Domain& domain = domainIter.second;
+
+                #pragma omp parallel for // START PARALLEL LOOP
+                for (int xIndex = 0; xIndex < domain.size[0]; ++xIndex)
                 {
-                    for (int yIndex = 0; yIndex < NYtot[domainNumber]; ++yIndex)
+                    for (int yIndex = 0; yIndex < domain.size[1]; ++yIndex)
                     {
                         // Take solution from previous iteration for this new iteration
                         if(rungeKuttaIterationNumber==0)
                         {
                             // First Runge-Kutta iteration
-                            rhoRK[domainNumber][xIndex][yIndex]=rho[domainNumber][xIndex][yIndex];
-                            uRK[domainNumber][xIndex][yIndex]=u[domainNumber][xIndex][yIndex];
-                            vRK[domainNumber][xIndex][yIndex]=v[domainNumber][xIndex][yIndex];
-                            ERK[domainNumber][xIndex][yIndex]=E[domainNumber][xIndex][yIndex];
-                            pRK[domainNumber][xIndex][yIndex]=p[domainNumber][xIndex][yIndex];
-                            TRK[domainNumber][xIndex][yIndex]=T[domainNumber][xIndex][yIndex];
-                            HRK[domainNumber][xIndex][yIndex]=H[domainNumber][xIndex][yIndex];
+                            domain.CopyFieldQuantitiesToBuffer(EFieldQuantityBuffer::MAIN, EFieldQuantityBuffer::RUNGEKUTTA);
                         }
                         else
                         {
                             // Second, third, etc. iterations...
-                            rhoRK[domainNumber][xIndex][yIndex]=rhot[domainNumber][xIndex][yIndex];
-                            uRK[domainNumber][xIndex][yIndex]=ut[domainNumber][xIndex][yIndex];
-                            vRK[domainNumber][xIndex][yIndex]=vt[domainNumber][xIndex][yIndex];
-                            ERK[domainNumber][xIndex][yIndex]=Et[domainNumber][xIndex][yIndex];
-                            pRK[domainNumber][xIndex][yIndex]=pt[domainNumber][xIndex][yIndex];
-                            TRK[domainNumber][xIndex][yIndex]=Tt[domainNumber][xIndex][yIndex];
-                            HRK[domainNumber][xIndex][yIndex]=Ht[domainNumber][xIndex][yIndex];
+                            domain.CopyFieldQuantitiesToBuffer(EFieldQuantityBuffer::T, EFieldQuantityBuffer::RUNGEKUTTA);
                         }
 
                         // Reset all variable arrays used for final memory saving
+                        // A: if they're being written further down, no need to set them to 0, they might just be overwritten.
                         rhot[domainNumber][xIndex][yIndex]=0;
                         ut[domainNumber][xIndex][yIndex]=0;
                         vt[domainNumber][xIndex][yIndex]=0;
