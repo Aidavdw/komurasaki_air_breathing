@@ -47,7 +47,14 @@ int main()
     // INITIALIZE CASE
     double L_T, M0, *XSTART, *YSTART, *XLENGTH, *YLENGTH, *GRID_RATIO_X, *GRID_RATIO_Y, *X_V_START;
     char *B_LOC, ***B_TYPE;
-    int *NXtot, *NYtot, NDOMAIN=0, N_VALVE=0, SOLID_ON=0, dom_low, dom_up, PLENUM_ON=0;
+    int* NXtot;         // The total amount of cells in the X-direction. Is an array, index is domain.
+    int* NYtot;         // The total amount of cells in the Y-direction. Is an array, index is domain.
+    int NDOMAIN = 0;    // The amount of domains in the simulation case.
+    int N_VALVE = 0;    // The amount of valves used for the simulation
+    int SOLID_ON = 0;   // I think this is a flaf on whether or not the FEM modeling should be used for calculating the deflection of the reed valves.
+    int dom_low;        // I think this is the id of the domain that is on the bottom. Not sure what it's used for yet.
+    int dom_up;         // I think this is the id of the domain that is on the bottom. Not sure what it's used for yet.
+    int PLENUM_ON = 0;  // I think this is a flag that is set on whether or not to use the plenum
     init_case(SIM_CASE,&L_T,&M0,&dom_low,&dom_up,&XSTART,&YSTART,&XLENGTH,&YLENGTH,&GRID_RATIO_X,&GRID_RATIO_Y,&X_V_START,&B_LOC,&B_TYPE,&NXtot,&NYtot,&NDOMAIN,&N_VALVE,&SOLID_ON,&PLENUM_ON);
 
     /* TIME STEP, EXPORT SPAN AND BASIC GRID SIZE */
@@ -365,8 +372,8 @@ int main()
 
     /* CELL VOLUME AT REED VALVE INTERFACE BETWEEN INSIDE/OUTSIDE TUBE */
     // double v_cell = M_PI*(pow(y[dom_low][NGHOST][NYtot[dom_low]-NGHOST-1],2)-pow(y[dom_low][NGHOST][NYtot[dom_low]-NGHOST-2],2))*(x[dom_low][NGHOST+1][NYtot[dom_low]-NGHOST-2]-x[dom_low][NGHOST][NYtot[dom_low]-NGHOST-1]);
-    double r_low = y[dom_low][NGHOST][NYtot[dom_low]-NGHOST];
-    double r_up = y[dom_up][NGHOST][NGHOST];
+    double r_low = y[dom_low][NGHOST][NYtot[dom_low]-NGHOST]; // I think this tracks the height of the bottom wall.
+    double r_up = y[dom_up][NGHOST][NGHOST]; // I think this tracks the height of the upper bottom wall.
     // printf("Interface cell volume is: %g m^3.\n",v_cell);
 
 
