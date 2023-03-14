@@ -25,6 +25,7 @@ void FieldQuantity::CopyToBuffer(const EFieldQuantityBuffer from, const EFieldQu
 
 inline int FieldQuantity::At(const int x, const int y)
 {
+	// todo: Add code here to do offsetting for ghost cells too.
 	return x + (y*columnSize);
 }
 

@@ -49,6 +49,17 @@ int Domain::GetTotalAmountOfCells() const
 	return amountOfCells[0] * amountOfCells[1];
 }
 
+void Domain::CopyFieldQuantitiesToBuffer(const EFieldQuantityBuffer from, const EFieldQuantityBuffer to)
+{
+	rho.CopyToBuffer(from, to);
+	u.CopyToBuffer(from, to);
+	v.CopyToBuffer(from, to);
+	p.CopyToBuffer(from, to);
+	E.CopyToBuffer(from, to);
+	T.CopyToBuffer(from, to);
+	H.CopyToBuffer(from, to);
+}
+
 void Domain::SetToAmbientConditions(const double TSet, const double pSet, const double uSet, const double vSet, const double R_ideal, const double gamma)
 {
 	T.SetAllToValue(TSet);

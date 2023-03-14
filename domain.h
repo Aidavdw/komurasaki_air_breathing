@@ -61,6 +61,8 @@ struct Domain
 
 	int GetTotalAmountOfCells() const;
 
+	void CopyFieldQuantitiesToBuffer(const EFieldQuantityBuffer from, const EFieldQuantityBuffer to);
+
 	//todo: implement output in format of CellQuantities
 	//CellValues GetValuesInCell(const int xidx, const int yidx);
 
