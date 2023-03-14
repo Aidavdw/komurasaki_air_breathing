@@ -45,7 +45,7 @@ double eval_msd_deriv(double x, double c);
 
 //todo: rename R0 parameter, as its confusing.
 /* Compute initial pressure, density and temperature conditions based on Newton-Raphson's method.  */
-ChapmanJougetDetonationSolution SolveChapmanJougetDetonationProblem(const double T0, const double P0, const double ETA, const double S0, const double R, const double GAMMA, const double L_TUBE, const double R0, const double convergenceThreshold = 1.0E-10);
+ChapmanJougetDetonationSolution SolveChapmanJougetDetonationProblem(const double T0, const double P0, const double ETA, const double S0, const double R, const double GAMMA, const double L_TUBE, const double RadiusOfCombustionTube, const double convergenceThreshold = 1.0E-10);
 
 // Populates a domain with the values in a Chapman-Jouget detonation. As the solution is 1D, the solution is the same across all the y-coordinates, and is only different for x coordinates.
 void InitialiseDomainFromChapmanJougetDetonationSolution(Domain* domain, const ChapmanJougetDetonationSolution& sol, const double gamma);
