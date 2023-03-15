@@ -1,4 +1,6 @@
 
+struct Domain;
+
 
 enum EMeshSpacingType
 {
@@ -14,6 +16,7 @@ struct MeshSpacing
 {
 	// Could be implemented with polymorphism as well, but that would mean more lookups in the vtable based on virtual functions. Therefore, just state based on an enum.
 
+	// Needs to have an empty constructor because of passing by val
 	MeshSpacing()
 	{};
 
@@ -29,8 +32,6 @@ struct MeshSpacing
 	double length = 0;
 	int amountOfElements = 1;
 
-	// Gets a the cell size for the size at a certain index. For the ghost cells, the thickness is constant and equal at their edge position.
-	double GetCellSize(const int index);
-	double GetCellPosition(const int index);
 
 };
+

@@ -1,6 +1,8 @@
 /*
 Depending on the case name, initial conditions are specified for all the domains and fields of the total fluid domain. If new cases are defined by the user and new case names are defined, the user should also define an initial condition for the new "reference" case he created. This initial condition should be defined in this function.
 */
+
+// This function has been replaced.
 void apply_initial_conditions(char *sim_case, int ndom, int *nx, int *ny, double ***x, double ***rho, double ***u, double ***v, double ***p, double ***E, double ***T, double ***H, int nghost, double m_msd, double p1, double u1, double rho1, double m1, double p2, double rho2, double l_exp, double l_tube, double t0, double p0, double m0, double r, double gamma)
 {
     /* not used:
@@ -22,7 +24,6 @@ void apply_initial_conditions(char *sim_case, int ndom, int *nx, int *ny, double
             double x_center;
             switch(k)
             {
-                //TODO: Move this code to microwave.h/cpp, and have it output to a CellValues, which can then be used to initialise.
                 case 0:
                 // If it is domain 0? I think this is always hardcoded to be the inside of the detonation tube.
                 // Iterate over x coordinates (columns!) that are not fully ghost cells
@@ -62,7 +63,6 @@ void apply_initial_conditions(char *sim_case, int ndom, int *nx, int *ny, double
                 }
                 break;
 
-                //TODO: Replace this by FieldQuantity::SetAllToValue()
                 default:
                 for (int i = nghost; i < nx[k]-nghost; ++i)
                 {

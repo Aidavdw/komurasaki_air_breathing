@@ -28,9 +28,9 @@ void FieldQuantity::CopyToBuffer(const EFieldQuantityBuffer from, const EFieldQu
 		toBuffer[i] = fromBuffer[i];
 }
 
-inline int FieldQuantity::At(const int x, const int y)
+inline int FieldQuantity::At(const int xIdx, const int yIdx)
 {
-	return (x + nGhostCells) + ((y + nGhostCells)*nX);
+	return (xIdx + nGhostCells) + ((yIdx + nGhostCells)*nX);
 }
 
 inline int FieldQuantity::AtGhostCell(const EBoundaryLocation location, const int ghostX, const int ghostY)

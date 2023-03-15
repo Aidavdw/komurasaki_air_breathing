@@ -5,7 +5,7 @@
 #include "parameters.h"
 
 
-Domain::Domain(std::string& name, const double position_arg[2], const double size_arg[2], const int amountOfCells_arg[2], const MeshSpacing meshSpacing[2], const EInitialisationMethod initialisationMethod) :
+Domain::Domain(std::string& name, const double position_arg[2], const double size_arg[2], const int amountOfCells_arg[2], const MeshSpacing meshSpacingArgument[2], const EInitialisationMethod initialisationMethod) :
 	name(name),
 	initialisationMethod(initialisationMethod)
 {
@@ -25,6 +25,11 @@ Domain::Domain(std::string& name, const double position_arg[2], const double siz
 	E = FieldQuantity(amountOfCells[0], amountOfCells[1]);
 	T = FieldQuantity(amountOfCells[0], amountOfCells[1]);
 	H = FieldQuantity(amountOfCells[0], amountOfCells[1]);
+
+	meshSpacing[0] = MeshSpacing(meshSpacingArgument[0]);
+	meshSpacing[1] = MeshSpacing(meshSpacingArgument[1]);
+
+	PopulateDomainDimensions();
 
 }
 
@@ -83,4 +88,49 @@ void ValidateAxisInput(const int axis)
 	}
 }
 
+void Domain::PopulateDomainDimensions()
+{
+	// Apologies if this function is a little hard to wrap your head around, but this saves a lot of performance pain and repeated code.
 
+	std::vector<double> lengths[2]({ {size[0], 0}, {size[1], 0} });
+	std::vector<double> centerPositions[2]({ {size[0], 0}, {size[1], 0} });
+	// do it for both axes, which are iterates as meshSpacing[axis]
+	for (int axis = 0; axis < 2; axis++)
+	{
+		// As the spacing in the y-direction is not dependent on the x position and vice versa, they can be pre-calculated, and later just populated.
+		double previousPosition = 0;
+		for (int i = 0; i < size[axis]; i++)
+		{
+			// Get the length of the current cell
+			double length;
+			switch (meshSpacing[axis].spacingType)
+			{
+			case EMeshSpacingType::CONSTANT:
+				length = length / size[axis];
+				break;
+
+			default:
+				throw std::logic_error("Populating domain dimensions is not implemented for this mesh spacing type.");
+			}
+			
+
+			lengths[axis][i] = length;
+			// Note that centerPositions[i-1] cannot be used here, because this stores the center positions. On top of it, it would not be defined for the first iteration.
+			centerPositions[axis][i] = previousPosition + 0.5 * length;
+			previousPosition += length;
+		}
+	}
+
+	// Set the x-spacing for all y cells with this x coordinate (and vice versa) as they are independent!
+	//int otherAxis = (axis == 0) ? 1 : 0;
+	for (int xIdx = 0; xIdx < size[0]; xIdx++)
+	{
+		for (int yIdx = 0; yIdx < size[1]; yIdx++)
+		{
+			cellLength[0].main[cellLength[0].At(xIdx, yIdx)] = lengths[0][xIdx];
+			cellLength[1].main[cellLength[1].At(xIdx, yIdx)] = lengths[1][yIdx];
+			localCellCenterPosition[0].main[localCellCenterPosition[0].At(xIdx, yIdx)] = centerPositions[0][xIdx];
+			localCellCenterPosition[1].main[localCellCenterPosition[1].At(xIdx, yIdx)] = centerPositions[1][yIdx];
+		}
+	}
+}

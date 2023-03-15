@@ -46,13 +46,18 @@ struct Domain
 	Boundary boundaries[4];						// Left, right, bottom, and up boundaries. Access using EBoundaryLocation struct.
 	MeshSpacing meshSpacing[2];								
 
-	FieldQuantity rho; // Density
-	FieldQuantity u; // velocity x-component
-	FieldQuantity v; // velocity y-component
-	FieldQuantity p; // pressure
-	FieldQuantity E; // Internal energy?
-	FieldQuantity T; // Temperature
-	FieldQuantity H; // enthalpy ?
+	FieldQuantity rho;							// Density
+	FieldQuantity u;							// velocity x-component
+	FieldQuantity v;							// velocity y-component
+	FieldQuantity p;							// pressure
+	FieldQuantity E;							// Internal energy?
+	FieldQuantity T;							// Temperature
+	FieldQuantity H;							// enthalpy ?
+
+	//TODO: Add cache for cell sizes and positions?
+	FieldQuantity cellLength[2];					// The length of each cell.
+	FieldQuantity localCellCenterPosition[2];		// The location of the cell relative to where the domain is anchored. To get global position, add with Domain.position.
+
 
 	void SetBoundaryType(const EBoundaryLocation location, const EBoundaryType type);
 
@@ -68,6 +73,10 @@ struct Domain
 
 	// Sets all the cells to some given ambient conditions.
 	void SetToAmbientConditions(const double T, const double p, const double u, const double v, const double R_ideal, const double gamma);
+
+private:
+	// Sets the domain dimensions by reference.
+	void PopulateDomainDimensions();
 };
 
 

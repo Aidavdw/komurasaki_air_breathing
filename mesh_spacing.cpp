@@ -1,4 +1,6 @@
 #include "mesh_spacing.h"
+#include "field_quantity.h"
+#include "domain.h"
 #include <stdexcept>
 
 MeshSpacing::MeshSpacing(const EMeshSpacingType meshSpacingType, const double elementLength, const int nElements, const double resolution_left, const double resolution_center, const double resolution_right) :
@@ -82,3 +84,5 @@ bool IsCloseToZero(const double x, const double tolerance=std::numeric_limits<do
 {
 	return std::abs(x) < tolerance;
 }
+
+
