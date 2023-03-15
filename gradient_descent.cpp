@@ -1,170 +1,156 @@
+/* ************************************************************************
+		qbGradient class implementation.
+
+		MIT LICENSE
+
+		Permission is hereby granted, free of charge, to any person obtaining a copy
+		of this software and associated documentation files (the "Software"), to deal
+		in the Software without restriction, including without limitation the rights
+		to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+		copies of the Software, and to permit persons to whom the Software is
+		furnished to do so, subject to the following conditions:
+
+		The above copyright notice and this permission notice shall be included in all
+		copies or substantial portions of the Software.
+
+		THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+		IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+		FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+		AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+		LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+		OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+		SOFTWARE.
+
+	 ************************************************************************/
+
 #include "gradient_descent.h"
+#include <iostream>
+#include <fstream>
+#include <math.h>
 
-#include <cmath>
-#include <vector>
-
-
-
-
-double f1(double x, double y) {
-
-    // Beale's Function
-    // minimum is 0 at (3,0.5)
-    // boundaries are [-4.5, 4.5] for x & y
-    return (1.5 - x + x * y) * (1.5 - x + x * y) + (2.25 - x + x * y * y) * (2.25 - x + x * y * y) + (2.625 - x + x * y * y * y) * (2.625 - x + x * y * y * y);
-}
-
-double x_partial(double x, double y) {
-
-    double x_prime = (f1(x + 0.000001, y) - f1(x - 0.000001, y)) / 0.000002;
-    return x_prime;
-}
-
-double y_partial(double x, double y) {
-
-    double y_prime = (f1(x, y + 0.000001) - f1(x, y - 0.000001)) / 0.000002;
-    return y_prime;
-}
-
-
-double isd() {
-    // Declare Variables
-    double tol = 1E-7; // tolerance for convergence
-    int iter = 0;
-    int max_iter = 1000; // maximum number of iterations
-
-
-    // coefficients for gradient
-    double const alpha = 1.1; // expansion
-    double const beta = 0.5; // contraction
-    double ds = 0.5; // gradient variable
-    double x, y, grad, gradx, grady, coeff;
-    double dx, dy;
-    double last_fit, fit;
-
-    // boundaries for variables
-    double lowerBound = 0;
-    double upperBound = 100;
-
-    // get initial guess
-    double x0 = get_rand(lowerBound, upperBound);
-    double y0 = get_rand(lowerBound, upperBound);
-
-
-    bool constraint = true;
-
-    /* begin actual ISD algorithm */
-
-
-
-    last_fit = f1(x0, y0); // get initial fitness
-    fit = last_fit;
-
-    //begin main loop
-    for (iter = 0; iter < max_iter; iter++) {
-
-        gradx = -1 * x_partial(x0, y0);
-        grady = -1 * y_partial(x0, y0);
-        grad = std::sqrt(gradx * gradx + grady * grady);
-
-        if (grad == 0) {
-            //std::cout << "grad == 0 \n";
-            return fit;
-        }
-
-        coeff = ds / grad; // get cauchy coefficient
-
-        // advance x and y by coefficient
-        x = x0 + coeff * gradx;
-        y = y0 + coeff * grady;
-
-        if (x < lowerBound || x > upperBound || y < lowerBound || y > upperBound) {
-            constraint = false;
-        }
-
-        //get new fitness
-        fit = f1(x, y);
-
-        if (std::abs(fit - last_fit) <= tol) {
-            //std::cout << "fit: " << fit << " lastfit: " << last_fit << "\n";
-            return fit;
-        }
-
-        dx = x - x0;
-        dy = y - y0;
-
-        if (std::abs(dx) <= tol && std::abs(dy) <= tol) {
-            //std::cout << "dx, dy\n";
-            //std::cout << "x: " << x << " dx: " << dx << " y: " << y << " dy: " << dy << "\n";
-            return fit;
-        }
-
-
-        // cauchy step was too big
-        if (fit > last_fit || !constraint) {
-
-            ds *= beta;
-        }
-        else {
-
-            ds *= alpha;
-            last_fit = fit;
-            x0 = x;
-            y0 = y;
-        }
-
-
-    }
-
-    if (iter == (max_iter - 1)) {
-        std::cout << "Solution did not converge quickly enough \n";
-    }
-    else {
-        //std::cout << "Gen: " << iter << " Min: " << fit << " x: " << x << " y: " << y << "\n";
-        return fit;
-    }
-
-    return fit; // return our best value i guess
-
-}
-
-
-int main()
+	 // Constructor.
+qbGradient::qbGradient()
 {
+	// Set defaults.
+	m_nDims = 0;
+	m_stepSize = 0.0;
+	m_maxIter = 1;
+	m_h = 0.001;
+	m_gradientThresh = 1e-09;
+}
 
-    //create seed for random numbers
-    //seed_rand();
-    const int trials = 10000;
-    std::vector<double> mins;
+// Destructor.
+qbGradient::~qbGradient()
+{
+	// Tidy up anything that needs tidying up...
+}
 
-    // for stats printing
-    //double best = 100000;
-    //double avg;
-    //double avg_time;
+// Function to set the object function.
+void qbGradient::SetObjectFcn(std::function<double(std::vector<double>*)> objectFcn)
+{
+	m_objectFcn = objectFcn;
+}
 
-    // start timing trials
-    //std::clock_t start;
-    //start = std::clock();
+// Function to set the start point.
+// Note that this also sets the number of degrees of freedom.
+void qbGradient::SetStartPoint(const std::vector<double> startPoint)
+{
+	// Copy the start point.
+	m_startPoint = startPoint;
 
-    // run all trials
-    for (int i = 0; i < trials; i++) {
-        mins.push_back(isd());
-    }
+	// Determine the number of degrees of freedom.
+	m_nDims = m_startPoint.size();
+}
 
-    // finish timing trials
-    //avg_time = (std::clock() - start) / (double)CLOCKS_PER_SEC;
+// Function to set the step size.
+void qbGradient::SetStepSize(double stepSize)
+{
+	m_stepSize = stepSize;
+}
 
-    // figure stats on our runs
-    for (int j = 0; j < trials; j++) {
-        best = best < mins[j] ? best : mins[j];
-        avg += mins[j];
-    }
+// Function to set the maximum number of iterations.
+void qbGradient::SetMaxIterations(int maxIterations)
+{
+	m_maxIter = maxIterations;
+}
 
-    avg /= trials;
+// Function to set the gradient magnitude threshold (stopping condition).
+// The optimization stops when the gradient magnitude falls below this value.
+void qbGradient::SetGradientThresh(double gradientThresh)
+{
+	m_gradientThresh = gradientThresh;
+}
 
-    std::cout << "Absolute minimum is: 0 and is found at: (3,0.5)\n-----------------------------------------\n";
-    std::cout << "The best minimum was: " << best << "\nThe average minimum was: " << avg;
-    std::cout << "\nThe total computation time was: " << avg_time << "\nThe average time was: " << avg_time / trials << "\n\n";
+// Function to perform the actual optimization.
+bool qbGradient::Optimize(std::vector<double>* funcLoc, double* funcVal)
+{
+	// Set the currentPoint to the startPoint.
+	m_currentPoint = m_startPoint;
 
-    return 0;
+	// Loop up to max iterations or until threshold reached.
+	int iterCount = 0;
+	double gradientMagnitude = 1.0;
+	while ((iterCount < m_maxIter) && (gradientMagnitude > m_gradientThresh))
+	{
+		// Compute the gradient vector.
+		std::vector<double> gradientVector = ComputeGradientVector();
+		gradientMagnitude = ComputeGradientMagnitude(gradientVector);
+
+		// Compute the new point.
+		std::vector<double> newPoint = m_currentPoint;
+		for (int i = 0; i < m_nDims; ++i)
+		{
+			newPoint[i] += -(gradientVector[i] * m_stepSize);
+		}
+
+		// Update the current point.
+		m_currentPoint = newPoint;
+
+		// Increment the iteration counter.
+		iterCount++;
+	}
+
+	// Return the results.
+	*funcLoc = m_currentPoint;
+	*funcVal = m_objectFcn(&m_currentPoint);
+
+	return 0;
+}
+
+/* Function to compute the gradient of the object function in the
+	specified dimension. */
+double qbGradient::ComputeGradient(int dim)
+{
+	// Make a copy of the current location.
+	std::vector<double> newPoint = m_currentPoint;
+
+	// Modify the copy, according to h and dim.
+	newPoint[dim] += m_h;
+
+	// Compute the two function values for these points.
+	double funcVal1 = m_objectFcn(&m_currentPoint);
+	double funcVal2 = m_objectFcn(&newPoint);
+
+	// Compute the approximate numerical gradient.
+	return (funcVal2 - funcVal1) / m_h;
+}
+
+// Function to compute the gradient vector.
+std::vector<double> qbGradient::ComputeGradientVector()
+{
+	std::vector<double> gradientVector = m_currentPoint;
+	for (int i = 0; i < m_nDims; ++i)
+		gradientVector[i] = ComputeGradient(i);
+
+	return gradientVector;
+}
+
+// Function to compute the gradient magnitude.
+double qbGradient::ComputeGradientMagnitude(std::vector<double> gradientVector)
+{
+	double vectorMagnitude = 0.0;
+	for (int i = 0; i < m_nDims; ++i)
+		vectorMagnitude += gradientVector[i] * gradientVector[i];
+
+	return sqrt(vectorMagnitude);
 }

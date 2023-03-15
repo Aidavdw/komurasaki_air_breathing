@@ -2,8 +2,10 @@
 #include "field_quantity.h"
 #include "domain.h"
 #include <stdexcept>
+#include <functional>
+#include "gradient_descent.h"
 
-MeshSpacing::MeshSpacing(const EMeshSpacingType meshSpacingType, const double elementLength, const int nElements, const double resolution_left, const double resolution_center, const double resolution_right) :
+MeshSpacing::MeshSpacing(const EMeshSpacingType meshSpacingType, const double elementLength, const int nElements, const double resolution_left, const double resolution_right) :
 	spacingType(meshSpacingType),
 	length(elementLength),
 	amountOfElements(nElements)
@@ -28,12 +30,11 @@ double MeshSpacing::GetCellWith(const int i)
 
 void MeshSpacing::FitSpacingToParameters()
 {
-	double origLeft = left;
-	double origRight = right;
-	double origCenter = center;
-	int origAmountOfElements = amountOfElements;
+	bool bLeft = !IsCloseToZero(left);
+	bool bRight = !IsCloseToZero(right);
+	bool bN = (amountOfElements != 0);
 
-	int degreesOfFreedom = IsCloseToZero(left) + IsCloseToZero(right) + IsCloseToZero(center) + (amountOfElements == 0);
+	int valuesProvided = bLeft + bRight + bN;
 
 	int requiredParameterCount;
 	switch (spacingType)
@@ -47,12 +48,49 @@ void MeshSpacing::FitSpacingToParameters()
 		throw std::logic_error("Fitting this type of mesh spacing to parameters has not yet been implemented.");
 	}
 
-	if (degreesOfFreedom > 4 - requiredParameterCount)
+	if (valuesProvided < (3 - requiredParameterCount))
 		throw std::logic_error("The spacing type is underconstrained! More parameters need to be set.");
-	if (degreesOfFreedom < 4 - requiredParameterCount)
-		throw std::logic_error("The spacing type is overconstrained! More parameters need to be set.");
+	if (valuesProvided > (3 - requiredParameterCount))
+		throw std::logic_error("The spacing type is overconstrained! More parameters need to be left unset.");
 
-	// Do the actual gradient descent here
+
+	// Create a lambda with the given parameters always filled in, and the others as inputs
+	std::vector<double> knowns = { left, right, float(amountOfElements) };
+	auto glambda = [knowns](std::vector<double>* funcLoc)
+	{
+		int paramNumber = 0;
+		std::vector<double> vec = knowns;
+		for (int i = 0; i < knowns.size(); i++)
+		{
+			if (IsCloseToZero(knowns[i]))
+			{
+				vec[i] = funcLoc->at(paramNumber);
+				paramNumber++;
+			}
+		}
+		return SpacingObjectiveFunction(vec);
+	};
+
+	// Set up gradient descent
+	qbGradient solver;
+
+	// Assign the objective function.
+	std::function<double(std::vector<double>*)> p_ObjectFcn{ glambda };
+	solver.SetObjectFcn(p_ObjectFcn);
+
+	// Set a start point.
+	double knownSpacing = std::max({ left, right });
+	double leftGuess = bLeft ? left : knownSpacing;
+	double rightGuess = bRight ? right : knownSpacing;
+	solver.SetStartPoint({ leftGuess, rightGuess, double(amountOfElements) });
+	solver.SetMaxIterations(50);
+	solver.SetStepSize(0.1);
+
+	// Run gradient descent
+	std::vector<double> funcLoc;
+	double funcVal;
+	solver.Optimize(&funcLoc, &funcVal);
+
 }
 
 bool IsCloseToZero(const double x, const double tolerance=std::numeric_limits<double>::epsilon() )
@@ -60,4 +98,7 @@ bool IsCloseToZero(const double x, const double tolerance=std::numeric_limits<do
 	return std::abs(x) < tolerance;
 }
 
-
+double SpacingObjectiveFunction(std::vector<double>& funcLoc)
+{
+	// Regardless of the actual function that is being optimised, there are 4 constraints, directly given by the input conditions
+}

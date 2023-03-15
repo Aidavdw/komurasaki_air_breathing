@@ -21,13 +21,12 @@ struct MeshSpacing
 	{};
 
 	
-	MeshSpacing(const EMeshSpacingType meshSpacingType, const double length, const int amountofElements, const double resolution_left, const double resolution_center, const double resolution_right);
+	MeshSpacing(const EMeshSpacingType meshSpacingType, const double length, const int amountofElements, const double resolution_left, const double resolution_right);
 
 	EMeshSpacingType spacingType = EMeshSpacingType::CONSTANT;
 	
 	double left = 0;
 	double right = 0;
-	double center = 0;
 
 	double length = 0;
 	int amountOfElements = 1;
@@ -38,3 +37,7 @@ private:
 	void FitSpacingToParameters();
 };
 
+
+
+// Function describing how close to fitting the current configuration is
+double SpacingObjectiveFunction(std::vector<double>& funcLoc);
