@@ -32,6 +32,9 @@ struct MeshSpacing
 	double length = 0;
 	int amountOfElements = 1;
 
+	double GetCellWith(const int i);
 
+private:
+	void FitSpacingToParameters();
 };
 
