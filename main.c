@@ -201,10 +201,34 @@ int main()
     printf("\nInitial fluid conditions exported...\n");
 
     /* DEFINITION AND ALLOCATION OF FEM VARIABLES */
-	int N_DOF, N_NODE, N_ACTIVE, N_INACTIVE, *act_DOF;
-	double **x_FEM, **y_FEM, *b, *h, *A, *I;
-    double **K, **C, **M, **L_K, **LT_K, **L_R1, **LT_R1, **R1, **R2, **R3;
-    double **U0_DOF, **U1_DOF, **U2_DOF, **U2_DOF_K, **dp_interface, **p_FEM,**F_DOF;
+	int N_DOF;              // Total amount of degrees of freedom for FEM values
+	int  N_NODE;            // The amount of nodes that are in the FEM simulation. NFEM + 1
+	int  N_ACTIVE;
+	int  N_INACTIVE;
+	int  *act_DOF;
+	double **x_FEM;         // X locations of the inidividual FEM cells, relative to the left-most point.
+	double **y_FEM;
+	double *b;              // The (average) width of the cell. Literally b in Florian (2017).
+	double *h;
+	double *A;
+	double *I;
+    double **K;             // Stiffness matrix. Size of dof*dof
+	double **C;             // Structural damping matrix.
+	double **M;             // Mass moment for each individual degree of freedom? Used for newmark solving at least.
+	double **L_K;
+	double **LT_K;
+	double **L_R1;
+	double **LT_R1;
+	double **R1;
+	double **R2;
+	double **R3;
+    double **U0_DOF;
+	double **U1_DOF;
+	double **U2_DOF;
+	double **U2_DOF_K;
+	double **dp_interface;
+	double **p_FEM;
+	double**F_DOF;
 
     /* MASS-FLOW RATE RELATED PARAMETERS DUE TO VALVE */
     int *mfr_index_inf, *mfr_index_sup, *mfr_n; // To locate cells with source term
@@ -226,7 +250,7 @@ int main()
     	/* MEMORY ALLOCATION */
     	N_NODE = N_FEM+1;
     	N_DOF= N_DOF_PER_NODE*N_NODE;
-    	x_FEM = init_matrix(N_VALVE,N_FEM,1);
+    	x_FEM = init_matrix(N_VALVE,N_FEM,1); // Just creates a matrix of N_NODE * N_VALVE * 1 
     	y_FEM = init_matrix(N_VALVE,N_FEM,1);
     	K = init_matrix(N_DOF,N_DOF,0);
     	C = init_matrix(N_DOF,N_DOF,0);

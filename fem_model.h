@@ -4,14 +4,18 @@
 /* Compute the structural characteristics of the sections of the tapered reed valve. N is the number of nodes, which should coincide with the size of x_node, b, A, and I. */
 int * compute_solid(int n_v, int n_node, double **x_node, double *x_start, double *b, double *h, double *A, double *I, double b0, double b1, double h0, double h1, double l,double l_fix, int n_fix, int n_clamp, int n_dof_per_node,int *n_active,int *n_inactive)
 {
-	// Meshing all valves
-	for (int k = 0; k < n_v; ++k)
+	// The beam is split into two parts: A fixed part (0->l_fix, n_fix nodes), and a freely deforming part.
+
+
+	// populates the matrix of the x-locations of each node.
+	for (int k = 0; k < n_v; ++k) // iters over the amount of nodes
 	{
 		for (int i = 0; i < n_node; ++i)
 		{
-			// Mesh
+			// Equidistantly places over the interval up until the l_fix. Note that this means that the spacing between nodes in the 'fixed' part and the free-moving part are not the same!
 			if (i<n_fix)
 			{
+
 				x_node[k][i] = x_start[k] + i*(l_fix)/(n_fix-1);
 			}
 			else
@@ -21,11 +25,11 @@ int * compute_solid(int n_v, int n_node, double **x_node, double *x_start, doubl
 		}
 	}
 
-	// First half of fixation length is fixed
+
 	for (int i = 0; i < n_node; ++i)
 	{
 		// Geometry of sections referenced by each node
-		b[i] = b0 + i*(b1 - b0)/(n_node-1);
+		b[i] = b0 + i*(b1 - b0)/(n_node-1); // Sets the width by reference. Note that this assumes that the reed valves are tapered perfectly.
 		if (x_node[0][i] - x_start[0]<= l_fix)
 		{
 			h[i] = h0;
@@ -58,7 +62,13 @@ int * compute_solid(int n_v, int n_node, double **x_node, double *x_start, doubl
 			}
 		// }
 	}
+	// I think this just creates a vector like
+	/*
+	* [12, 13, 14, 15, 16]
+	* 
+	*/
 
+	// Returns n_active and n_inactive by reference. This is done directly with the input params though, doesn't have to do anything with the rest of the calculation.
 	*n_inactive = n_clamp*n_dof_per_node;
 	*n_active = (n_node - n_clamp)*n_dof_per_node;
 
