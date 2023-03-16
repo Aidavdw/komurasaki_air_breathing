@@ -1,4 +1,4 @@
-#include "finite_element.h"
+#include "beam_section.h"
 #include <cmath>
 
 BeamSection::BeamSection(const double posX, const double width, const double thickness) :
