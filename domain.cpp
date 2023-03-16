@@ -108,6 +108,8 @@ void Domain::PopulateDomainDimensions()
 			case EMeshSpacingType::CONSTANT:
 				length = length / size[axis];
 				break;
+			case EMeshSpacingType::LINEAR:
+				break;
 
 			default:
 				throw std::logic_error("Populating domain dimensions is not implemented for this mesh spacing type.");

@@ -15,7 +15,7 @@ MeshSpacing::MeshSpacing(const EMeshSpacingType meshSpacingType, const double el
 	FitSpacingToParameters();
 }
 
-double MeshSpacing::GetCellWith(const int i)
+double MeshSpacing::GetCellWidth(const int i)
 {
 	switch(spacingType)
 	{
@@ -53,10 +53,10 @@ void MeshSpacing::FitSpacingToParameters()
 	if (valuesProvided > (3 - requiredParameterCount))
 		throw std::logic_error("The spacing type is overconstrained! More parameters need to be left unset.");
 
-
+	auto meshSpacingType = spacingType;
 	// Create a lambda with the given parameters always filled in, and the others as inputs
 	std::vector<double> knowns = { left, right, float(amountOfElements) };
-	auto glambda = [knowns](std::vector<double>* funcLoc)
+	auto glambda = [knowns, this](std::vector<double>* parametersToEvalAt)
 	{
 		int paramNumber = 0;
 		std::vector<double> vec = knowns;
@@ -64,7 +64,7 @@ void MeshSpacing::FitSpacingToParameters()
 		{
 			if (IsCloseToZero(knowns[i]))
 			{
-				vec[i] = funcLoc->at(paramNumber);
+				vec[i] = parametersToEvalAt->at(paramNumber);
 				paramNumber++;
 			}
 		}
@@ -98,7 +98,23 @@ bool IsCloseToZero(const double x, const double tolerance=std::numeric_limits<do
 	return std::abs(x) < tolerance;
 }
 
-double SpacingObjectiveFunction(std::vector<double>& funcLoc)
+double MeshSpacing::SpacingObjectiveFunction(std::vector<double>& funcLoc)
 {
-	// Regardless of the actual function that is being optimised, there are 4 constraints, directly given by the input conditions
+	// Regardless of the actual function that is being optimised, there are 3 constraints, directly given by the input conditions
+	// 
+	// The spacing needs to match for the given left-width and right-width
+	double leftCriterion = GetCellWidth(0) - left;
+	double rightCriterion = GetCellWidth(amountOfElements - 1) - right;
+
+	// The total length needs to be equal to the set length
+	double totalWidth = 0;
+	for (int i = 0; i < amountOfElements; i++)
+	{
+		totalWidth += GetCellWidth(i);
+	}
+	double cellwidthCriterion = totalWidth - length;
+
+	// sqrt-ing below isn't even necessary, since it's just optimising.
+	return leftCriterion*leftCriterion + rightCriterion*rightCriterion + cellwidthCriterion*cellwidthCriterion;
+	
 }

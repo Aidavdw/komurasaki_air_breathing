@@ -31,13 +31,14 @@ struct MeshSpacing
 	double length = 0;
 	int amountOfElements = 1;
 
-	double GetCellWith(const int i);
+	double GetCellWidth(const int i);
 
 private:
 	void FitSpacingToParameters();
+	// Function describing how close to fitting the current configuration is
+	double SpacingObjectiveFunction(std::vector<double>& funcLoc);
 };
 
 
 
-// Function describing how close to fitting the current configuration is
-double SpacingObjectiveFunction(std::vector<double>& funcLoc);
+
