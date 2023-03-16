@@ -41,7 +41,7 @@ struct Domain
 
 	double position[2] = {0,0};					// the coordinate of the most bottom left point for the domains.
 	double size[2] = {0,0};						// The total extents of the domain
-	double X_V_START = 0;
+	//double X_V_START = 0;
 	int amountOfCells[2] = {0,0};				// total amount of cells in the axis direction. This includes the ghost cells.
 	Boundary boundaries[4];						// Left, right, bottom, and up boundaries. Access using EBoundaryLocation struct.
 	MeshSpacing meshSpacing[2];								
@@ -54,7 +54,6 @@ struct Domain
 	FieldQuantity T;							// Temperature
 	FieldQuantity H;							// enthalpy ?
 
-	//TODO: Add cache for cell sizes and positions?
 	FieldQuantity cellLength[2];					// The length of each cell.
 	FieldQuantity localCellCenterPosition[2];		// The location of the cell relative to where the domain is anchored. To get global position, add with Domain.position.
 
