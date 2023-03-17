@@ -1,9 +1,10 @@
 #include "2dArray.h"
 #include <stdexcept>
 
-TwoDimensionalArray::TwoDimensionalArray(const unsigned int sizeX, const unsigned int sizeY, const double initialValue = 0) :
+TwoDimensionalArray::TwoDimensionalArray(const unsigned int sizeX, const unsigned int sizeY, const double initialValue = 0, const double nGhostCells = 0) :
 	nX(sizeX),
-	nY(sizeY)
+	nY(sizeY),
+	nGhostCells(nGhostCells)
 {
 	Resize(data, sizeX, sizeY, initialValue);
 }
@@ -14,9 +15,9 @@ void TwoDimensionalArray::SetAllToValue(const double value)
 		data[i] = value;
 }
 
-void TwoDimensionalArray::Resize(std::vector<double>& valueField, const unsigned int sizeX, const unsigned int sizeY, const double initialValue)
+void TwoDimensionalArray::Resize(const unsigned int sizeX, const unsigned int sizeY, const double initialValue)
 {
-	valueField = std::vector<double>((sizeX + 2) * (sizeY + 2), initialValue);
+	data = std::vector<double>((sizeX + nGhostCells) * (sizeY + nGhostCells), initialValue);
 }
 
 void TwoDimensionalArray::ElementWiseCopy(TwoDimensionalArray& from, TwoDimensionalArray& to)

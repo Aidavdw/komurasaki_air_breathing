@@ -33,6 +33,14 @@ struct FieldQuantity
 	void CopyToBuffer(const EFieldQuantityBuffer from, const EFieldQuantityBuffer to);
 
 	inline int At(const int xIdx, const int yIdx); // Helper function for getting the index in the internal arrays for a certain index. Use like buffer_name[At(x,y)].
+
+	// operator overloaded accessor
+	inline double& operator () (int xIdx, int yIdx, EFieldQuantityBuffer buffer)
+	{
+		auto& buf = bufferMap.at(buffer);
+		return buf(xIdx, yIdx);
+	}
+
 	inline int AtGhostCell(const EBoundaryLocation location, const int ghostX, const int ghostY); // Helper function for getting a ghost cell in the internal arrays for a certain index.Use like buffer_name[At(boundaryLocation, x, y)].
 
 private:
