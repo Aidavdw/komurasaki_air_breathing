@@ -6,7 +6,9 @@ FieldQuantity::FieldQuantity(const unsigned int sizeX, const unsigned int sizeY,
 	nX(sizeX),
 	nY(sizeY)
 {
-	Resize2DVector(main, sizeX, sizeY, initialValue, nGhostCells);
+	main = TwoDimensionalArray(sizeX + nGhostCells, sizeY + nGhostCells, initialValue);
+	rungeKuttaBuffer = TwoDimensionalArray(sizeX + nGhostCells, sizeY + nGhostCells, initialValue);
+	TBuffer = TwoDimensionalArray(sizeX + nGhostCells, sizeY + nGhostCells, initialValue);
 
 	bufferMap.insert({ EFieldQuantityBuffer::MAIN, main });
 	bufferMap.insert({ EFieldQuantityBuffer::RUNGEKUTTA, rungeKuttaBuffer });
@@ -16,7 +18,7 @@ FieldQuantity::FieldQuantity(const unsigned int sizeX, const unsigned int sizeY,
 void FieldQuantity::SetAllToValue(const double value, const EFieldQuantityBuffer bufferToWriteTo = EFieldQuantityBuffer::MAIN)
 {
 	auto& buffer = bufferMap.at(bufferToWriteTo);
-	SetToValueInternal(buffer, value);
+	buffer.SetAllToValue(value);
 }
 
 void FieldQuantity::CopyToBuffer(const EFieldQuantityBuffer from, const EFieldQuantityBuffer to)
@@ -24,8 +26,7 @@ void FieldQuantity::CopyToBuffer(const EFieldQuantityBuffer from, const EFieldQu
 	auto& fromBuffer = bufferMap.at(from);
 	auto& toBuffer = bufferMap.at(to);
 
-	for (size_t i = 0; i < fromBuffer.size(); i++)
-		toBuffer[i] = fromBuffer[i];
+	TwoDimensionalArray::ElementWiseCopy(fromBuffer, toBuffer);
 }
 
 inline int FieldQuantity::At(const int xIdx, const int yIdx)
@@ -58,16 +59,4 @@ inline int FieldQuantity::AtGhostCell(const EBoundaryLocation location, const in
 	}
 	
 	return (ghostX + xOffset) + ((ghostY + yOffset) * nX);
-}
-
-void FieldQuantity::SetToValueInternal(std::vector<double>& Vec2D, const double value)
-{
-	// The ghost cells can be skipped, saves a tiny bit of time? For now not implemented.
-	for (int i = 0; i < Vec2D.size(); i++)
-		Vec2D[i] = 0.0;
-}
-
-void FieldQuantity::Resize2DVector(std::vector<double>& vec2D, const unsigned int sizeX, const unsigned int sizeY, const double initialValue, const int nGhostCells)
-{
-	vec2D = std::vector<double>( (sizeX+ 2*nGhostCells) * (sizeY + 2*nGhostCells), initialValue);
 }

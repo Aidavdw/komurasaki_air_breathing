@@ -1,6 +1,7 @@
 #include <vector>
 #include <map>
 #include "domain_enums.h"
+#include "2dArray.h"
 
 enum EFieldQuantityBuffer
 {
@@ -18,13 +19,13 @@ struct FieldQuantity
 
 	FieldQuantity(const unsigned int sizeX, const unsigned int sizeY, const double initialValue = 0., const int nGhostCells=2);
 
-	std::map<EFieldQuantityBuffer, std::vector<double>&> bufferMap;
+	std::map<EFieldQuantityBuffer, TwoDimensionalArray> bufferMap;
 
 	int nGhostCells;
 
-	std::vector<double> main;				// The actual value of this field quantity. Access using At(), don't manually index!
-	std::vector<double> rungeKuttaBuffer;	// The Runge Kutta buffer of this field quantity. Access using At(), don't manually index!
-	std::vector<double> TBuffer;			// The T buffer of this field quantity. Access using At(), don't manually index!
+	TwoDimensionalArray main;				// The actual value of this field quantity. Access using At(), don't manually index!
+	TwoDimensionalArray rungeKuttaBuffer;	// The Runge Kutta buffer of this field quantity. Access using At(), don't manually index!
+	TwoDimensionalArray TBuffer;			// The T buffer of this field quantity. Access using At(), don't manually index!
 
 	// Sets all the values in the field to this value.
 	void SetAllToValue(const double value, const EFieldQuantityBuffer bufferToWriteTo=EFieldQuantityBuffer::MAIN);
@@ -37,7 +38,4 @@ struct FieldQuantity
 private:
 	int nX = 0; // Amount of fields in the x-direction, not counting ghost cells.
 	int nY = 0; // Amount of fields in the y-direction, not counting ghost cells.
-	// Sets a specific 2d vector to a value. Useful for internal use to call on the buffers.
-	static void SetToValueInternal(std::vector<double>& valueField, const double value);
-	static void Resize2DVector(std::vector<double>& valueField, const unsigned int sizeX, const unsigned int sizeY, const double initialValue, const int nGhostCells);
 };
