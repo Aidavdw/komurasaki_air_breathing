@@ -19,7 +19,14 @@ void TwoDimensionalArray::Resize(const unsigned int sizeX, const unsigned int si
 	data = std::vector<double>((sizeX) * (sizeY), initialValue);
 }
 
-void TwoDimensionalArray::ElementWiseCopy(TwoDimensionalArray& from, TwoDimensionalArray& to)
+bool TwoDimensionalArray::IsEmpty() const
+{
+	if (nX == 0 || nY == 0)
+		return true;
+	return data.empty();
+}
+
+void TwoDimensionalArray::ElementWiseCopy(const TwoDimensionalArray& from, TwoDimensionalArray& to)
 {
 	// Needs to be a static function, because it's using the private data variable.
 	for (size_t i = 0; i < (from.nX*from.nY); i++)

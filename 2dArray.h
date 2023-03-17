@@ -14,9 +14,11 @@ struct TwoDimensionalArray
 	// Sets all the values in the field to this value.
 	void SetAllToValue(const double value);
 
-	static void ElementWiseCopy(TwoDimensionalArray& from, TwoDimensionalArray& to);
+	static void ElementWiseCopy(const TwoDimensionalArray& from, TwoDimensionalArray& to);
 
 	void Resize(const unsigned int sizeX, const unsigned int sizeY, const double initialValue=0);
+
+	bool IsEmpty() const;
 
 	// operator overloaded accessor
 	inline double& operator () (int xIdx, int yIdx)
