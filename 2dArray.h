@@ -8,8 +8,6 @@ struct TwoDimensionalArray
 
 	TwoDimensionalArray(const unsigned int sizeX, const unsigned int sizeY, const double initialValue = 0, const double nGhostCells = 0);
 
-
-	int nGhostCells = 0;
 	int nX = 0; // Amount of fields in the x-direction, not counting ghost cells.
 	int nY = 0; // Amount of fields in the y-direction, not counting ghost cells.
 
@@ -23,7 +21,13 @@ struct TwoDimensionalArray
 	// operator overloaded accessor
 	inline double& operator () (int xIdx, int yIdx)
 	{
-		return data[(xIdx + nGhostCells) + ((yIdx + nGhostCells) * nX)];
+		return data[(xIdx) + ((yIdx) * nX)];
+	}
+
+	// operator overloaded accessor
+	inline double& operator [] (int flattenedIndex)
+	{
+		return data[flattenedIndex];
 	}
 
 private:

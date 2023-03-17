@@ -32,16 +32,18 @@ struct FieldQuantity
 
 	void CopyToBuffer(const EFieldQuantityBuffer from, const EFieldQuantityBuffer to);
 
-	inline int At(const int xIdx, const int yIdx); // Helper function for getting the index in the internal arrays for a certain index. Use like buffer_name[At(x,y)].
 
-	// operator overloaded accessor
+
+	// operator overloaded accessor. Note that this is not the fastest way to set, so if possible do that directly on the 2d arrays level.
 	inline double& operator () (int xIdx, int yIdx, EFieldQuantityBuffer buffer)
 	{
 		auto& buf = bufferMap.at(buffer);
-		return buf(xIdx, yIdx);
+		return buf[At(xIdx, yIdx)];
 	}
 
-	inline int AtGhostCell(const EBoundaryLocation location, const int ghostX, const int ghostY); // Helper function for getting a ghost cell in the internal arrays for a certain index.Use like buffer_name[At(boundaryLocation, x, y)].
+	inline int At(const int xIdx, const int yIdx); // Helper function for getting the flattened index in the internal arrays for a certain index. Use like buffer_name[At(x,y)].
+
+	inline int AtGhostCell(const EBoundaryLocation location, const int ghostX, const int ghostY); // Helper function for getting the flattened index of a ghost cell in the internal arrays for a certain index. Use like buffer_name[At(x,y)].
 
 private:
 	int nX = 0; // Amount of fields in the x-direction, not counting ghost cells.

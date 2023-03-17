@@ -3,10 +3,9 @@
 
 TwoDimensionalArray::TwoDimensionalArray(const unsigned int sizeX, const unsigned int sizeY, const double initialValue = 0, const double nGhostCells = 0) :
 	nX(sizeX),
-	nY(sizeY),
-	nGhostCells(nGhostCells)
+	nY(sizeY)
 {
-	Resize(data, sizeX, sizeY, initialValue);
+	Resize(sizeX, sizeY, initialValue);
 }
 
 void TwoDimensionalArray::SetAllToValue(const double value)
@@ -17,7 +16,7 @@ void TwoDimensionalArray::SetAllToValue(const double value)
 
 void TwoDimensionalArray::Resize(const unsigned int sizeX, const unsigned int sizeY, const double initialValue)
 {
-	data = std::vector<double>((sizeX + nGhostCells) * (sizeY + nGhostCells), initialValue);
+	data = std::vector<double>((sizeX) * (sizeY), initialValue);
 }
 
 void TwoDimensionalArray::ElementWiseCopy(TwoDimensionalArray& from, TwoDimensionalArray& to)
