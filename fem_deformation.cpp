@@ -12,7 +12,8 @@ FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountO
 	N_DOF = N_DOF_PER_NODE * amountOfNodes;
 
 	CreateBeamSections();
-	PopulateGlobalMassMatrix();
+	AssembleGlobalMassMatrix(globalMassMatrix);
+	AssembleGlobalStiffnessMatrix(globalStiffnessMatrix);
 
 }
 
@@ -55,7 +56,7 @@ void FemDeformation::CreateBeamSections()
 	}
 }
 
-void FemDeformation::PopulateGlobalMassMatrix(TwoDimensionalArray& matrixOut)
+void FemDeformation::AssembleGlobalMassMatrix(TwoDimensionalArray& matrixOut)
 {
 	matrixOut.Resize(N_DOF, N_DOF);
 
@@ -72,7 +73,19 @@ void FemDeformation::PopulateGlobalMassMatrix(TwoDimensionalArray& matrixOut)
 	}
 }
 
-void FemDeformation::PopulateGlobalStiffnessMatrix(TwoDimensionalArray& matrixOut)
+void FemDeformation::AssembleGlobalStiffnessMatrix(TwoDimensionalArray& matrixOut)
 {
+	matrixOut.Resize(N_DOF, N_DOF);
 
+	for (const auto& beamSection : beamSections)
+	{
+		for (int k = 0; k < 4; ++k)
+		{
+			for (int j = 0; j < 4; ++j)
+			{
+				// superimposing all 4
+				matrixOut(N_DOF_PER_NODE * beamSection.id + k, N_DOF_PER_NODE * beamSection.id + j) += beamSection.youngsModulus * beamSection.stiffnessMatrix[k][j];
+			}
+		}
+	}
 }

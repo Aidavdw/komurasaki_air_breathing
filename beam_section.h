@@ -12,6 +12,7 @@ struct BeamSection
 	double length;
 
 	double density;
+	double youngsModulus;			// The Young's modulus E expressed in Pa(scals)
 
 
 	double crossSectionalArea[2];	// cross-sectional area of the beam section, orthogonal to the bending plane.

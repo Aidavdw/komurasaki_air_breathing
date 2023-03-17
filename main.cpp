@@ -129,8 +129,6 @@ int main()
         printf("\nNumber of active/inactive FEM DOFs: %d / %d.\n", N_ACTIVE, N_INACTIVE);
 
         /* COMPUTE FEM MATRICES */
-	    build_mass_mat(N_FEM,M,x_FEM[0],b,h,A,I,B0,B1,H0,H1,L_V,RHO_V,N_DOF_PER_NODE);
-	    build_stiff_mat(N_FEM,K,x_FEM[0],b,h,A,I,B0,B1,H0,H1,L_V,E_V,N_DOF_PER_NODE);
 	    build_damp_mat(N_DOF,C,K,M,RAYLEIGH_ALPHA,RAYLEIGH_BETA);
         build_newmark_mat(N_DOF,C,K,M,DT,R1,R2,R3);
 

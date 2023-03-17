@@ -28,9 +28,12 @@ class FemDeformation
 	double rootThickness;
 	double tipThickness;
 
+	TwoDimensionalArray globalMassMatrix;		// The global mass matrix for this FEM beam, with the element matrices combined.
+	TwoDimensionalArray globalStiffnessMatrix;	// The global mass stiffness for this FEM beam, with the element matrices combined.
+
 
 private:
 	void CreateBeamSections();
-	void PopulateGlobalMassMatrix(TwoDimensionalArray& matrixOut);
-	void PopulateGlobalStiffnessMatrix(TwoDimensionalArray& matrixOut);
+	void AssembleGlobalMassMatrix(TwoDimensionalArray& matrixOut);
+	void AssembleGlobalStiffnessMatrix(TwoDimensionalArray& matrixOut);
 };
