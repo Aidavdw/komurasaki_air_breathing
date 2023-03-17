@@ -45,7 +45,8 @@ int main()
     clock_gettime( CLOCK_REALTIME, &start_time);
 
     // INITIALIZE CASE
-    double L_T, M0, *XSTART, *YSTART, *XLENGTH, *YLENGTH, *GRID_RATIO_X, *GRID_RATIO_Y, *X_V_START;
+    double L_T, M0, * XSTART, * YSTART, * XLENGTH, * YLENGTH, * GRID_RATIO_X, * GRID_RATIO_Y;
+    double *X_V_START; // Place where each individual valve FEM cell starts (bottom left)
     char *B_LOC, ***B_TYPE;
     int* NXtot;         // The total amount of cells in the X-direction. Is an array, index is domain.
     int* NYtot;         // The total amount of cells in the Y-direction. Is an array, index is domain.
@@ -203,8 +204,8 @@ int main()
     /* DEFINITION AND ALLOCATION OF FEM VARIABLES */
 	int N_DOF;              // Total amount of degrees of freedom for FEM values
 	int  N_NODE;            // The amount of nodes that are in the FEM simulation. NFEM + 1
-	int  N_ACTIVE;
-	int  N_INACTIVE;
+	int  N_ACTIVE;          // The amount of nodes that is allowed to deform. FemDeformation::freeNodes * DOF_PER_NODE
+	int  N_INACTIVE;        // The amount of nodes that is forced to stay fixed in place. FemDeformation::fixedNodes * DOF_PER_NODE
 	int  *act_DOF;
 	double **x_FEM;         // X locations of the inidividual FEM cells, relative to the left-most point.
 	double **y_FEM;
@@ -214,14 +215,14 @@ int main()
 	double *I;
     double **K;             // Stiffness matrix. Size of dof*dof
 	double **C;             // Structural damping matrix.
-	double **M;             // Mass moment for each individual degree of freedom? Used for newmark solving at least.
+	double **M;             // global mass matrix for 1 valve FEM beam
 	double **L_K;
 	double **LT_K;
 	double **L_R1;
 	double **LT_R1;
-	double **R1;
-	double **R2;
-	double **R3;
+	double **R1;                // Newmark matrix 1. I think only used for cholesky decomposition
+	double **R2;                // Newmark matrix 2
+	double **R3;                // Newmark matrix 3
     double **U0_DOF;
 	double **U1_DOF;
 	double **U2_DOF;
@@ -250,14 +251,14 @@ int main()
     	/* MEMORY ALLOCATION */
     	N_NODE = N_FEM+1;
     	N_DOF= N_DOF_PER_NODE*N_NODE;
-    	x_FEM = init_matrix(N_VALVE,N_FEM,1); // Just creates a matrix of N_NODE * N_VALVE * 1 
+    	x_FEM = init_matrix(N_VALVE,N_FEM,1);               // Just creates a matrix of N_NODE * N_VALVE * 1 to store the x locations of the valves.
     	y_FEM = init_matrix(N_VALVE,N_FEM,1);
-    	K = init_matrix(N_DOF,N_DOF,0);
-    	C = init_matrix(N_DOF,N_DOF,0);
-    	M = init_matrix(N_DOF,N_DOF,0);
-        R1 = init_matrix(N_DOF,N_DOF,0);
-        R2 = init_matrix(N_DOF,N_DOF,0);
-        R3 = init_matrix(N_DOF,N_DOF,0);
+    	K = init_matrix(N_DOF,N_DOF,0);                     
+    	C = init_matrix(N_DOF,N_DOF,0);                     
+    	M = init_matrix(N_DOF,N_DOF,0);                     
+        R1 = init_matrix(N_DOF,N_DOF,0);                    
+        R2 = init_matrix(N_DOF,N_DOF,0);                    // Newmark matrix 2
+        R3 = init_matrix(N_DOF,N_DOF,0);                    // Newmark matrix 3
 	    b = init_array(N_FEM,1);
 	    h = init_array(N_FEM,1);
     	A = init_array(N_FEM,1);

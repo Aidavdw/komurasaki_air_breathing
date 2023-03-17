@@ -23,6 +23,7 @@ struct TwoDimensionalArray
 	// operator overloaded accessor
 	inline double& operator () (int xIdx, int yIdx)
 	{
+		// todo: check for the overhead of calling this with two numbers. Might be that the compiler doesnt pick up on it, and that [][] is actually faster.
 		return data[(xIdx) + ((yIdx) * nX)];
 	}
 
