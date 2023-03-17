@@ -18,6 +18,7 @@
 
 #include "sim_case.h"
 #include "case_det_tube.cpp" // Temporary hard-code of specific case implementation
+#include "reed_valve.h"
 
 
 
@@ -52,6 +53,10 @@ int main()
     /* INITIAL CONDITIONS ON DOMAINS */
     simCase.ApplyInitialConditions();
     printf("\nInitial conditions applied...\n");
+
+    // Todo: make actual thing that handles how reed valves etc are chosen
+    ReedValve reedvalve = ReedValve();
+    simCase.RegisterValves({ reedvalve });
 
     /* DEFINITION AND ALLOCATION OF FEM VARIABLES */
 	int N_DOF, N_NODE, N_ACTIVE, N_INACTIVE, *act_DOF;
@@ -116,7 +121,7 @@ int main()
 
 
         /* COMPUTE DEGREES OF FREEDOM AND FEM MATRICES */
-	    act_DOF = compute_solid(N_VALVE,N_NODE,x_FEM,X_V_START,b,h,A,I,B0,B1,H0,H1,L_V,L_FIX,N_FIX,N_CLAMP,N_DOF_PER_NODE,&N_ACTIVE,&N_INACTIVE);
+
 	    L_K = init_matrix(N_ACTIVE,N_ACTIVE,0);
 	    LT_K = init_matrix(N_ACTIVE,N_ACTIVE,0);
 	    L_R1 = init_matrix(N_ACTIVE,N_ACTIVE,0);

@@ -10,6 +10,10 @@ FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountO
 	const int amountOfFreeNodes = amountOfFreeSections + 1;
 	amountOfNodes = amountOfFreeNodes + amountOfFixedNodes;
 	N_DOF = N_DOF_PER_NODE * amountOfNodes;
+
+	CreateBeamSections();
+	PopulateGlobalMassMatrix();
+
 }
 
 void FemDeformation::CreateBeamSections()

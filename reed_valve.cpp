@@ -7,3 +7,8 @@ ReedValve::ReedValve(const int amountOfFreeSections, const int amountOfFixedNode
 
 
 }
+
+void ReedValve::OnRegister()
+{
+
+}

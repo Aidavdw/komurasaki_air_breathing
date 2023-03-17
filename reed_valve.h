@@ -8,4 +8,6 @@ class ReedValve : public Valve, public FemDeformation
 {
 	ReedValve(const int amountOfFreeSections, const int amountOfFixedNodes);
 
+	void OnRegister() override;
+
 };
