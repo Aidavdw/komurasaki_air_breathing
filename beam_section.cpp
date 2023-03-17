@@ -17,6 +17,11 @@ BeamSection::BeamSection(const double posX, const double length, const double wi
 	areaMomentOfInertia[0] = b[0] * pow(h[0], 3) / 12.0;
 	areaMomentOfInertia[1] = b[1] * pow(h[1], 3) / 12.0;
 
+	PopulateMassMatrix();
+}
+
+void BeamSection::PopulateMassMatrix()
+{
 	// Populating the mass matrix
 	massMatrix[0][0] = length * (10.0 * crossSectionalArea[1] + 3.0 * crossSectionalArea[0]) / 35.0;
 	massMatrix[0][1] = pow(length, 2) * (15.0 * crossSectionalArea[1] + 7.0 * crossSectionalArea[0]) / 420.0;
@@ -37,4 +42,27 @@ BeamSection::BeamSection(const double posX, const double length, const double wi
 	massMatrix[3][1] = massMatrix[1][3];
 	massMatrix[3][2] = massMatrix[2][3];
 	massMatrix[3][3] = massMatrix[1][1];
+}
+
+void BeamSection::PopulateStiffnessMatrix()
+{
+	stiffnessMatrix[0][0] = 6.0 * (areaMomentOfInertia[0] + areaMomentOfInertia[1]) / pow(length, 3);
+	stiffnessMatrix[0][1] = 2.0 / pow(length, 2) * (areaMomentOfInertia[0] + 2.0 * areaMomentOfInertia[1]);
+	stiffnessMatrix[0][2] = -stiffnessMatrix[0][0];
+	stiffnessMatrix[0][3] = 2.0 / pow(length, 2) * (2.0 * areaMomentOfInertia[0] + areaMomentOfInertia[1]);
+
+	stiffnessMatrix[1][0] = stiffnessMatrix[0][1];
+	stiffnessMatrix[1][1] = (areaMomentOfInertia[0] + 3.0 * areaMomentOfInertia[1]) / length;
+	stiffnessMatrix[1][2] = -stiffnessMatrix[0][1];
+	stiffnessMatrix[1][3] = (areaMomentOfInertia[0] + areaMomentOfInertia[1]) / length;
+
+	stiffnessMatrix[2][0] = stiffnessMatrix[0][2];
+	stiffnessMatrix[2][1] = stiffnessMatrix[1][2];
+	stiffnessMatrix[2][2] = stiffnessMatrix[0][0];
+	stiffnessMatrix[2][3] = -stiffnessMatrix[0][3];
+
+	stiffnessMatrix[3][0] = stiffnessMatrix[0][3];
+	stiffnessMatrix[3][1] = stiffnessMatrix[1][3];
+	stiffnessMatrix[3][2] = stiffnessMatrix[2][3];
+	stiffnessMatrix[3][3] = (3 * areaMomentOfInertia[0] + areaMomentOfInertia[1]) / length;
 }

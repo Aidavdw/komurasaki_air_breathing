@@ -17,5 +17,10 @@ struct BeamSection
 	double crossSectionalArea[2];	// cross-sectional area of the beam section, orthogonal to the bending plane.
 	double areaMomentOfInertia[2];	// the area moment of inertia I, in m^4.
 	double massMatrix[4][4];
+	double stiffnessMatrix[4][4];
+
+private:
+	void PopulateMassMatrix();
+	void PopulateStiffnessMatrix();
 
 };
