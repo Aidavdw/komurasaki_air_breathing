@@ -12,16 +12,23 @@ enum EBeamProfile
 class FemDeformation
 {
 
-	class FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const EBeamProfile beamProfile);
+	class FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const EBeamProfile beamProfile, const double freeLength, const double fixedLength);
 
+public:
 	EBeamProfile beamProfile;
 	std::vector<BeamSection> beamSections;		// The individual FEM segments in this valve. Note that this is one less than there are nodes!
-	int fixedNodes;								// The amount of sections in the beam that are considered 'fixed'
+	int fixedNodes;								// The amount of nodes (=sections+1) in the beam that are considered 'fixed', unable to deform.
+	int freeNodes;								//  The amount of nodes (=sections+1) in the beam that are considered able to deform
 	int amountOfNodes;							// The total amount of nodes that this beam is modeled with. This means fixed, and free nodes.
 	int N_DOF;									// The amoutn of degrees of freedom for the FEM system.
 
+private:
 	double freeLength;							// Length of the part that can move freely
 	double fixedLength;							// Length of the part that is fixed in place.
+
+	double rayleighDampingAlpha;				 // Alpha coef. for Rayleigh damping (alpha*M + beta*K)
+	double rayleighDampingBeta;				 // Beta coef. for Rayleigh damping (alpha*M + beta*K)
+
 
 	double rootWidth;
 	double tipWidth;
@@ -30,10 +37,19 @@ class FemDeformation
 
 	TwoDimensionalArray globalMassMatrix;		// The global mass matrix for this FEM beam, with the element matrices combined.
 	TwoDimensionalArray globalStiffnessMatrix;	// The global mass stiffness for this FEM beam, with the element matrices combined.
+	TwoDimensionalArray DampingMatrix;	// The global mass stiffness for this FEM beam, with the element matrices combined.
+	TwoDimensionalArray newmarkMatrix;	// The global mass stiffness for this FEM beam, with the element matrices combined.
 
 
 private:
 	void CreateBeamSections();
 	void AssembleGlobalMassMatrix(TwoDimensionalArray& matrixOut);
 	void AssembleGlobalStiffnessMatrix(TwoDimensionalArray& matrixOut);
+
+	// Build Damping matrix based on Rayleigh's damping model. ALPHA and BETA factors (respectively of M and K) should be specified by the user. These coefficients can be known from experiment.
+	void AssembleDampingMatrix(TwoDimensionalArray& matrixOut);
+
+	// Computes matrices needed for resolution according to Newmark's scheme
+	void AssembleNewmarkMatrix(TwoDimensionalArray& matrixOut);				
+
 };
