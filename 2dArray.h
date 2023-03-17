@@ -16,7 +16,7 @@ struct TwoDimensionalArray
 
 	static void ElementWiseCopy(TwoDimensionalArray& from, TwoDimensionalArray& to);
 
-	void Resize(const unsigned int sizeX, const unsigned int sizeY, const double initialValue);
+	void Resize(const unsigned int sizeX, const unsigned int sizeY, const double initialValue=0);
 
 	// operator overloaded accessor
 	inline double& operator () (int xIdx, int yIdx)
