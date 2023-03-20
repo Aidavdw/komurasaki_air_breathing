@@ -1,7 +1,7 @@
 #include "2dArray.h"
 #include <stdexcept>
 
-TwoDimensionalArray::TwoDimensionalArray(const unsigned int sizeX, const unsigned int sizeY, const double initialValue = 0, const double nGhostCells = 0) :
+TwoDimensionalArray::TwoDimensionalArray(const unsigned int sizeX, const unsigned int sizeY, const double initialValue = 0) :
 	nX(sizeX),
 	nY(sizeY)
 {
@@ -17,6 +17,22 @@ void TwoDimensionalArray::SetAllToValue(const double value)
 void TwoDimensionalArray::Resize(const unsigned int sizeX, const unsigned int sizeY, const double initialValue)
 {
 	data = std::vector<double>((sizeX) * (sizeY), initialValue);
+}
+
+TwoDimensionalArray TwoDimensionalArray::Transpose() const
+{
+	auto T = TwoDimensionalArray(nY, nX);
+
+	for (int xIdx = 0; xIdx < nX; xIdx++)
+	{
+		for (int yIdx = 0; yIdx < nY; yIdx++)
+		{
+			// TODO: check if this actually calls the this() operator
+			T(yIdx, xIdx) = this->GetAt(xIdx, yIdx);
+		}
+	}
+
+	return T;
 }
 
 bool TwoDimensionalArray::IsEmpty() const
