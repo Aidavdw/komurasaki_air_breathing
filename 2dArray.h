@@ -6,7 +6,7 @@ struct TwoDimensionalArray
 	TwoDimensionalArray()
 	{};
 
-	TwoDimensionalArray(const unsigned int sizeX, const unsigned int sizeY, const double initialValue = 0, const double nGhostCells = 0);
+	TwoDimensionalArray(const unsigned int sizeX, const unsigned int sizeY, const double initialValue = 0);
 
 	int nX = 0; // Amount of fields in the x-direction, not counting ghost cells.
 	int nY = 0; // Amount of fields in the y-direction, not counting ghost cells.
@@ -18,13 +18,22 @@ struct TwoDimensionalArray
 
 	void Resize(const unsigned int sizeX, const unsigned int sizeY, const double initialValue=0);
 
+	// Returns a transposed copy of this array.
+	TwoDimensionalArray Transpose() const;
+
 	bool IsEmpty() const;
 
-	// operator overloaded accessor
+	// operator overloaded accessor. This can be used for setting values.
 	inline double& operator () (int xIdx, int yIdx)
 	{
 		// todo: check for the overhead of calling this with two numbers. Might be that the compiler doesnt pick up on it, and that [][] is actually faster.
 		return data[(xIdx) + ((yIdx) * nX)];
+	}
+
+	// const operator overloaded getter. Note that does does not allow setting.
+	inline double GetAt(int xIdx, int yIdx) const
+	{
+		return data[(xIdx)+((yIdx)*nX)];
 	}
 
 	// operator overloaded accessor
