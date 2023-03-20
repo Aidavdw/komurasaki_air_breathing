@@ -216,12 +216,12 @@ int main()
     double **K;             // Stiffness matrix. Size of dof*dof
 	double **C;             // Structural damping matrix.
 	double **M;             // global mass matrix for 1 valve FEM beam
-	double **L_K;
-	double **LT_K;
-	double **L_R1;
-	double **LT_R1;
-	double **R1;                // Newmark matrix 1. I think only used for cholesky decomposition
-	double **R2;                // Newmark matrix 2
+	double **L_K;           // cholesky decomp. of the stiffness matrix.
+	double **LT_K;          // transpose of the cholesky decomp. of the stiffness matrix. only used to calculate L_K
+	double **L_R1;              // Cholesky decomp. of newmark matrix 1, used in newmark solving.
+	double **LT_R1;             // Transpose of the Cholesky decomposition of newmark matrix one. only used to calculate L_R1
+	double **R1;                // Newmark matrix 1. This one is only used for cholesky decomposition. L_R1 is the one that's actually used for solving.
+	double **R2;                // Newmark matrix 2. Is used for newmark solving.
 	double **R3;                // Newmark matrix 3
     double **U0_DOF;
 	double **U1_DOF;
