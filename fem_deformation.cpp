@@ -112,19 +112,24 @@ void build_damp_mat(double N_dof, double** C, double** K, double** M, double alp
 	
 }
 
-void FemDeformation::AssembleNewmarkMatrix(TwoDimensionalArray& matrixOut)
+void FemDeformation::AssembleNewmarkMatrix(TwoDimensionalArray& R1CholeskyOut, TwoDimensionalArray& R2Out, TwoDimensionalArray& R3Out, const double dt)
 {
-}
+	R1CholeskyOut = TwoDimensionalArray(N_DOF, N_DOF);
+	R2Out = TwoDimensionalArray(N_DOF, N_DOF);
+	R3Out = TwoDimensionalArray(N_DOF, N_DOF);
 
-void build_newmark_mat(int N_dof, double** C, double** K, double** M, double dt, double** R1, double** R2, double** R3)
-{
-	for (int i = 0; i < N_dof; ++i)
+	// We will do a cholesky decomposition + transposition on R1, so separate it for now.
+	TwoDimensionalArray R1PreProcessing(N_DOF,N_DOF);
+	for (int i = 0; i < N_DOF; ++i)
 	{
-		for (int j = 0; j < N_dof; ++j)
+		for (int j = 0; j < N_DOF; ++j)
 		{
-			R1[i][j] = M[i][j] / dt / dt + C[i][j] / 2.0 / dt + K[i][j] / 3.0;
-			R2[i][j] = 2.0 * M[i][j] / dt / dt - K[i][j] / 3.0;
-			R3[i][j] = -M[i][j] / dt / dt + C[i][j] / 2.0 / dt - K[i][j] / 3.0;
+			R1PreProcessing(i,j) = globalMassMatrix(i,j) / dt / dt + DampingMatrix(i,j) / 2.0 / dt + globalStiffnessMatrix(i,j) / 3.0;
+			R2Out(i,j) = 2.0 * globalMassMatrix(i,j) / dt / dt - globalStiffnessMatrix(i,j) / 3.0;
+			R3Out(i,j)= -globalMassMatrix(i,j) / dt / dt + DampingMatrix(i,j) / 2.0 / dt - globalStiffnessMatrix(i,j) / 3.0;
 		}
 	}
+
+
 }
+

@@ -37,8 +37,12 @@ private:
 
 	TwoDimensionalArray globalMassMatrix;		// The global mass matrix for this FEM beam, with the element matrices combined.
 	TwoDimensionalArray globalStiffnessMatrix;	// The global mass stiffness for this FEM beam, with the element matrices combined.
-	TwoDimensionalArray DampingMatrix;	// The global mass stiffness for this FEM beam, with the element matrices combined.
-	TwoDimensionalArray newmarkMatrix;	// The global mass stiffness for this FEM beam, with the element matrices combined.
+	TwoDimensionalArray DampingMatrix;			// The global mass stiffness for this FEM beam, with the element matrices combined.
+	
+	// Newmark matrices
+	TwoDimensionalArray newmarkMatrixR1CholeskyDecomposed;	// The first newmark matrix, but cholesky decomposed. 
+	TwoDimensionalArray newmarkMatrixR2;					// The second newmark matrix.
+	TwoDimensionalArray newmarkMatrixR3;					// The third newmark matrix. 
 
 
 private:
@@ -50,6 +54,6 @@ private:
 	void AssembleDampingMatrix(TwoDimensionalArray& matrixOut);
 
 	// Computes matrices needed for resolution according to Newmark's scheme
-	void AssembleNewmarkMatrix(TwoDimensionalArray& matrixOut);				
+	void AssembleNewmarkMatrix(TwoDimensionalArray& R1CholeskyOut, TwoDimensionalArray& R2Out, TwoDimensionalArray& R3Out, const double dt);
 
 };

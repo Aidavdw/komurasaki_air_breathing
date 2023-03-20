@@ -206,7 +206,7 @@ int main()
 	int  N_NODE;            // The amount of nodes that are in the FEM simulation. NFEM + 1
 	int  N_ACTIVE;          // The amount of nodes that is allowed to deform. FemDeformation::freeNodes * DOF_PER_NODE
 	int  N_INACTIVE;        // The amount of nodes that is forced to stay fixed in place. FemDeformation::fixedNodes * DOF_PER_NODE
-	int  *act_DOF;
+	int  *act_DOF;          // is the size of the N_DOF_PER_NODE * free node count. [n_clamp * N_DOF_PER_NODE, n_clamp * N_DOF_PER_NODE, (...), (n_total - n_clamp)*N_DOF_PER_NODE ]
 	double **x_FEM;         // X locations of the inidividual FEM cells, relative to the left-most point.
 	double **y_FEM;
 	double *b;              // The (average) width of the cell. Literally b in Florian (2017).
