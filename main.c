@@ -235,7 +235,7 @@ int main()
     // To locate cells with source term
     int *mfr_index_inf;         // for a valve of index k, indexing this matrix gives the x-index of the cell where this valve will create a source term in the hard-coded source domain. This is for the bottom wall.
 	int  *mfr_index_sup;        // for a valve of index k, indexing this matrix gives the x-index of the cell where this valve will create a source term in the hard-coded source domain. This is for the top wall.
-	int  *mfr_n;
+	int  *mfr_n;                // the amount of source cells that this valve has, between the start- and end.
     
     int *fem_index_inf;
 	int  *fem_index_sup;
@@ -330,18 +330,17 @@ int main()
 	    	mfr_index_inf[k] = 0;
 	    	mfr_index_sup[k] = 0;
             
-            /* stop conditions :
-            * →　reached final node in x-direction of the bottom.
-            * →　the hole fits in the area left of it
-            */
+            // Sets the x-index where the source term cells due to the presence of a valve start. 
 	    	while ( (mfr_index_inf[k] < NXtot[dom_low]-NGHOST) && (x[dom_low][mfr_index_inf[k]][NGHOST] < X_V_START[k]+L_FIX+L_HOLE*(1.0-HOLE_FACTOR)) )
 	    	{
 	    		mfr_index_inf[k]++;
 	    	}
+            // Sets the x-index where the source term cells due to the presence of a valve end.
 	    	while (mfr_index_sup[k]<NXtot[dom_low]-NGHOST && x[dom_low][mfr_index_sup[k]+1][NGHOST]<X_V_START[k]+L_FIX+L_HOLE)
 	    	{
 	    		mfr_index_sup[k]++;
 	    	}
+            // the amount of source cells that this valve has, between the start- and end.
 	    	mfr_n[k] = 1 + mfr_index_sup[k] - mfr_index_inf[k];
 
 	    	// Locate cells where the pressure field can be used to compute forces on the reed petal
