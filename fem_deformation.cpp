@@ -1,5 +1,6 @@
 #include "fem_deformation.h"
 #include <stdexcept>
+#include <vector>
 
 #define N_DOF_PER_NODE 2		// The total amount of degrees of freedom for a 2d beam element.
 
@@ -114,7 +115,6 @@ void build_damp_mat(double N_dof, double** C, double** K, double** M, double alp
 
 void FemDeformation::AssembleNewmarkMatrix(TwoDimensionalArray& R1CholeskyOut, TwoDimensionalArray& R2Out, TwoDimensionalArray& R3Out, const double dt)
 {
-	R1CholeskyOut = TwoDimensionalArray(N_DOF, N_DOF);
 	R2Out = TwoDimensionalArray(N_DOF, N_DOF);
 	R3Out = TwoDimensionalArray(N_DOF, N_DOF);
 
@@ -130,6 +130,54 @@ void FemDeformation::AssembleNewmarkMatrix(TwoDimensionalArray& R1CholeskyOut, T
 		}
 	}
 
+	auto DOFVector = GetDOFVector();
+	R1CholeskyOut = CholeskyDecomposition(R1PreProcessing, DOFVector);
 
 }
 
+std::vector<double> FemDeformation::GetDOFVector()
+{
+	int dofIndex = 0;
+	std::vector<double> dof_vector(freeNodes, 0);
+	for (int i = fixedNodes; i < amountOfNodes; ++i)
+	{
+		for (int j = 0; j < N_DOF_PER_NODE; ++j)
+		{
+			dof_vector[dofIndex] = N_DOF_PER_NODE * i + j;
+			dofIndex++;
+		}
+	}
+}
+
+/* Given a symmetric positive definite matrix M (size NxN) (should be checked by user), this function computes the Cholesky decomposition of this matrix and fills a matrix L (that should be allocated and initialized by the user) so that A = L*LT (LT is the transpose matrix of L). The outputed L matrix is a superior triangular matrix. */
+TwoDimensionalArray CholeskyDecomposition(const TwoDimensionalArray& matrix, std::vector<double>& DOFVector)
+{
+	//const int activeDegreesOfFreedom = freeNodes * N_DOF_PER_NODE; <- the original thing, but should work like this too.
+	const int activeDegreesOfFreedom = matrix.nX;
+	TwoDimensionalArray out(matrix.nX, matrix.nX);
+	for (int i = 0; i < activeDegreesOfFreedom; ++i)
+	{
+		out(i,i) = matrix.GetAt(DOFVector[i],DOFVector[i]);
+		for (int k = 0; k < i; ++k)
+		{
+			out(i,i) -= out(k,i) * out(k,i);
+		}
+		if (out(i,i) <= 0)
+		{
+			throw std::logic_error("While cholesky decomposing, got a non-positive definite matrix!");
+		}
+		out(i,i) = sqrt(out(i, i));
+
+		for (int j = i + 1; j < activeDegreesOfFreedom; ++j)
+		{
+			out(i, j) = matrix.GetAt(DOFVector[i], DOFVector[j]);
+			for (int k = 0; k < i; ++k)
+			{
+				out(i,j) -= out(k,i) * out(k,j);
+			}
+			out(i,j) /= out(i,i);
+		}
+	}
+
+	return out;
+}

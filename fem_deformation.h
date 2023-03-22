@@ -50,6 +50,8 @@ private:
 	void AssembleGlobalMassMatrix(TwoDimensionalArray& matrixOut);
 	void AssembleGlobalStiffnessMatrix(TwoDimensionalArray& matrixOut);
 
+	std::vector<double> GetDOFVector();
+
 	// Build Damping matrix based on Rayleigh's damping model. ALPHA and BETA factors (respectively of M and K) should be specified by the user. These coefficients can be known from experiment.
 	void AssembleDampingMatrix(TwoDimensionalArray& matrixOut);
 
