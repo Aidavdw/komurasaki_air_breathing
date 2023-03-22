@@ -57,6 +57,11 @@ struct Domain
 	FieldQuantity cellLength[2];					// The length of each cell.
 	FieldQuantity localCellCenterPosition[2];		// The location of the cell relative to where the domain is anchored. To get global position, add with Domain.position.
 
+	// returns the cell indices that this position is in.
+	std::pair<int, int> InvertPositionToIndex(const double xPos, const double yPos) const;
+
+	std::pair<double, double> PositionAlongBoundaryToCoordinate(const EBoundaryLocation boundary, const double positionAlongBoundary) const;
+
 
 	void SetBoundaryType(const EBoundaryLocation location, const EBoundaryType type);
 

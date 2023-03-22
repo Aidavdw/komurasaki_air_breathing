@@ -25,8 +25,12 @@ struct TwoDimensionalArray
 
 	bool IsEmpty() const;
 
-	// Transforms an index on a boundary to a flattened index that can be used to access the internal data array at the location.
-	double& ValueOnBoundary(const EBoundaryLocation boundary, const int indexOnBoundary);
+
+
+	/* Getters for index */
+	std::pair<int, int> GetIndexFromIndexOnBoundary(const EBoundaryLocation boundary, const int indexOnBoundary) const;
+
+	/* Getters for actual values */
 
 	// operator overloaded accessor. This can be used for setting values.
 	inline double& operator () (int xIdx, int yIdx)
