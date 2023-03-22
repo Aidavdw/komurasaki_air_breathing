@@ -42,18 +42,18 @@ bool TwoDimensionalArray::IsEmpty() const
 	return data.empty();
 }
 
-int TwoDimensionalArray::FlattenIndexOnBoundary(const EBoundaryLocation boundary, const int indexOnBoundary) const
+double& TwoDimensionalArray::ValueOnBoundary(const EBoundaryLocation boundary, const int indexOnBoundary)
 {
 	switch (boundary)
 	{
 	case EBoundaryLocation::LEFT:
-		return GetAt(0, indexOnBoundary);
+		return (*this)(0, indexOnBoundary);
 	case EBoundaryLocation::RIGHT:
-		return GetAt(nX-1, indexOnBoundary);
+		return (*this)(nX-1, indexOnBoundary);
 	case EBoundaryLocation::BOTTOM:
-		return GetAt(indexOnBoundary, 0);
+		return (*this)(indexOnBoundary, 0);
 	case EBoundaryLocation::TOP:
-		return GetAt(indexOnBoundary, nY-1);
+		return (*this)(indexOnBoundary, nY-1);
 	default:
 		throw std::logic_error("FlattenIndexOnBoundary is not implemented for this boundary location.");
 	}
