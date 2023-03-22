@@ -120,14 +120,6 @@ int main()
         stage_mfr = malloc(N_VALVE*sizeof(double));
 
 
-        /* COMPUTE DEGREES OF FREEDOM AND FEM MATRICES */
-
-	    L_K = init_matrix(N_ACTIVE,N_ACTIVE,0);
-	    LT_K = init_matrix(N_ACTIVE,N_ACTIVE,0);
-	    L_R1 = init_matrix(N_ACTIVE,N_ACTIVE,0);
-	    LT_R1 = init_matrix(N_ACTIVE,N_ACTIVE,0);
-        printf("\nNumber of active/inactive FEM DOFs: %d / %d.\n", N_ACTIVE, N_INACTIVE);
-
         /* COMPUTE FEM MATRICES */
 	    build_damp_mat(N_DOF,C,K,M,RAYLEIGH_ALPHA,RAYLEIGH_BETA);
         build_newmark_mat(N_DOF,C,K,M,DT,R1,R2,R3);

@@ -4,9 +4,10 @@
 
 #define N_DOF_PER_NODE 2		// The total amount of degrees of freedom for a 2d beam element.
 
-FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const EBeamProfile beamProfile, const double freeLength, const double fixedLength) :
+FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const EBeamProfile beamProfile, const double freeLength, const double fixedLength, const double dt) :
 	beamProfile(beamProfile),
-	fixedNodes(amountOfFixedNodes)
+	fixedNodes(amountOfFixedNodes),
+	dt(dt)
 {
 	freeNodes = amountOfFreeSections + 1;
 	amountOfNodes = freeNodes + amountOfFixedNodes;
@@ -15,6 +16,7 @@ FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountO
 	CreateBeamSections();
 	AssembleGlobalMassMatrix(globalMassMatrix);
 	AssembleGlobalStiffnessMatrix(globalStiffnessMatrix);
+	AssembleNewmarkMatrix(newmarkMatrixR1CholeskyDecomposed, newmarkMatrixR2, newmarkMatrixR3, globalStiffnessMatrixCholeskyDecomposed, dt);
 
 }
 
@@ -113,8 +115,11 @@ void build_damp_mat(double N_dof, double** C, double** K, double** M, double alp
 	
 }
 
-void FemDeformation::AssembleNewmarkMatrix(TwoDimensionalArray& R1CholeskyOut, TwoDimensionalArray& R2Out, TwoDimensionalArray& R3Out, const double dt)
+void FemDeformation::AssembleNewmarkMatrix(TwoDimensionalArray& R1CholeskyOut, TwoDimensionalArray& R2Out, TwoDimensionalArray& R3Out, TwoDimensionalArray& KCholeskyOut, const double dt)
 {
+	if (globalStiffnessMatrix.IsEmpty() || globalMassMatrix.IsEmpty() || DampingMatrix.IsEmpty())
+		throw std::logic_error("Cannot assemble newmark matrix, as the stiffness matrix or mass matrix has not yet been initialised.");
+
 	R2Out = TwoDimensionalArray(N_DOF, N_DOF);
 	R3Out = TwoDimensionalArray(N_DOF, N_DOF);
 
@@ -131,8 +136,8 @@ void FemDeformation::AssembleNewmarkMatrix(TwoDimensionalArray& R1CholeskyOut, T
 	}
 
 	auto DOFVector = GetDOFVector();
-	R1CholeskyOut = CholeskyDecomposition(R1PreProcessing, DOFVector);
-
+	R1CholeskyOut = CholeskyDecomposition(R1PreProcessing, DOFVector).Transpose();
+	KCholeskyOut = CholeskyDecomposition(globalStiffnessMatrix, DOFVector).Transpose();
 }
 
 std::vector<double> FemDeformation::GetDOFVector()

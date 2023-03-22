@@ -12,7 +12,7 @@ enum EBeamProfile
 class FemDeformation
 {
 
-	class FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const EBeamProfile beamProfile, const double freeLength, const double fixedLength);
+	class FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const EBeamProfile beamProfile, const double freeLength, const double fixedLength, const double dt);
 
 public:
 	EBeamProfile beamProfile;
@@ -21,6 +21,8 @@ public:
 	int freeNodes;								//  The amount of nodes (=sections+1) in the beam that are considered able to deform
 	int amountOfNodes;							// The total amount of nodes that this beam is modeled with. This means fixed, and free nodes.
 	int N_DOF;									// The amoutn of degrees of freedom for the FEM system.
+
+	double dt;									// Time step used to assemble the newmark matrices.
 
 private:
 	double freeLength;							// Length of the part that can move freely
@@ -37,6 +39,7 @@ private:
 
 	TwoDimensionalArray globalMassMatrix;		// The global mass matrix for this FEM beam, with the element matrices combined.
 	TwoDimensionalArray globalStiffnessMatrix;	// The global mass stiffness for this FEM beam, with the element matrices combined.
+	TwoDimensionalArray globalStiffnessMatrixCholeskyDecomposed;
 	TwoDimensionalArray DampingMatrix;			// The global mass stiffness for this FEM beam, with the element matrices combined.
 	
 	// Newmark matrices
@@ -56,6 +59,6 @@ private:
 	void AssembleDampingMatrix(TwoDimensionalArray& matrixOut);
 
 	// Computes matrices needed for resolution according to Newmark's scheme
-	void AssembleNewmarkMatrix(TwoDimensionalArray& R1CholeskyOut, TwoDimensionalArray& R2Out, TwoDimensionalArray& R3Out, const double dt);
+	void AssembleNewmarkMatrix(TwoDimensionalArray& R1CholeskyOut, TwoDimensionalArray& R2Out, TwoDimensionalArray& R3Out, TwoDimensionalArray& KCholeskyOut, const double dt);
 
 };
