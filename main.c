@@ -232,11 +232,23 @@ int main()
 	double**F_DOF;
 
     /* MASS-FLOW RATE RELATED PARAMETERS DUE TO VALVE */
-    int *mfr_index_inf, *mfr_index_sup, *mfr_n; // To locate cells with source term
-    int *fem_index_inf, *fem_index_sup, *fem_n; // To locate cells whose pressure is used
+    // To locate cells with source term
+    int *mfr_index_inf;         // for a valve of index k, indexing this matrix gives the x-index of the cell where this valve will create a source term in the hard-coded source domain. This is for the bottom wall.
+	int  *mfr_index_sup;        // for a valve of index k, indexing this matrix gives the x-index of the cell where this valve will create a source term in the hard-coded source domain. This is for the top wall.
+	int  *mfr_n;
+    
+    int *fem_index_inf;
+	int  *fem_index_sup;
+	int  *fem_n; // To locate cells whose pressure is used
     int **p_neighbour; // For each FEM node, index of fluid cell associated (i and i+1)
     double **p_coef; // Interpolation coefficients for pressure at FEM nodes
-    double *mfr, *mean_p_sup, *mean_p_inf, *mean_rho_sup, *ytip, *pratio, *stage_mfr;   // Mass flow rate through each reed valve
+    double *mfr;
+	double *mean_p_sup;
+	double *mean_p_inf;
+	double *mean_rho_sup;
+	double *ytip;
+	double *pratio;
+	double *stage_mfr;   // Mass flow rate through each reed valve
     int n_cell_p_fem;
     char valvename[40], index_char[10];
     double mfr_tot = 0.0;
@@ -317,7 +329,12 @@ int main()
 	    	// Locate cells where the source term must be applied
 	    	mfr_index_inf[k] = 0;
 	    	mfr_index_sup[k] = 0;
-	    	while (mfr_index_inf[k]<NXtot[dom_low]-NGHOST && x[dom_low][mfr_index_inf[k]][NGHOST]<X_V_START[k]+L_FIX+L_HOLE*(1.0-HOLE_FACTOR))
+            
+            /* stop conditions :
+            * →　reached final node in x-direction of the bottom.
+            * →　the hole fits in the area left of it
+            */
+	    	while ( (mfr_index_inf[k] < NXtot[dom_low]-NGHOST) && (x[dom_low][mfr_index_inf[k]][NGHOST] < X_V_START[k]+L_FIX+L_HOLE*(1.0-HOLE_FACTOR)) )
 	    	{
 	    		mfr_index_inf[k]++;
 	    	}

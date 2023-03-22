@@ -82,59 +82,6 @@ int main()
         n_cell_p_fem = (int)fmax(1.0,floor(L_T/5.0/(L_TUBE/NX)));
         printf("Pressure ratios based on %i cells.\n", n_cell_p_fem);
 
-    	/* MEMORY ALLOCATION */
-    	N_NODE = N_FEM+1;
-    	N_DOF= N_DOF_PER_NODE*N_NODE;
-    	x_FEM = init_matrix(N_VALVE,N_FEM,1);
-    	y_FEM = init_matrix(N_VALVE,N_FEM,1);
-    	K = init_matrix(N_DOF,N_DOF,0);
-    	C = init_matrix(N_DOF,N_DOF,0);
-    	M = init_matrix(N_DOF,N_DOF,0);
-        R1 = init_matrix(N_DOF,N_DOF,0);
-        R2 = init_matrix(N_DOF,N_DOF,0);
-        R3 = init_matrix(N_DOF,N_DOF,0);
-	    b = init_array(N_FEM,1);
-	    h = init_array(N_FEM,1);
-    	A = init_array(N_FEM,1);
-    	I = init_array(N_FEM,1);
-    	U0_DOF = init_matrix(N_VALVE,N_DOF,0);
-        U1_DOF = init_matrix(N_VALVE,N_DOF,0);
-        U2_DOF = init_matrix(N_VALVE,N_DOF,0);
-        U2_DOF_K = init_matrix(N_VALVE,N_DOF,0);
-    	p_FEM = init_matrix(N_VALVE,N_NODE,0);
-    	F_DOF = init_matrix(N_VALVE,N_DOF,0);
-    	p_coef = init_matrix(N_VALVE,N_NODE,0);
-    	p_neighbour = init_int_matrix(N_VALVE,N_NODE,0);
-    	mfr_index_inf = malloc(N_VALVE*sizeof(int));
-    	mfr_index_sup = malloc(N_VALVE*sizeof(int));
-    	mfr_n = malloc(N_VALVE*sizeof(int));
-    	fem_index_inf = malloc(N_VALVE*sizeof(int));
-    	fem_index_sup = malloc(N_VALVE*sizeof(int));
-    	fem_n = malloc(N_VALVE*sizeof(int));
-        mfr = malloc(N_VALVE*sizeof(double));
-        mean_p_inf = malloc(N_VALVE*sizeof(double));
-        mean_p_sup = malloc(N_VALVE*sizeof(double));
-        mean_rho_sup = malloc(N_VALVE*sizeof(double));
-        ytip = malloc(N_VALVE*sizeof(double));
-        pratio = malloc(N_VALVE*sizeof(double));
-        stage_mfr = malloc(N_VALVE*sizeof(double));
-
-
-        /* COMPUTE FEM MATRICES */
-	    build_damp_mat(N_DOF,C,K,M,RAYLEIGH_ALPHA,RAYLEIGH_BETA);
-        build_newmark_mat(N_DOF,C,K,M,DT,R1,R2,R3);
-
-        /* CHOLESKY DECOMPOSITION OF MASS AND STIFFNESS MATRICES */
-        cholesky_decomposition(N_ACTIVE,R1,LT_R1,act_DOF);
-        cholesky_decomposition(N_ACTIVE,K,LT_K,act_DOF);
-        transpose(N_ACTIVE,LT_K,L_K);
-        transpose(N_ACTIVE,LT_R1,L_R1);
-
-        /* EXPORT ALL MATRICES IN .DAT FORMAT */
-        export_fem_data(N_FEM,N_DOF,x_FEM[0],b,h,A,I,act_DOF,K,M,C,FEM_SECTIONS,FEM_K,FEM_M,FEM_C,EXP_EXTENSION);
-        export_valve_data(N_VALVE,N_FEM+1,x_FEM,y_FEM,R0,0.0,OUT_FOLDERNAME,EXP_EXTENSION,W_FORMAT,NGHOST);
-        printf("\nFEM matrices and FEM model computed and exported...\n");
-
 	    /* INITIAL FEM MESH AND INDEXES NECESSARY TO APPLY LOADS AND SOURCE TERMS */
 	    for (int k = 0; k < N_VALVE; ++k)
 	    {
