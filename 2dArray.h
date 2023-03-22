@@ -1,4 +1,5 @@
 #include <vector>
+#include "domain_enums.h"
 
 // Thin wrapper around a 2d array with doubles, representing a value over an entire domain (in a grid). It is implemented as a flattened 2d arary.
 struct TwoDimensionalArray
@@ -14,6 +15,7 @@ struct TwoDimensionalArray
 	// Sets all the values in the field to this value.
 	void SetAllToValue(const double value);
 
+	// Copies all the information from one array to another. Requires the arrays to be the same size.
 	static void ElementWiseCopy(const TwoDimensionalArray& from, TwoDimensionalArray& to);
 
 	void Resize(const unsigned int sizeX, const unsigned int sizeY, const double initialValue=0);
@@ -22,6 +24,9 @@ struct TwoDimensionalArray
 	TwoDimensionalArray Transpose() const;
 
 	bool IsEmpty() const;
+
+	// Transforms an index on a boundary to a flattened index that can be used to access the internal data array at the location.
+	int FlattenIndexOnBoundary(const EBoundaryLocation boundary, const int indexOnBoundary) const;
 
 	// operator overloaded accessor. This can be used for setting values.
 	inline double& operator () (int xIdx, int yIdx)

@@ -42,8 +42,27 @@ bool TwoDimensionalArray::IsEmpty() const
 	return data.empty();
 }
 
+int TwoDimensionalArray::FlattenIndexOnBoundary(const EBoundaryLocation boundary, const int indexOnBoundary) const
+{
+	switch (boundary)
+	{
+	case EBoundaryLocation::LEFT:
+		return GetAt(0, indexOnBoundary);
+	case EBoundaryLocation::RIGHT:
+		return GetAt(nX-1, indexOnBoundary);
+	case EBoundaryLocation::BOTTOM:
+		return GetAt(indexOnBoundary, 0);
+	case EBoundaryLocation::TOP:
+		return GetAt(indexOnBoundary, nY-1);
+	default:
+		throw std::logic_error("FlattenIndexOnBoundary is not implemented for this boundary location.");
+	}
+}
+
 void TwoDimensionalArray::ElementWiseCopy(const TwoDimensionalArray& from, TwoDimensionalArray& to)
 {
+	if (from.nX != to.nX || from.nY != to.nY)
+		throw std::logic_error("Cannot do element-wise copying between two TwoDimensionalArrays that are not the same size.");
 	// Needs to be a static function, because it's using the private data variable.
 	for (size_t i = 0; i < (from.nX*from.nY); i++)
 		to.data[i] = from.data[i];
