@@ -85,32 +85,6 @@ int main()
 	    /* INITIAL FEM MESH AND INDEXES NECESSARY TO APPLY LOADS AND SOURCE TERMS */
 	    for (int k = 0; k < N_VALVE; ++k)
 	    {
-	    	// Locate cells where the source term must be applied
-	    	mfr_index_inf[k] = 0;
-	    	mfr_index_sup[k] = 0;
-	    	while (mfr_index_inf[k]<NXtot[dom_low]-NGHOST && x[dom_low][mfr_index_inf[k]][NGHOST]<X_V_START[k]+L_FIX+L_HOLE*(1.0-HOLE_FACTOR))
-	    	{
-	    		mfr_index_inf[k]++;
-	    	}
-	    	while (mfr_index_sup[k]<NXtot[dom_low]-NGHOST && x[dom_low][mfr_index_sup[k]+1][NGHOST]<X_V_START[k]+L_FIX+L_HOLE)
-	    	{
-	    		mfr_index_sup[k]++;
-	    	}
-	    	mfr_n[k] = 1 + mfr_index_sup[k] - mfr_index_inf[k];
-
-	    	// Locate cells where the pressure field can be used to compute forces on the reed petal
-	    	fem_index_inf[k] = 0;
-	    	fem_index_sup[k] = 0;
-	    	while ( fem_index_inf[k]<NXtot[dom_low]-NGHOST && x[dom_low][fem_index_inf[k]+2][NGHOST]<X_V_START[k] )
-	    	{
-	    		fem_index_inf[k]++;
-	    	}
-	    	while ( fem_index_sup[k]<NXtot[dom_low]-NGHOST && x[dom_low][fem_index_sup[k]+1][NGHOST]<X_V_START[k]+L_T )
-	    	{
-	    		fem_index_sup[k]++;
-	    	}
-	    	fem_n[k] = 1 + fem_index_sup[k] - fem_index_inf[k];
-
 	    	// Associate to FEM nodes a couple of fluid cells based on which node pressure is interpolated
 	    	build_fem_interface(N_NODE,fem_n[k],fem_index_inf[k],x[dom_low],xc[dom_low],x_FEM[k], p_neighbour[k], p_coef[k], NGHOST);
 
