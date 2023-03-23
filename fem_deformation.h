@@ -24,7 +24,7 @@ public:
 
 	double dt;									// Time step used to assemble the newmark matrices.
 
-	std::vector<double[2]> nodePositionsRelativeToRoot;
+	std::vector<double[2]> nodePositionsRelativeToRoot; // indexed as [x,y]
 
 private:
 	double freeLength;							// Length of the part that can move freely
