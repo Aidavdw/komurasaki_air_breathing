@@ -75,7 +75,6 @@ int main()
     double mfr_tot = 0.0;
 
     /* ROUTINE TO PERFORM IF SOLID MODELLING IS ACTIVATED */
-    // TODO: figure out what "Solid modeling" is. Is it just whether or not to model the reed valves using FEM for deformation?
     if (SOLID_ON==1)
     {
         /* NUMBER OF CELLS TO CONSIDER ALONG Y FOR ESTIMATION OF PRESSURE (PRESSURE RATIO AND FEM MODEL) */

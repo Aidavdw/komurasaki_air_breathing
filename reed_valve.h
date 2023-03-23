@@ -9,6 +9,7 @@ class ReedValve : public Valve, public FemDeformation
 public:
 	ReedValve(Domain* intoDomain, const EBoundaryLocation boundary, double positionAlongBoundary, const int amountOfFreeSections, const double lengthOfFreeSection, const int amountOfFixedNodes, const double lengthOfFixedSections);
 
+	// TODO: Replace all the weird int[2] and double[2] with IntCoordinate and DoubleCoordinate.
 	std::vector<std::pair<int,int>> sourceCellIndices;
 	//std::vector<std::pair<int, int>> pressureReadingCellIndices;
 

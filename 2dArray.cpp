@@ -27,7 +27,6 @@ TwoDimensionalArray TwoDimensionalArray::Transpose() const
 	{
 		for (int yIdx = 0; yIdx < nY; yIdx++)
 		{
-			// TODO: check if this actually calls the this() operator
 			T(yIdx, xIdx) = this->GetAt(xIdx, yIdx);
 		}
 	}

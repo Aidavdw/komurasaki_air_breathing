@@ -246,9 +246,9 @@ int main()
     
     int *fem_index_inf;
 	int  *fem_index_sup;
-	int  *fem_n; // To locate cells whose pressure is used
-    int **p_neighbour; // For each FEM node, index of fluid cell associated (i and i+1)
-    double **p_coef; // Interpolation coefficients for pressure at FEM nodes
+	int  *fem_n;                // To locate cells whose pressure is used
+    int **p_neighbour;          // For each FEM node, index of fluid cell associated (i and i+1)
+    double **p_coef;            // Interpolation coefficients for pressure at FEM nodes
     double *mfr;
 	double *mean_p_sup;
 	double *mean_p_inf;
