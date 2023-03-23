@@ -8,14 +8,12 @@ struct Domain;
 class Valve
 {
 public:
-	Valve(Domain* intoDomain, const EBoundaryLocation boundary, double positionAlongBoundary, double size);
+	Valve(Domain* intoDomain, const EBoundaryLocation boundary, double positionAlongBoundary);
 
 
 	double size;
 	EBoundaryLocation boundary;			// which side of the domain the valve is attached to
 	double positionAlongBoundary;
-	std::vector<double[2]> sourceIndices;
-	std::vector<double[2]> pressureMeasuringIndices;
 
 private:
 
@@ -24,7 +22,7 @@ private:
 public:
 	// Called to all valves upon being registered by the SimCase
 	virtual void OnRegister();
-	int GetSourceTermCount() const;
+	virtual void SetSourceTerms();
 
 private:
 

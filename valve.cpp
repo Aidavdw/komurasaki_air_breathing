@@ -1,5 +1,6 @@
 #include "valve.h"
 #include "domain.h"
+#include <stdexcept>
 
 Valve::Valve(Domain* intoDomain, const EBoundaryLocation boundary, double positionAlongBoundary) :
     intoDomain(intoDomain),
@@ -11,14 +12,13 @@ Valve::Valve(Domain* intoDomain, const EBoundaryLocation boundary, double positi
 
 void Valve::OnRegister()
 {
+    throw std::logic_error("OnRegister() is not overridden for this type of valve!");
     // Accessing the source cells:
     //intoDomain->T.main.FlattenIndexOnBoundary(boundary,sourceStartIndexOnBoundary + idxBelowEndIndex)
 }
 
-
-
-
-int Valve::GetSourceTermCount() const
+void Valve::SetSourceTerms()
 {
-    sourceEndIndexOnBoundary - sourceStartIndexOnBoundary;
+    throw std::logic_error("SetSourceTerms() is not overridden for this type of valve!");
 }
+
