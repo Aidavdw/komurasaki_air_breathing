@@ -9,12 +9,12 @@ class ReedValve : public Valve, public FemDeformation
 public:
 	ReedValve(Domain* intoDomain, const EBoundaryLocation boundary, double positionAlongBoundary, const int amountOfFreeSections, const double lengthOfFreeSection, const int amountOfFixedNodes, const double lengthOfFixedSections);
 
-	std::vector<int[2]> sourceCellIndices;
+	std::vector<std::pair<int,int>> sourceCellIndices;
+	std::vector<std::pair<int, int>> pressureReadingCellIndices;
 
 	void OnRegister() override;
 
 private:
-	// 
 	void SetSourceCellIndices(Domain* intoDomain, const EBoundaryLocation boundary, double positionAlongBoundary, const double lengthOfFreeSection, const double lengthOfFixedSections);
-	void SetPressureReadingCellIndices(Domain* intoDomain, const EBoundaryLocation boundary, double positionAlongBoundary, const double lengthOfFreeSection, const double lengthOfFixedSections);
+	void SetPressureReadingCellIndices(const EBoundaryLocation boundary, const int offsetFromSourceCells);
 };

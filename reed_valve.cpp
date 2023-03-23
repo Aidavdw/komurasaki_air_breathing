@@ -9,12 +9,8 @@ ReedValve::ReedValve(Domain* intoDomain, const EBoundaryLocation boundary, doubl
 	Valve(intoDomain, boundary, positionAlongBoundary, size)
 {
 
-	SetSourceCellIndices();
-
-	/*
-	int pressureInputStartIndexOnBoundary;	// The index (location) on the boundary where measuring the average pressure to determine the FEM forces starts.
-	int pressureInputEndIndexOnBoundary;	// The index (location) on the boundary where measuring the average pressure to determine the FEM forces ends.
-	*/
+	SetSourceCellIndices(intoDomain, boundary, positionAlongBoundary, lengthOfFreeSection, lengthOfFixedSections);
+	SetPressureReadingCellIndices(boundary, 2);
 
 }
 
@@ -57,7 +53,40 @@ void ReedValve::SetSourceCellIndices(Domain* intoDomain, const EBoundaryLocation
 	}
 }
 
-void ReedValve::SetPressureReadingCellIndices(Domain* intoDomain, const EBoundaryLocation boundary, double positionAlongBoundary, const double lengthOfFreeSection, const double lengthOfFixedSections)
+void ReedValve::SetPressureReadingCellIndices(const EBoundaryLocation boundary, const int offsetFromSourceCells)
 {
+	// Florian's original implementation was rather hacky and unphysical. So, instead we just choose the fields that are slightly deeper into the domain than the source cells.
 
+	if (sourceCellIndices.size() == 0)
+	{
+		throw std::logic_error("Pressure reading cell index setting requires source cell indices to be set.");
+	}
+
+	int xOffset = 0;
+	int yOffset = 0;
+	switch (boundary)
+	{
+	case EBoundaryLocation::TOP:
+		yOffset = -offsetFromSourceCells;
+		break;
+	case EBoundaryLocation::BOTTOM:
+		yOffset = offsetFromSourceCells;
+		break;
+	case EBoundaryLocation::LEFT:
+		xOffset = offsetFromSourceCells;
+		break;
+	case EBoundaryLocation::RIGHT:
+		xOffset = -offsetFromSourceCells;
+		break;
+	default:
+		throw std::logic_error("Invalid boundary location.");
+	}
+
+	pressureReadingCellIndices = sourceCellIndices;
+
+	for (auto& pos : pressureReadingCellIndices)
+	{
+		pos.first += xOffset;
+		pos.second += yOffset;
+	}
 }
