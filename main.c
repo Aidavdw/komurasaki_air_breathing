@@ -45,7 +45,14 @@ int main()
     clock_gettime( CLOCK_REALTIME, &start_time);
 
     // INITIALIZE CASE
-    double L_T, M0, * XSTART, * YSTART, * XLENGTH, * YLENGTH, * GRID_RATIO_X, * GRID_RATIO_Y;
+    double L_T;         // Length of the reed valve; fixed + free part
+	double M0;
+	double * XSTART;
+	double * YSTART;
+	double * XLENGTH;
+	double * YLENGTH;
+	double * GRID_RATIO_X;
+	double * GRID_RATIO_Y;
     double *X_V_START; // Place where each individual valve FEM cell starts (bottom left)
     char *B_LOC, ***B_TYPE;
     int* NXtot;         // The total amount of cells in the X-direction. Is an array, index is domain.
@@ -343,9 +350,11 @@ int main()
             // the amount of source cells that this valve has, between the start- and end.
 	    	mfr_n[k] = 1 + mfr_index_sup[k] - mfr_index_inf[k];
 
-	    	// Locate cells where the pressure field can be used to compute forces on the reed petal
+	    	// Locate cells where the pressure field can be used to compute forces on the reed petal.
+            // A: I think it just sets some cells at the tip.
 	    	fem_index_inf[k] = 0;
 	    	fem_index_sup[k] = 0;
+            // But why is it offset by 2?
 	    	while ( fem_index_inf[k]<NXtot[dom_low]-NGHOST && x[dom_low][fem_index_inf[k]+2][NGHOST]<X_V_START[k] )
 	    	{
 	    		fem_index_inf[k]++;
