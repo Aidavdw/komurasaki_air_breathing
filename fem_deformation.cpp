@@ -14,6 +14,12 @@ FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountO
 	N_DOF = N_DOF_PER_NODE * amountOfNodes;
 
 	CreateBeamSections();
+	nodePositionsRelativeToRoot.push_back({ 0,0 });
+	for (int i = 0; i < beamSections.size(); i++)
+	{
+		nodePositionsRelativeToRoot.push_back({ nodePositionsRelativeToRoot[i][0] + beamSections[i].length, 0 });
+	}
+
 	AssembleGlobalMassMatrix(globalMassMatrix);
 	AssembleGlobalStiffnessMatrix(globalStiffnessMatrix);
 	AssembleNewmarkMatrix(newmarkMatrixR1CholeskyDecomposed, newmarkMatrixR2, newmarkMatrixR3, globalStiffnessMatrixCholeskyDecomposed, dt);
@@ -63,14 +69,15 @@ void FemDeformation::AssembleGlobalMassMatrix(TwoDimensionalArray& matrixOut)
 {
 	matrixOut.Resize(N_DOF, N_DOF);
 
-	for (const auto& beamSection : beamSections)
+	for (int beamIdx = 0; beamIdx < beamSections.size(); beamIdx++)
 	{
+		const auto& beamSection = beamSections[beamIdx];
 		for (int k = 0; k < 4; ++k)
 		{
 			for (int j = 0; j < 4; ++j)
 			{
 				// superimposing all 4
-				matrixOut(N_DOF_PER_NODE * beamSection.id + k, N_DOF_PER_NODE * beamSection.id + j) += beamSection.density * beamSection.massMatrix[k][j];
+				matrixOut(N_DOF_PER_NODE * beamIdx + k, N_DOF_PER_NODE * beamIdx + j) += beamSection.density * beamSection.massMatrix[k][j];
 			}
 		}
 	}
@@ -80,14 +87,15 @@ void FemDeformation::AssembleGlobalStiffnessMatrix(TwoDimensionalArray& matrixOu
 {
 	matrixOut.Resize(N_DOF, N_DOF);
 
-	for (const auto& beamSection : beamSections)
+	for (int beamIdx = 0; beamIdx < beamSections.size(); beamIdx++)
 	{
+		const auto& beamSection = beamSections[beamIdx];
 		for (int k = 0; k < 4; ++k)
 		{
 			for (int j = 0; j < 4; ++j)
 			{
 				// superimposing all 4
-				matrixOut(N_DOF_PER_NODE * beamSection.id + k, N_DOF_PER_NODE * beamSection.id + j) += beamSection.youngsModulus * beamSection.stiffnessMatrix[k][j];
+				matrixOut(N_DOF_PER_NODE * beamIdx + k, N_DOF_PER_NODE * beamIdx + j) += beamSection.youngsModulus * beamSection.stiffnessMatrix[k][j];
 			}
 		}
 	}

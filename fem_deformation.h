@@ -16,13 +16,15 @@ class FemDeformation
 
 public:
 	EBeamProfile beamProfile;
-	std::vector<BeamSection> beamSections;		// The individual FEM segments in this valve. Note that this is one less than there are nodes!
+	std::vector<BeamSection> beamSections;		// Data on the individual FEM segments in this valve. Note that this is one less than there are nodes!
 	int fixedNodes;								// The amount of nodes (=sections+1) in the beam that are considered 'fixed', unable to deform.
 	int freeNodes;								//  The amount of nodes (=sections+1) in the beam that are considered able to deform
 	int amountOfNodes;							// The total amount of nodes that this beam is modeled with. This means fixed, and free nodes.
 	int N_DOF;									// The amoutn of degrees of freedom for the FEM system.
 
 	double dt;									// Time step used to assemble the newmark matrices.
+
+	std::vector<double[2]> nodePositionsRelativeToRoot;
 
 private:
 	double freeLength;							// Length of the part that can move freely
