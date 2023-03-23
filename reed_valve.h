@@ -13,6 +13,7 @@ public:
 	//std::vector<std::pair<int, int>> pressureReadingCellIndices;
 
 
+	void CalculatePressuresOnFemSections();
 
 	void OnRegister() override;
 

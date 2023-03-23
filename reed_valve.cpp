@@ -1,6 +1,7 @@
 #include "reed_valve.h"
 #include "domain.h"
 #include <stdexcept>
+#include <cmath>
 
 #define HOLE_FACTOR 0.9
 
@@ -12,6 +13,30 @@ ReedValve::ReedValve(Domain* intoDomain, const EBoundaryLocation boundary, doubl
 	SetSourceCellIndices(intoDomain, boundary, positionAlongBoundary, lengthOfFreeSection, lengthOfFixedSections);
 	//SetPressureReadingCellIndices(boundary, 2);
 
+}
+
+void ReedValve::CalculatePressuresOnFemSections()
+{
+	for (int beamIdx = 0; beamIdx < beamSections.size(); beamIdx++)
+	{
+		// the 'left' position
+		const double& pos1X = nodePositionsRelativeToRoot[beamIdx][0];
+		const double& pos1Y = nodePositionsRelativeToRoot[beamIdx][1];
+
+		// the 'right' position
+		const double& pos2X = nodePositionsRelativeToRoot[beamIdx][0];
+		const double& pos2Y = nodePositionsRelativeToRoot[beamIdx][1];
+
+		// Hence, the centre, and the angle this section is at
+		double posXC = (pos1X + pos2X) * 0.5;
+		double posYC = (pos1Y + pos2Y) * 0.5;
+
+		double angle = atan2(pos2Y - pos1Y, pos2X - pos1X);
+
+		auto cellThisSectionIsIn = intoDomain->InvertPositionToIndex(posXC, posYC);
+		double pressureGradientNormalToBeamSection = intoDomain->p.GetGradientInDirectionAndPosition({ cellThisSectionIsIn.first, cellThisSectionIsIn.second },  angle);
+
+	}
 }
 
 void ReedValve::OnRegister()

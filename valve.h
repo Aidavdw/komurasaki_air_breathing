@@ -15,7 +15,7 @@ public:
 	EBoundaryLocation boundary;			// which side of the domain the valve is attached to
 	double positionAlongBoundary;
 
-private:
+protected:
 
 	Domain* intoDomain;					// The domain that the valve creates a source into.
 
