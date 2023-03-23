@@ -3,6 +3,8 @@
 #include "domain_enums.h"
 #include "2dArray.h"
 
+struct Domain;
+
 enum EFieldQuantityBuffer
 {
 	MAIN,			// The field that physically represents the value
@@ -20,6 +22,7 @@ struct FieldQuantity
 	FieldQuantity(const unsigned int sizeX, const unsigned int sizeY, const double initialValue = 0., const int nGhostCells=2);
 
 	std::map<EFieldQuantityBuffer, TwoDimensionalArray> bufferMap;
+	Domain* domain;
 
 	int nGhostCells;
 
@@ -44,6 +47,8 @@ struct FieldQuantity
 	inline int At(const int xIdx, const int yIdx); // Helper function for getting the flattened index in the internal arrays for a certain index. Use like buffer_name[At(x,y)].
 
 	inline int AtGhostCell(const EBoundaryLocation location, const int ghostX, const int ghostY); // Helper function for getting the flattened index of a ghost cell in the internal arrays for a certain index. Use like buffer_name[At(x,y)].
+
+	double GetGradientInDirectionAndPosition(int posIdx[2], const double directionAngle);
 
 private:
 	int nX = 0; // Amount of fields in the x-direction, not counting ghost cells.

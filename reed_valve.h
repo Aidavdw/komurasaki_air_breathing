@@ -10,7 +10,9 @@ public:
 	ReedValve(Domain* intoDomain, const EBoundaryLocation boundary, double positionAlongBoundary, const int amountOfFreeSections, const double lengthOfFreeSection, const int amountOfFixedNodes, const double lengthOfFixedSections);
 
 	std::vector<std::pair<int,int>> sourceCellIndices;
-	std::vector<std::pair<int, int>> pressureReadingCellIndices;
+	//std::vector<std::pair<int, int>> pressureReadingCellIndices;
+
+
 
 	void OnRegister() override;
 

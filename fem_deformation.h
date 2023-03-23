@@ -47,7 +47,10 @@ private:
 	// Newmark matrices
 	TwoDimensionalArray newmarkMatrixR1CholeskyDecomposed;	// The first newmark matrix, but cholesky decomposed. 
 	TwoDimensionalArray newmarkMatrixR2;					// The second newmark matrix.
-	TwoDimensionalArray newmarkMatrixR3;					// The third newmark matrix. 
+	TwoDimensionalArray newmarkMatrixR3;					// The third newmark matrix.
+
+public:
+	double GetPressureForceOrthogonalTo
 
 
 private:

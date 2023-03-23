@@ -10,7 +10,7 @@ ReedValve::ReedValve(Domain* intoDomain, const EBoundaryLocation boundary, doubl
 {
 
 	SetSourceCellIndices(intoDomain, boundary, positionAlongBoundary, lengthOfFreeSection, lengthOfFixedSections);
-	SetPressureReadingCellIndices(boundary, 2);
+	//SetPressureReadingCellIndices(boundary, 2);
 
 }
 
