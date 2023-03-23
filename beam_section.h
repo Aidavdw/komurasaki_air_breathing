@@ -2,12 +2,8 @@
 
 struct BeamSection
 {
-	struct BeamSection(const int id, const double posX, const double length, const double width[2], const double thickness[2], const double density);
+	struct BeamSection(const double length, const double width[2], const double thickness[2], const double density, const double youngsModulus);
 
-	int id;
-
-	// Note: this position must still be offset for the actual position of the valve itself!
-	double posX;					// Position of the bottom left corner of the beam section relative to the root.
 	double b[2];					// The width of the beam section's root part. Since this is a 2d case, this is in the circumferential direction (into the paper, so-to-speak).
 	double h[2];					// Thickness of the beam section. technically the 'height', therefore the odd name choice. Might change later.
 	double length;

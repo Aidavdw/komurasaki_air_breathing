@@ -1,9 +1,10 @@
 #include "beam_section.h"
 #include <cmath>
 
-BeamSection::BeamSection(const double posX, const double length, const double width[2], const double thickness[2]) :
-	posX(posX),
-	length(length)
+BeamSection::BeamSection(const double length, const double width[2], const double thickness[2], const double density, const double youngsModulus) :
+	length(length),
+	density(density),
+	youngsModulus(youngsModulus)
 {
 	// idea for refactor, place left- and right variables into little structs that represent surface properties? Right now the 2 element array works too I guess.
 
@@ -11,6 +12,7 @@ BeamSection::BeamSection(const double posX, const double length, const double wi
 	b[1] = width[1];
 	h[0] = thickness[0];
 	h[1] = thickness[1];
+	crossSectionalArea[]
 
 	crossSectionalArea[0] = h[0] * b[0];
 	crossSectionalArea[1] = h[1] * b[1];
