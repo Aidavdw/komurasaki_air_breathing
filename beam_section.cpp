@@ -12,7 +12,6 @@ BeamSection::BeamSection(const double length, const double width[2], const doubl
 	b[1] = width[1];
 	h[0] = thickness[0];
 	h[1] = thickness[1];
-	crossSectionalArea[]
 
 	crossSectionalArea[0] = h[0] * b[0];
 	crossSectionalArea[1] = h[1] * b[1];

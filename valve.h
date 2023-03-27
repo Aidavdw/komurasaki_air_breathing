@@ -11,7 +11,6 @@ public:
 	Valve(Domain* intoDomain, const EBoundaryLocation boundary, double positionAlongBoundary);
 
 
-	double size;
 	EBoundaryLocation boundary;			// which side of the domain the valve is attached to
 	double positionAlongBoundary;
 

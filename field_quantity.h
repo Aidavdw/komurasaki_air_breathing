@@ -2,6 +2,7 @@
 #include <map>
 #include "domain_enums.h"
 #include "2dArray.h"
+#include "index2d.h"
 
 struct Domain;
 
@@ -48,7 +49,7 @@ struct FieldQuantity
 
 	inline int AtGhostCell(const EBoundaryLocation location, const int ghostX, const int ghostY); // Helper function for getting the flattened index of a ghost cell in the internal arrays for a certain index. Use like buffer_name[At(x,y)].
 
-	double GetGradientInDirectionAndPosition(int posIdx[2], const double directionAngle);
+	double GetGradientInDirectionAndPosition(const CellIndex posIdx, const double directionAngle);
 
 private:
 	int nX = 0; // Amount of fields in the x-direction, not counting ghost cells.

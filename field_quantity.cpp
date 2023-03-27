@@ -63,7 +63,7 @@ inline int FieldQuantity::AtGhostCell(const EBoundaryLocation location, const in
 	return (ghostX + xOffset) + ((ghostY + yOffset) * nX);
 }
 
-double FieldQuantity::GetGradientInDirectionAndPosition(int posIdx[2], const double directionAngle)
+double FieldQuantity::GetGradientInDirectionAndPosition(const CellIndex posIdx, const double directionAngle)
 {
 	// The angle will be decomposed in an x- component and a y component. Using a forward difference scheme, the two will then be linearly interpolated to get a gradient in the direction angle (theta) direction.
 
@@ -71,27 +71,27 @@ double FieldQuantity::GetGradientInDirectionAndPosition(int posIdx[2], const dou
 	
 
 	/**** First get the partial derivatives in the xand y directions. ***/
-	int dxPos[2] = { posIdx[0] - 1 , posIdx[1] };
-	int dyPos[2] = { posIdx[0], posIdx[1] - 1};
+	CellIndex rootPos = posIdx;
+	CellIndex dxPos = { posIdx.x - 1 , posIdx.y };
+	CellIndex dyPos = { posIdx.x, posIdx.y - 1};
 
-	// can't get values outside of the domain, so clamp if this is at the edge.
-	if (posIdx[0] == 0)
+	// can't get values outside of the domain, so clamp if this is at the edge. Backward difference.
+	if (posIdx.x == 0)
 	{
-		posIdx[0] += 1;
-		dxPos[0] = 0;
+		rootPos.x += 1;
+		dxPos.x = 0;
 	}
-	else if (posIdx[1] == 0)
+	else if (posIdx.y == 0)
 	{
-		dyPos[0] += 0;
-		posIdx[0] += 1;
+		dyPos.y += 0;
+		rootPos.y += 1;
 	}
 
-	double dx = (domain->meshSpacing[0].GetCellWidth(dxPos[0]) + domain->meshSpacing[0].GetCellWidth(posIdx[0])) * 0.5;
-	double dy = (domain->meshSpacing[1].GetCellWidth(dyPos[1]) + domain->meshSpacing[1].GetCellWidth(posIdx[1])) * 0.5;
-
+	double dx = (domain->meshSpacing[0].GetCellWidth(dxPos.x) + domain->meshSpacing[0].GetCellWidth(rootPos.x)) * 0.5;
+	double dy = (domain->meshSpacing[1].GetCellWidth(dyPos.y) + domain->meshSpacing[1].GetCellWidth(rootPos.y)) * 0.5;
 	
-	double partialDerivativeX = (main.GetAt(posIdx[0], posIdx[1]) - main.GetAt(dxPos[0], dxPos[1])) / dx;
-	double partialDerivativeY = (main.GetAt(posIdx[0], posIdx[1]) - main.GetAt(dyPos[0], dyPos[1])) / dy;
+	double partialDerivativeX = (main.GetAt(rootPos.x, rootPos.y) - main.GetAt(dxPos.x, dxPos.y)) / dx;
+	double partialDerivativeY = (main.GetAt(rootPos.x, rootPos.y) - main.GetAt(dyPos.x, dyPos.y)) / dy;
 
 	/***** Project the given angle onto these two partial derivatives ****/
 	return cos(directionAngle) * partialDerivativeX + sin(directionAngle) * partialDerivativeY;

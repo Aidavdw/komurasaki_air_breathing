@@ -17,7 +17,7 @@ FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountO
 	nodePositionsRelativeToRoot.push_back({ 0,0 });
 	for (int i = 0; i < beamSections.size(); i++)
 	{
-		nodePositionsRelativeToRoot.push_back({ nodePositionsRelativeToRoot[i][0] + beamSections[i].length, 0 });
+		nodePositionsRelativeToRoot.push_back({ nodePositionsRelativeToRoot[i].x + beamSections[i].length, 0 });
 	}
 
 	AssembleGlobalMassMatrix(globalMassMatrix);

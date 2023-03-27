@@ -1,6 +1,7 @@
 #include <vector>
 #include "2dArray.h"
 #include "beam_section.h"
+#include "pos2d.h"
 
 // Describes what the beam looks like; is it straight? is it double tapered?
 enum EBeamProfile
@@ -24,7 +25,7 @@ public:
 
 	double dt;									// Time step used to assemble the newmark matrices.
 
-	std::vector<double[2]> nodePositionsRelativeToRoot; // indexed as [x,y]
+	std::vector<Position> nodePositionsRelativeToRoot;
 
 private:
 	double freeLength;							// Length of the part that can move freely
@@ -50,7 +51,7 @@ private:
 	TwoDimensionalArray newmarkMatrixR3;					// The third newmark matrix.
 
 public:
-	double GetPressureForceOrthogonalTo
+
 
 
 private:

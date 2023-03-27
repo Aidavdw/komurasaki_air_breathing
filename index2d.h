@@ -2,7 +2,7 @@
 // Really simple wrapper that represents a cell index in a grid or matrix.
 struct CellIndex
 {
-	CellIndex(const int x, int double y) :
+	CellIndex(const int x,const int y) :
 		x(x),
 		y(y)
 	{};

@@ -2,6 +2,8 @@
 #include <string>
 #include "field_quantity.h"
 #include "mesh_spacing.h"
+#include "pos2d.h"
+#include "index2d.h"
 
 #include "domain_enums.h"
 
@@ -34,12 +36,12 @@ struct Boundary
 // Contains information on a specific domain.
 struct Domain
 {
-	Domain(std::string& name, const double position[2], const double size[2], const int amountOfCells[2], const MeshSpacing meshSpacing[2], const EInitialisationMethod initialisationMethod);
+	Domain(std::string& name, const Position position, const double size[2], const int amountOfCells[2], const MeshSpacing meshSpacing[2], const EInitialisationMethod initialisationMethod);
 
 	std::string name;
 	EInitialisationMethod initialisationMethod;
 
-	double position[2] = {0,0};					// the coordinate of the most bottom left point for the domains.
+	Position position = {0,0};					// the coordinate of the most bottom left point for the domains.
 	double size[2] = {0,0};						// The total extents of the domain
 	//double X_V_START = 0;
 	int amountOfCells[2] = {0,0};				// total amount of cells in the axis direction. This includes the ghost cells.
@@ -58,9 +60,9 @@ struct Domain
 	FieldQuantity localCellCenterPosition[2];		// The location of the cell relative to where the domain is anchored. To get global position, add with Domain.position.
 
 	// returns the cell indices that this position is in.
-	std::pair<int, int> InvertPositionToIndex(const double xPos, const double yPos) const;
+	CellIndex InvertPositionToIndex(const Position pos) const;
 
-	std::pair<double, double> PositionAlongBoundaryToCoordinate(const EBoundaryLocation boundary, const double positionAlongBoundary) const;
+	Position PositionAlongBoundaryToCoordinate(const EBoundaryLocation boundary, const double positionAlongBoundary) const;
 
 
 	void SetBoundaryType(const EBoundaryLocation location, const EBoundaryType type);
@@ -69,6 +71,9 @@ struct Domain
 	int GetCellResolutionInAxis(const int axis) const;
 
 	int GetTotalAmountOfCells() const;
+
+	// Shorthand function to get the cell sizes at a certain position.
+	void GetCellSizes(const CellIndex cellPos, double& xSizeOut, double& ySizeOut);
 
 	void CopyFieldQuantitiesToBuffer(const EFieldQuantityBuffer from, const EFieldQuantityBuffer to);
 

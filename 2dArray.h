@@ -1,5 +1,6 @@
 #include <vector>
 #include "domain_enums.h"
+#include "index2d.h"
 
 // Thin wrapper around a 2d array with doubles, representing a value over an entire domain (in a grid). It is implemented as a flattened 2d arary.
 struct TwoDimensionalArray
@@ -37,6 +38,13 @@ struct TwoDimensionalArray
 	{
 		// todo: check for the overhead of calling this with two numbers. Might be that the compiler doesnt pick up on it, and that [][] is actually faster.
 		return data[(xIdx) + ((yIdx) * nX)];
+	}
+
+	// operator overloaded accessor. This can be used for setting values.
+	inline double& operator () (const CellIndex& cellIndex)
+	{
+		// todo: check for the overhead of calling this with two numbers. Might be that the compiler doesnt pick up on it, and that [][] is actually faster.
+		return data[(cellIndex.x)+((cellIndex.y)*nX)];
 	}
 
 	// const operator overloaded getter. Note that does does not allow setting.

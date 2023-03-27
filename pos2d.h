@@ -1,8 +1,13 @@
 
 // Really simple wrapper that represents a position in a domain
-struct PositionInDomain
+struct Position
 {
-	PositionInDomain(const double x, const double y) :
+	Position() :
+		x(0),
+		y(0)
+	{};
+
+	Position(const double x, const double y) :
 		x(x),
 		y(y)
 	{};

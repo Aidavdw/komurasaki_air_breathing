@@ -5,13 +5,12 @@
 #include "parameters.h"
 
 
-Domain::Domain(std::string& name, const double position_arg[2], const double size_arg[2], const int amountOfCells_arg[2], const MeshSpacing meshSpacingArgument[2], const EInitialisationMethod initialisationMethod) :
+Domain::Domain(std::string& name, const Position position, const double size_arg[2], const int amountOfCells_arg[2], const MeshSpacing meshSpacingArgument[2], const EInitialisationMethod initialisationMethod) :
 	name(name),
-	initialisationMethod(initialisationMethod)
+	initialisationMethod(initialisationMethod),
+	position(position)
 {
 	// Not a very pretty way to do this, but initialiser lists appear to break when using c style arrays
-	position[0] = position_arg[0];
-	position[1] = position_arg[1];
 	size[0] = size_arg[0];
 	size[1] = size_arg[1];
 	amountOfCells[0] = amountOfCells_arg[0];
@@ -52,6 +51,12 @@ int Domain::GetCellResolutionInAxis(const int axis) const
 int Domain::GetTotalAmountOfCells() const
 {
 	return amountOfCells[0] * amountOfCells[1];
+}
+
+void Domain::GetCellSizes(const CellIndex cellPos, double& xSizeOut, double& ySizeOut)
+{
+	xSizeOut = meshSpacing[0].GetCellWidth(cellPos.x);
+	ySizeOut = meshSpacing[1].GetCellWidth(cellPos.y);
 }
 
 void Domain::CopyFieldQuantitiesToBuffer(const EFieldQuantityBuffer from, const EFieldQuantityBuffer to)
