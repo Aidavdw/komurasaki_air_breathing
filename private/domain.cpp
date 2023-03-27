@@ -42,18 +42,12 @@ void Domain::SetBoundaryType(const EBoundaryLocation location, const EBoundaryTy
 	boundaries[location] = Boundary(type);
 }
 
-int Domain::GetCellResolutionInAxis(const int axis) const
-{
-	ValidateAxisInput(axis);
-	return int(size[axis] / amountOfCells[axis]);
-}
-
 int Domain::GetTotalAmountOfCells() const
 {
 	return amountOfCells[0] * amountOfCells[1];
 }
 
-void Domain::GetCellSizes(const CellIndex cellPos, double& xSizeOut, double& ySizeOut)
+void Domain::GetCellSizes(const CellIndex cellPos, double& xSizeOut, double& ySizeOut) const
 {
 	xSizeOut = meshSpacing[0].GetCellWidth(cellPos.x);
 	ySizeOut = meshSpacing[1].GetCellWidth(cellPos.y);

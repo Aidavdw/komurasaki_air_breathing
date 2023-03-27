@@ -66,13 +66,10 @@ struct Domain
 
 	void SetBoundaryType(const EBoundaryLocation location, const EBoundaryType type);
 
-	// Gets the total amount of cells in a specific axis.
-	int GetCellResolutionInAxis(const int axis) const;
-
 	int GetTotalAmountOfCells() const;
 
 	// Shorthand function to get the cell sizes at a certain position.
-	void GetCellSizes(const CellIndex cellPos, double& xSizeOut, double& ySizeOut);
+	void GetCellSizes(const CellIndex cellPos, double& xSizeOut, double& ySizeOut) const;
 
 	void CopyFieldQuantitiesToBuffer(const EFieldQuantityBuffer from, const EFieldQuantityBuffer to);
 
