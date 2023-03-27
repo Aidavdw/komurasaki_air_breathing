@@ -1,3 +1,4 @@
+#pragma once
 #include "valve.h"
 #include "fem_deformation.h"
 #include <vector>

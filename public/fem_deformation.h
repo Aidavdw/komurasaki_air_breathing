@@ -1,3 +1,4 @@
+#pragma once
 #include <vector>
 #include "2dArray.h"
 #include "beam_section.h"

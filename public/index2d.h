@@ -1,4 +1,4 @@
-
+#pragma once
 // Really simple wrapper that represents a cell index in a grid or matrix.
 struct CellIndex
 {

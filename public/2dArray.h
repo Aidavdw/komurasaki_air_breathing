@@ -1,3 +1,4 @@
+#pragma once
 #include <vector>
 #include "domain_enums.h"
 #include "index2d.h"

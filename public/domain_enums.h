@@ -1,3 +1,5 @@
+#pragma once
+
 // Decides how this domain will be initialised
 enum EInitialisationMethod
 {

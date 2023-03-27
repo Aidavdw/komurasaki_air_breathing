@@ -1,4 +1,4 @@
-
+#pragma once
 // Really simple wrapper that represents a position in a domain
 struct Position
 {

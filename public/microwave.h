@@ -5,6 +5,7 @@
 
 */
 
+#pragma once
 #include "cell_values_container.h"
 class Domain;
 

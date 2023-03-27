@@ -1,5 +1,5 @@
+#pragma once
 #include "domain_enums.h"
-#include <vector>
 
 struct Domain;
 

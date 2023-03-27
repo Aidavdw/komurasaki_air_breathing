@@ -1,4 +1,4 @@
-#include <vector>
+#pragma once
 #include <map>
 #include "domain_enums.h"
 #include "2dArray.h"

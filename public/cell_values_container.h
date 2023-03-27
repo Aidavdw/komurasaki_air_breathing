@@ -1,3 +1,4 @@
+#pragma once
 // A small struct containing all the quantities in one cell. Differently organised from that in the domain, but this is a good way to transfer some data more easily.
 struct CellValues
 {
