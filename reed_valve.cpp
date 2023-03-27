@@ -7,7 +7,7 @@
 
 ReedValve::ReedValve(Domain* intoDomain, const EBoundaryLocation boundary, double positionAlongBoundary, const int amountOfFreeSections, const double lengthOfFreeSection, const int amountOfFixedNodes, const double lengthOfFixedSections) :
 	FemDeformation(),
-	Valve(intoDomain, boundary, positionAlongBoundary, size)
+	Valve(intoDomain, boundary, positionAlongBoundary)
 {
 
 	SetSourceCellIndices(intoDomain, boundary, positionAlongBoundary, lengthOfFreeSection, lengthOfFixedSections);
@@ -28,13 +28,12 @@ void ReedValve::CalculatePressuresOnFemSections()
 		const double& pos2Y = nodePositionsRelativeToRoot[beamIdx][1];
 
 		// Hence, the centre, and the angle this section is at
-		double posXC = (pos1X + pos2X) * 0.5;
-		double posYC = (pos1Y + pos2Y) * 0.5;
+		Position centerPos = { (pos1X + pos2X) * 0.5, (pos1Y + pos2Y) * 0.5 };
 
 		double angle = atan2(pos2Y - pos1Y, pos2X - pos1X);
 
-		auto cellThisSectionIsIn = intoDomain->InvertPositionToIndex(posXC, posYC);
-		double pressureGradientNormalToBeamSection = intoDomain->p.GetGradientInDirectionAndPosition({ cellThisSectionIsIn.first, cellThisSectionIsIn.second },  angle);
+		auto cellThisSectionIsIn = intoDomain->InvertPositionToIndex(centerPos);
+		double pressureGradientNormalToBeamSection = intoDomain->p.GetGradientInDirectionAndPosition(cellThisSectionIsIn,  angle);
 
 	}
 }
@@ -52,32 +51,37 @@ void ReedValve::SetSourceCellIndices(Domain* intoDomain, const EBoundaryLocation
 	double posAlongBoundaryEnd = positionAlongBoundary + lengthOfFixedSections + lengthOfFreeSection;
 	auto posEnd = intoDomain->PositionAlongBoundaryToCoordinate(boundary, posAlongBoundaryEnd);
 
-	std::pair<int, int> sourceStartIndexOnBoundary = intoDomain->InvertPositionToIndex(posStart.first, posStart.second);		// The index (location) on the boundary where the valve starts creating a source term.
-	std::pair<int, int> sourceEndIndexOnBoundary = intoDomain->InvertPositionToIndex(posEnd.first, posEnd.second);		// The index (location) on the boundary where the valve stops creating a source term.
+	CellIndex sourceStartIndexOnBoundary = intoDomain->InvertPositionToIndex(posStart);		// The index (location) on the boundary where the valve starts creating a source term.
+	CellIndex sourceEndIndexOnBoundary = intoDomain->InvertPositionToIndex(posEnd);		// The index (location) on the boundary where the valve stops creating a source term.
 
 	// Determine all the positions between the two, and save them. Note that it can be either horizontal or vertical, so first check that
-	bool bHorizontalDifference = (sourceStartIndexOnBoundary.first != sourceEndIndexOnBoundary.first);
-	bool bVerticalDifference = (sourceStartIndexOnBoundary.second != sourceEndIndexOnBoundary.second);
+	bool bHorizontalDifference = (sourceStartIndexOnBoundary.x != sourceEndIndexOnBoundary.x);
+	bool bVerticalDifference = (sourceStartIndexOnBoundary.y != sourceEndIndexOnBoundary.y);
 
 	if (bHorizontalDifference == bVerticalDifference)
+	{
+		// Note that this will also throw if the total size is only 1x1!m Maybe need to make an exception for htis, but generally you wouldn't want this anyway.
 		throw std::logic_error("A reed valve cannot have a source term in both directions!");
+	}
 
+	// Populate the source cell indices array with the value that does not change as a constant line.
 	if (bHorizontalDifference)
 	{
-		for (int i = sourceStartIndexOnBoundary.first; i < sourceEndIndexOnBoundary.first; i++)
+		for (int i = sourceStartIndexOnBoundary.x; i < sourceEndIndexOnBoundary.x; i++)
 		{
-			sourceCellIndices.emplace_back(i, sourceStartIndexOnBoundary.second);
+			sourceCellIndices.emplace_back(i, sourceStartIndexOnBoundary.y);
 		}
 	}
 	else if (bVerticalDifference)
 	{
-		for (int i = sourceStartIndexOnBoundary.second; i < sourceEndIndexOnBoundary.second; i++)
+		for (int i = sourceStartIndexOnBoundary.y; i < sourceEndIndexOnBoundary.y; i++)
 		{
-			sourceCellIndices.emplace_back(sourceStartIndexOnBoundary.first, i);
+			sourceCellIndices.emplace_back(sourceStartIndexOnBoundary.x, i);
 		}
 	}
 }
 
+/*
 void ReedValve::SetPressureReadingCellIndices(const EBoundaryLocation boundary, const int offsetFromSourceCells)
 {
 	// Florian's original implementation was rather hacky and unphysical. So, instead we just choose the fields that are slightly deeper into the domain than the source cells.
@@ -107,11 +111,12 @@ void ReedValve::SetPressureReadingCellIndices(const EBoundaryLocation boundary, 
 		throw std::logic_error("Invalid boundary location.");
 	}
 
-	pressureReadingCellIndices = sourceCellIndices;
+	//pressureReadingCellIndices = sourceCellIndices;
 
 	for (auto& pos : pressureReadingCellIndices)
 	{
-		pos.first += xOffset;
-		pos.second += yOffset;
+		pos.x += xOffset;
+		pos.y += yOffset;
 	}
 }
+*/
