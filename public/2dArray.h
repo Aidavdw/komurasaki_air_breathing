@@ -3,13 +3,12 @@
 #include "domain_enums.h"
 #include "index2d.h"
 
-// Thin wrapper around a 2d array with doubles, representing a value over an entire domain (in a grid). It is implemented as a flattened 2d arary.
+// Thin wrapper around a 2d array with doubles, representing a value over an entire domain (in a grid). It is implemented as a flattened 2d array.
 struct TwoDimensionalArray
 {
-	TwoDimensionalArray()
-	{};
+	TwoDimensionalArray() = default;
 
-	TwoDimensionalArray(const unsigned int sizeX, const unsigned int sizeY, const double initialValue = 0);
+	TwoDimensionalArray(const int sizeX, const int sizeY, const double initialValue = 0);
 
 	int nX = 0; // Amount of fields in the x-direction, not counting ghost cells.
 	int nY = 0; // Amount of fields in the y-direction, not counting ghost cells.
@@ -20,7 +19,7 @@ struct TwoDimensionalArray
 	// Copies all the information from one array to another. Requires the arrays to be the same size.
 	static void ElementWiseCopy(const TwoDimensionalArray& from, TwoDimensionalArray& to);
 
-	void Resize(const unsigned int sizeX, const unsigned int sizeY, const double initialValue=0);
+	void Resize(const int sizeX, const int sizeY, const double initialValue=0);
 
 	// Returns a transposed copy of this array.
 	TwoDimensionalArray Transpose() const;

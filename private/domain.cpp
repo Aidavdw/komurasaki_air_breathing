@@ -5,16 +5,16 @@
 #include "parameters.h"
 
 
-Domain::Domain(std::string& name, const Position position, const double size_arg[2], const int amountOfCells_arg[2], const MeshSpacing meshSpacingArgument[2], const EInitialisationMethod initialisationMethod) :
+Domain::Domain(const std::string& name, const Position position, const double sizeArg[2], const int amountOfCellsArg[2], const MeshSpacing meshSpacingArg[2], const EInitialisationMethod initialisationMethod) :
 	name(name),
 	initialisationMethod(initialisationMethod),
 	position(position)
 {
 	// Not a very pretty way to do this, but initialiser lists appear to break when using c style arrays
-	size[0] = size_arg[0];
-	size[1] = size_arg[1];
-	amountOfCells[0] = amountOfCells_arg[0];
-	amountOfCells[1] = amountOfCells_arg[1];
+	size[0] = sizeArg[0];
+	size[1] = sizeArg[1];
+	amountOfCells[0] = amountOfCellsArg[0];
+	amountOfCells[1] = amountOfCellsArg[1];
 
 	// Initialising the field quantities with the given dimension
 	rho = FieldQuantity(amountOfCells[0], amountOfCells[1]);
@@ -25,8 +25,8 @@ Domain::Domain(std::string& name, const Position position, const double size_arg
 	T = FieldQuantity(amountOfCells[0], amountOfCells[1]);
 	H = FieldQuantity(amountOfCells[0], amountOfCells[1]);
 
-	meshSpacing[0] = MeshSpacing(meshSpacingArgument[0]);
-	meshSpacing[1] = MeshSpacing(meshSpacingArgument[1]);
+	meshSpacing[0] = MeshSpacing(meshSpacingArg[0]);
+	meshSpacing[1] = MeshSpacing(meshSpacingArg[1]);
 
 	PopulateDomainDimensions();
 
@@ -45,7 +45,7 @@ void Domain::SetBoundaryType(const EBoundaryLocation location, const EBoundaryTy
 int Domain::GetCellResolutionInAxis(const int axis) const
 {
 	ValidateAxisInput(axis);
-	return size[axis] / amountOfCells[axis];
+	return int(size[axis] / amountOfCells[axis]);
 }
 
 int Domain::GetTotalAmountOfCells() const

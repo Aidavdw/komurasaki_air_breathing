@@ -30,7 +30,7 @@ int main()
 
     // INITIALIZE CASE
     SimCase simCase;
-    LoadCase(&simCase);
+    //LoadCase(&simCase);
 
     /* CREATE OUTPUT FOLDER */
     make_dir(OUT_FOLDERNAME);

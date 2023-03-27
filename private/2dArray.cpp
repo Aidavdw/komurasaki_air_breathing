@@ -1,7 +1,7 @@
 #include "2dArray.h"
 #include <stdexcept>
 
-TwoDimensionalArray::TwoDimensionalArray(const unsigned int sizeX, const unsigned int sizeY, const double initialValue = 0) :
+TwoDimensionalArray::TwoDimensionalArray(const int sizeX, const int sizeY, const double initialValue = 0) :
 	nX(sizeX),
 	nY(sizeY)
 {
@@ -10,11 +10,11 @@ TwoDimensionalArray::TwoDimensionalArray(const unsigned int sizeX, const unsigne
 
 void TwoDimensionalArray::SetAllToValue(const double value)
 {
-	for (int i = 0; i < data.size(); i++)
-		data[i] = value;
+	for (double& i : data)
+		i = value;
 }
 
-void TwoDimensionalArray::Resize(const unsigned int sizeX, const unsigned int sizeY, const double initialValue)
+void TwoDimensionalArray::Resize(const int sizeX, const int sizeY, const double initialValue)
 {
 	data = std::vector<double>((sizeX) * (sizeY), initialValue);
 }

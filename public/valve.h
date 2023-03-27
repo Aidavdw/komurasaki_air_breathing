@@ -8,6 +8,7 @@ struct Domain;
 class Valve
 {
 public:
+	virtual ~Valve() = default;
 	Valve(Domain* intoDomain, const EBoundaryLocation boundary, double positionAlongBoundary);
 
 

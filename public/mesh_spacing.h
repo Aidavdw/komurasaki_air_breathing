@@ -1,4 +1,6 @@
 #pragma once
+#include <limits>
+#include <vector>
 struct Domain;
 
 
@@ -17,11 +19,10 @@ struct MeshSpacing
 	// Could be implemented with polymorphism as well, but that would mean more lookups in the vtable based on virtual functions. Therefore, just state based on an enum.
 
 	// Needs to have an empty constructor because of passing by val
-	MeshSpacing()
-	{};
+	MeshSpacing() = default;
 
 	
-	MeshSpacing(const EMeshSpacingType meshSpacingType, const double length, const int amountofElements, const double resolution_left, const double resolution_right);
+	MeshSpacing(const EMeshSpacingType meshSpacingType, const double length, const int amountOfElements, const double resolutionLeft, const double resolutionRight);
 
 	EMeshSpacingType spacingType = EMeshSpacingType::CONSTANT;
 	
@@ -31,12 +32,13 @@ struct MeshSpacing
 	double length = 0;
 	int amountOfElements = 1;
 
-	double GetCellWidth(const int i);
+	double GetCellWidth(const int i) const;
 
 private:
 	void FitSpacingToParameters();
 	// Function describing how close to fitting the current configuration is
 	double SpacingObjectiveFunction(std::vector<double>& funcLoc);
+	static bool IsCloseToZero(const double x, const double tolerance=std::numeric_limits<double>::epsilon() );
 };
 
 

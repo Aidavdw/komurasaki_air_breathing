@@ -5,16 +5,18 @@ struct CellIndex
 	CellIndex(const int x,const int y) :
 		x(x),
 		y(y)
-	{};
+	{}
 
 	int x;
 	int y;
 
-	inline int& operator [] (int axis)
+	inline int& operator [] (const int axis)
 	{
 		if (axis == 0)
 			return x;
 		else if (axis == 1)
 			return y;
+		else
+			throw std::invalid_argument("Invalid axis");
 	}
 };

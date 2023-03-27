@@ -5,7 +5,7 @@
 #include <functional>
 #include "gradient_descent.h"
 
-MeshSpacing::MeshSpacing(const EMeshSpacingType meshSpacingType, const double elementLength, const int nElements, const double resolution_left, const double resolution_right) :
+MeshSpacing::MeshSpacing(const EMeshSpacingType meshSpacingType, const double elementLength, const int nElements, const double resolutionLeft, const double resolutionRight) :
 	spacingType(meshSpacingType),
 	length(elementLength),
 	amountOfElements(nElements)
@@ -15,7 +15,7 @@ MeshSpacing::MeshSpacing(const EMeshSpacingType meshSpacingType, const double el
 	FitSpacingToParameters();
 }
 
-double MeshSpacing::GetCellWidth(const int i)
+double MeshSpacing::GetCellWidth(const int i) const
 {
 	switch(spacingType)
 	{
@@ -93,7 +93,7 @@ void MeshSpacing::FitSpacingToParameters()
 
 }
 
-bool IsCloseToZero(const double x, const double tolerance=std::numeric_limits<double>::epsilon() )
+bool MeshSpacing::IsCloseToZero(const double x, const double tolerance)
 {
 	return std::abs(x) < tolerance;
 }
@@ -112,9 +112,9 @@ double MeshSpacing::SpacingObjectiveFunction(std::vector<double>& funcLoc)
 	{
 		totalWidth += GetCellWidth(i);
 	}
-	double cellwidthCriterion = totalWidth - length;
+	double cellWidthCriterion = totalWidth - length;
 
 	// sqrt-ing below isn't even necessary, since it's just optimising.
-	return leftCriterion*leftCriterion + rightCriterion*rightCriterion + cellwidthCriterion*cellwidthCriterion;
+	return leftCriterion*leftCriterion + rightCriterion*rightCriterion + cellWidthCriterion*cellWidthCriterion;
 	
 }
