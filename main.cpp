@@ -17,9 +17,8 @@
 #include "fem_model.h"   // FEM model of the reed valve
 
 #include "sim_case.h"
-#include "case_det_tube.cpp" // Temporary hard-code of specific case implementation
+//#include "case_det_tube.cpp" // Temporary hard-code of specific case implementation
 #include "reed_valve.h"
-
 
 
 /* MAIN ROUTINE */
