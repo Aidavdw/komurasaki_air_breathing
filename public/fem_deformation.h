@@ -14,7 +14,7 @@ enum EBeamProfile
 class FemDeformation
 {
 
-	class FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const EBeamProfile beamProfile, const double freeLength, const double fixedLength, const double dt);
+	FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const EBeamProfile beamProfile, const double freeLength, const double fixedLength, const double dt);
 
 public:
 	EBeamProfile beamProfile;
@@ -57,15 +57,17 @@ public:
 
 private:
 	void CreateBeamSections();
-	void AssembleGlobalMassMatrix(TwoDimensionalArray& matrixOut);
-	void AssembleGlobalStiffnessMatrix(TwoDimensionalArray& matrixOut);
+	void AssembleGlobalMassMatrix(TwoDimensionalArray& matrixOut) const;
+	void AssembleGlobalStiffnessMatrix(TwoDimensionalArray& matrixOut) const;
 
-	std::vector<double> GetDOFVector();
+	std::vector<double> GetDOFVector() const;
 
 	// Build Damping matrix based on Rayleigh's damping model. ALPHA and BETA factors (respectively of M and K) should be specified by the user. These coefficients can be known from experiment.
 	void AssembleDampingMatrix(TwoDimensionalArray& matrixOut);
 
 	// Computes matrices needed for resolution according to Newmark's scheme
 	void AssembleNewmarkMatrix(TwoDimensionalArray& R1CholeskyOut, TwoDimensionalArray& R2Out, TwoDimensionalArray& R3Out, TwoDimensionalArray& KCholeskyOut, const double dt);
+
+	static TwoDimensionalArray CholeskyDecomposition(const TwoDimensionalArray& matrix, const std::vector<double>& DOFVector);
 
 };

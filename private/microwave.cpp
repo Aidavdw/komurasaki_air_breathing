@@ -107,7 +107,7 @@ void InitialiseDomainFromChapmanJougetDetonationSolution(Domain* domain, const C
     // As the solution is 1D, the solution is the same across all the y - coordinates, and is only different for x coordinates. Hence, iterate over the x- coordinates and set it immediately for all y coordinates.
     for (int xIndex = 0; xIndex < domain->size[0]; xIndex++)
     {
-        double xPos = domain->localCellCenterPosition[0].At(xIndex,0);
+        double xPos = domain->localCellCenterPositions[0].At(xIndex,0);
         CellValues cellValues = sol.FieldPropertiesAtPosition(xPos, gamma, tubeRadius);
         
         for (int yIndex = 0; yIndex < domain->size[1]; yIndex++)
@@ -144,12 +144,14 @@ CellValues ChapmanJougetDetonationSolution::FieldPropertiesAtPosition(const doub
     {
         CellValues c;
         c.p = postExpansion.p* pow(1.0 - (gamma - 1.0) / (gamma + 1.0) * (1.0 - xPosition / l_exp), 2.0 * gamma / (gamma - 1.0));
-        c.rho = postExpansion.rho * pow(postExpansion.p / postExpansion.p, 1.0 / gamma);
+        c.rho = postExpansion.rho * pow(postExpansion.p / c.p, 1.0 / gamma);
         c.T = postExpansion.p / (postExpansion.rho * tubeRadius) * pow(c.rho / postExpansion.rho, gamma - 1.0);
         c.u = -2.0 / (gamma - 1.0) * (sqrt(gamma * postExpansion.p / postExpansion.rho) - sqrt(gamma * tubeRadius * c.T));
         c.v = 0.0;
 
         c.E = c.p / (gamma - 1.0) + 0.5 * c.rho * (pow(c.u, 2) + pow(c.v, 2));
         c.H= (c.E + c.p) / c.rho;
+
+        return c;
     }
 }

@@ -21,7 +21,7 @@ public:
 	void OnRegister() override;
 
 private:
-	void SetSourceCellIndices(Domain* intoDomain, const EBoundaryLocation boundary, double positionAlongBoundary, const double lengthOfFreeSection, const double lengthOfFixedSections);
+	void SetSourceCellIndices(const EBoundaryLocation boundary, const double positionAlongBoundary, const  double lengthOfFreeSection, const double lengthOfFixedSections);
 
 	// Not in use anymore; replaced by reading off the gradients directly.
 	//void SetPressureReadingCellIndices(const EBoundaryLocation boundary, const int offsetFromSourceCells);

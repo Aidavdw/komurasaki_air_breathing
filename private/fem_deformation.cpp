@@ -14,10 +14,10 @@ FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountO
 	N_DOF = N_DOF_PER_NODE * amountOfNodes;
 
 	CreateBeamSections();
-	nodePositionsRelativeToRoot.push_back({ 0,0 });
+	nodePositionsRelativeToRoot.emplace_back(0,0);
 	for (int i = 0; i < beamSections.size(); i++)
 	{
-		nodePositionsRelativeToRoot.push_back({ nodePositionsRelativeToRoot[i].x + beamSections[i].length, 0 });
+		nodePositionsRelativeToRoot.emplace_back(nodePositionsRelativeToRoot[i].x + beamSections[i].length, 0);
 	}
 
 	AssembleGlobalMassMatrix(globalMassMatrix);
@@ -28,13 +28,17 @@ FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountO
 
 void FemDeformation::CreateBeamSections()
 {
-	if (beamSections.size() != 0)
+
+	//todo: Propogate density and YoungsModulus here.
+	if (!beamSections.empty())
 		beamSections.clear();
 
 	double currentNodePosX = 0;
 	double length, width, thickness;
 
-	for (int i = 0; i < amountOfNodes; i++)
+	// Pre-add the first beam section. 
+
+	for (int i = 1; i < amountOfNodes; i++)
 	{
 		// The 'fixed' sections are always considered at constant properties.
 		if (i < fixedNodes)
@@ -42,6 +46,8 @@ void FemDeformation::CreateBeamSections()
 			length = fixedLength / fixedNodes;
 			width = rootWidth;
 			thickness = rootThickness;
+			BeamSection beamSection = BeamSection(length, {rootWidth, rootWidth}, {rootThickness, rootThickness}, density, youngsModulus);
+			beamSections.emplace_back(beamSection);
 		}
 		else
 		{
@@ -58,16 +64,19 @@ void FemDeformation::CreateBeamSections()
 			}
 			// TODO: Right now, all nodes are exactly equidistant, and the same size. Make this variable?
 			length = freeLength / freeNodes;
+			
+			BeamSection beamSection = BeamSection(length, {rootWidth, rootWidth}, {rootThickness, rootThickness}, density, youngsModulus);
+			beamSections.emplace_back(beamSection);
 		}
-		
-		beamSections.emplace_back(length, rootWidth, rootThickness);
 
+		// Advancing & resetting the values so it's easier to spot if there's a mistake.
 		currentNodePosX += length;
-
+		width = 0;
+		thickness = 0;
 	}
 }
 
-void FemDeformation::AssembleGlobalMassMatrix(TwoDimensionalArray& matrixOut)
+void FemDeformation::AssembleGlobalMassMatrix(TwoDimensionalArray& matrixOut) const
 {
 	matrixOut.Resize(N_DOF, N_DOF);
 
@@ -85,7 +94,7 @@ void FemDeformation::AssembleGlobalMassMatrix(TwoDimensionalArray& matrixOut)
 	}
 }
 
-void FemDeformation::AssembleGlobalStiffnessMatrix(TwoDimensionalArray& matrixOut)
+void FemDeformation::AssembleGlobalStiffnessMatrix(TwoDimensionalArray& matrixOut) const
 {
 	matrixOut.Resize(N_DOF, N_DOF);
 
@@ -117,18 +126,10 @@ void FemDeformation::AssembleDampingMatrix(TwoDimensionalArray& matrixOut)
 	}
 }
 
-
-
-
-void build_damp_mat(double N_dof, double** C, double** K, double** M, double alpha, double beta)
-{
-	
-}
-
 void FemDeformation::AssembleNewmarkMatrix(TwoDimensionalArray& R1CholeskyOut, TwoDimensionalArray& R2Out, TwoDimensionalArray& R3Out, TwoDimensionalArray& KCholeskyOut, const double dt)
 {
 	if (globalStiffnessMatrix.IsEmpty() || globalMassMatrix.IsEmpty() || DampingMatrix.IsEmpty())
-		throw std::logic_error("Cannot assemble newmark matrix, as the stiffness matrix or mass matrix has not yet been initialised.");
+		throw std::logic_error("Cannot assemble Newmark matrix, as the stiffness matrix or mass matrix has not yet been initialised.");
 
 	R2Out = TwoDimensionalArray(N_DOF, N_DOF);
 	R3Out = TwoDimensionalArray(N_DOF, N_DOF);
@@ -150,22 +151,24 @@ void FemDeformation::AssembleNewmarkMatrix(TwoDimensionalArray& R1CholeskyOut, T
 	KCholeskyOut = CholeskyDecomposition(globalStiffnessMatrix, DOFVector).Transpose();
 }
 
-std::vector<double> FemDeformation::GetDOFVector()
+std::vector<double> FemDeformation::GetDOFVector() const
 {
 	int dofIndex = 0;
-	std::vector<double> dof_vector(freeNodes, 0);
+	std::vector<double> DOFVector(freeNodes, 0);
 	for (int i = fixedNodes; i < amountOfNodes; ++i)
 	{
 		for (int j = 0; j < N_DOF_PER_NODE; ++j)
 		{
-			dof_vector[dofIndex] = N_DOF_PER_NODE * i + j;
+			DOFVector[dofIndex] = N_DOF_PER_NODE * i + j;
 			dofIndex++;
 		}
 	}
+
+	return DOFVector;
 }
 
-/* Given a symmetric positive definite matrix M (size NxN) (should be checked by user), this function computes the Cholesky decomposition of this matrix and fills a matrix L (that should be allocated and initialized by the user) so that A = L*LT (LT is the transpose matrix of L). The outputed L matrix is a superior triangular matrix. */
-TwoDimensionalArray CholeskyDecomposition(const TwoDimensionalArray& matrix, std::vector<double>& DOFVector)
+/* Given a symmetric positive definite matrix M (size NxN) (should be checked by user), this function computes the Cholesky decomposition of this matrix and fills a matrix L (that should be allocated and initialized by the user) so that A = L*LT (LT is the transpose matrix of L). The output L matrix is a superior triangular matrix. */
+TwoDimensionalArray FemDeformation::CholeskyDecomposition(const TwoDimensionalArray& matrix, const std::vector<double>& DOFVector)
 {
 	//const int activeDegreesOfFreedom = freeNodes * N_DOF_PER_NODE; <- the original thing, but should work like this too.
 	const int activeDegreesOfFreedom = matrix.nX;
@@ -179,7 +182,7 @@ TwoDimensionalArray CholeskyDecomposition(const TwoDimensionalArray& matrix, std
 		}
 		if (out(i,i) <= 0)
 		{
-			throw std::logic_error("While cholesky decomposing, got a non-positive definite matrix!");
+			throw std::logic_error("While Cholesky decomposing, got a non-positive definite matrix!");
 		}
 		out(i,i) = sqrt(out(i, i));
 

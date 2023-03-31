@@ -1,14 +1,14 @@
 #include "mesh_spacing.h"
-#include "field_quantity.h"
-#include "domain.h"
 #include <stdexcept>
 #include <functional>
 #include "gradient_descent.h"
 
-MeshSpacing::MeshSpacing(const EMeshSpacingType meshSpacingType, const double elementLength, const int nElements, const double resolutionLeft, const double resolutionRight) :
+MeshSpacing::MeshSpacing(const EMeshSpacingType meshSpacingType, const double length, const int amountOfElements, const double resolutionLeft, const double resolutionRight) :
 	spacingType(meshSpacingType),
-	length(elementLength),
-	amountOfElements(nElements)
+	left(resolutionLeft),
+	right(resolutionRight),
+	length(length),
+	amountOfElements(amountOfElements)
 {
 
 	// As not all spacing types require all the spacing parameters to be filled in, it needs to be handled separately for the mesh spacing type. Still fill in all the other parameters so that they can be used for debugging and/or inspection.
@@ -30,11 +30,10 @@ double MeshSpacing::GetCellWidth(const int i) const
 
 void MeshSpacing::FitSpacingToParameters()
 {
-	bool bLeft = !IsCloseToZero(left);
-	bool bRight = !IsCloseToZero(right);
-	bool bN = (amountOfElements != 0);
-
-	int valuesProvided = bLeft + bRight + bN;
+	const bool bLeft = !IsCloseToZero(left);
+	const bool bRight = !IsCloseToZero(right);
+	const bool bN = (amountOfElements != 0);
+	const int valuesProvided = bLeft + bRight + bN;
 
 	int requiredParameterCount;
 	switch (spacingType)
@@ -44,6 +43,7 @@ void MeshSpacing::FitSpacingToParameters()
 		break;
 	case EMeshSpacingType::LINEAR:
 		requiredParameterCount = 2;
+		break;
 	default:
 		throw std::logic_error("Fitting this type of mesh spacing to parameters has not yet been implemented.");
 	}
@@ -55,7 +55,7 @@ void MeshSpacing::FitSpacingToParameters()
 
 	auto meshSpacingType = spacingType;
 	// Create a lambda with the given parameters always filled in, and the others as inputs
-	std::vector<double> knowns = { left, right, float(amountOfElements) };
+	std::vector<double> knowns = { left, right, double(amountOfElements) };
 	auto glambda = [knowns, this](std::vector<double>* parametersToEvalAt)
 	{
 		int paramNumber = 0;
@@ -98,7 +98,7 @@ bool MeshSpacing::IsCloseToZero(const double x, const double tolerance)
 	return std::abs(x) < tolerance;
 }
 
-double MeshSpacing::SpacingObjectiveFunction(std::vector<double>& funcLoc)
+double MeshSpacing::SpacingObjectiveFunction(std::vector<double>& funcLoc) const
 {
 	// Regardless of the actual function that is being optimised, there are 3 constraints, directly given by the input conditions
 	// 

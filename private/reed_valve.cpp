@@ -5,12 +5,12 @@
 
 #define HOLE_FACTOR 0.9
 
-ReedValve::ReedValve(Domain* intoDomain, const EBoundaryLocation boundary, double positionAlongBoundary, const int amountOfFreeSections, const double lengthOfFreeSection, const int amountOfFixedNodes, const double lengthOfFixedSections) :
+ReedValve::ReedValve(Domain* intoDomain, const EBoundaryLocation boundary, const double positionAlongBoundary, const int amountOfFreeSections, const double lengthOfFreeSection, const int amountOfFixedNodes, const double lengthOfFixedSections) :
 	FemDeformation(),
 	Valve(intoDomain, boundary, positionAlongBoundary)
 {
 
-	SetSourceCellIndices(intoDomain, boundary, positionAlongBoundary, lengthOfFreeSection, lengthOfFixedSections);
+	SetSourceCellIndices(boundary, positionAlongBoundary, lengthOfFreeSection, lengthOfFixedSections);
 	//SetPressureReadingCellIndices(boundary, 2);
 
 }
@@ -36,6 +36,7 @@ void ReedValve::CalculatePressuresOnFemSections()
 		double pressureGradientNormalToBeamSection = intoDomain->p.GetGradientInDirectionAndPosition(cellThisSectionIsIn,  angle);
 
 	}
+	//todo: add return based on how the code is structured.
 }
 
 void ReedValve::OnRegister()
@@ -43,7 +44,7 @@ void ReedValve::OnRegister()
 
 }
 
-void ReedValve::SetSourceCellIndices(Domain* intoDomain, const EBoundaryLocation boundary, double positionAlongBoundary, const double lengthOfFreeSection, const double lengthOfFixedSections)
+void ReedValve::SetSourceCellIndices(const EBoundaryLocation boundary, double positionAlongBoundary, const double lengthOfFreeSection, const double lengthOfFixedSections)
 {
 	// calculate the 'starting position' based on the position along the boundary as provided, offsetting with the hole size etc.
 	double posAlongBoundaryStart = positionAlongBoundary + lengthOfFixedSections + lengthOfFreeSection * (1 - HOLE_FACTOR);

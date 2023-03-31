@@ -3,7 +3,8 @@
 #include <stdexcept>
 #include <cmath>
 
-FieldQuantity::FieldQuantity(const unsigned int sizeX, const unsigned int sizeY, const double initialValue, const int nGhostCells = 2) : 
+FieldQuantity::FieldQuantity(Domain* domain, const int sizeX, const int sizeY, const double initialValue, const int nGhostCells) :
+	domain(domain),
 	nGhostCells(nGhostCells),
 	nX(sizeX),
 	nY(sizeY)
@@ -17,7 +18,7 @@ FieldQuantity::FieldQuantity(const unsigned int sizeX, const unsigned int sizeY,
 	bufferMap.insert({ EFieldQuantityBuffer::T, TBuffer });
 }
 
-void FieldQuantity::SetAllToValue(const double value, const EFieldQuantityBuffer bufferToWriteTo = EFieldQuantityBuffer::MAIN)
+void FieldQuantity::SetAllToValue(const double value, const EFieldQuantityBuffer bufferToWriteTo)
 {
 	auto& buffer = bufferMap.at(bufferToWriteTo);
 	buffer.SetAllToValue(value);
@@ -25,18 +26,15 @@ void FieldQuantity::SetAllToValue(const double value, const EFieldQuantityBuffer
 
 void FieldQuantity::CopyToBuffer(const EFieldQuantityBuffer from, const EFieldQuantityBuffer to)
 {
-	auto& fromBuffer = bufferMap.at(from);
-	auto& toBuffer = bufferMap.at(to);
-
-	TwoDimensionalArray::ElementWiseCopy(fromBuffer, toBuffer);
+	TwoDimensionalArray::ElementWiseCopy(bufferMap.at(from), bufferMap.at(to));
 }
 
-inline int FieldQuantity::At(const int xIdx, const int yIdx)
+inline int FieldQuantity::At(const int xIdx, const int yIdx) const
 {
 	return (xIdx + nGhostCells) + ((yIdx + nGhostCells)*nX);
 }
 
-inline int FieldQuantity::AtGhostCell(const EBoundaryLocation location, const int ghostX, const int ghostY)
+inline int FieldQuantity::AtGhostCell(const EBoundaryLocation location, const int ghostX, const int ghostY) const
 {
 	int xOffset;
 	int yOffset;
@@ -58,12 +56,15 @@ inline int FieldQuantity::AtGhostCell(const EBoundaryLocation location, const in
 	case EBoundaryLocation::BOTTOM:
 		xOffset = nGhostCells;
 		yOffset = 0;
+		break;
+	default:
+		throw std::logic_error("Can't check a ghost cell from this side.");
 	}
 	
 	return (ghostX + xOffset) + ((ghostY + yOffset) * nX);
 }
 
-double FieldQuantity::GetGradientInDirectionAndPosition(const CellIndex posIdx, const double directionAngle)
+double FieldQuantity::GetGradientInDirectionAndPosition(const CellIndex posIdx, const double directionAngle) const
 {
 	// The angle will be decomposed in an x- component and a y component. Using a forward difference scheme, the two will then be linearly interpolated to get a gradient in the direction angle (theta) direction.
 

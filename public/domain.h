@@ -8,7 +8,7 @@
 #include "domain_enums.h"
 
 
-class SimCase;
+struct SimCase;
 
 // Describes a boundary that a domain has four of (considering it is 2d, and all domains are rectangular
 struct Boundary
@@ -55,8 +55,8 @@ struct Domain
 	FieldQuantity T;							// Temperature
 	FieldQuantity H;							// enthalpy ?
 
-	FieldQuantity cellLength[2];					// The length of each cell.
-	FieldQuantity localCellCenterPosition[2];		// The location of the cell relative to where the domain is anchored. To get global position, add with Domain.position.
+	FieldQuantity cellLengths[2];					// The length of each cell.
+	FieldQuantity localCellCenterPositions[2];		// The location of the cell relative to where the domain is anchored. To get global position, add with Domain.position.
 
 	// returns the cell indices that this position is in.
 	CellIndex InvertPositionToIndex(const Position pos) const;

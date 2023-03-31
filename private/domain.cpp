@@ -90,9 +90,9 @@ void ValidateAxisInput(const int axis)
 void Domain::PopulateDomainDimensions()
 {
 	// Apologies if this function is a little hard to wrap your head around, but this saves a lot of performance pain and repeated code.
-
-	std::vector<double> lengths[2]({ {size[0], 0}, {size[1], 0} });
-	std::vector<double> centerPositions[2]({ {size[0], 0}, {size[1], 0} });
+	// First put it in just arrays, since the different axis are independent of eachother.
+	std::vector<double> lengths[2] = { {size[0], 0}, {size[1], 0} };
+	std::vector<double> centerPositions[2] = { {size[0], 0}, {size[1], 0} };
 	// do it for both axes, which are iterates as meshSpacing[axis]
 	for (int axis = 0; axis < 2; axis++)
 	{
@@ -101,11 +101,11 @@ void Domain::PopulateDomainDimensions()
 		for (int i = 0; i < size[axis]; i++)
 		{
 			// Get the length of the current cell
-			double length;
+			double cellLength = 0;
 			switch (meshSpacing[axis].spacingType)
 			{
 			case EMeshSpacingType::CONSTANT:
-				length = length / size[axis];
+				cellLength = cellLength / size[axis];
 				break;
 			case EMeshSpacingType::LINEAR:
 				break;
@@ -115,10 +115,10 @@ void Domain::PopulateDomainDimensions()
 			}
 			
 
-			lengths[axis][i] = length;
+			lengths[axis][i] = cellLength;
 			// Note that centerPositions[i-1] cannot be used here, because this stores the center positions. On top of it, it would not be defined for the first iteration.
-			centerPositions[axis][i] = previousPosition + 0.5 * length;
-			previousPosition += length;
+			centerPositions[axis][i] = previousPosition + 0.5 * cellLength;
+			previousPosition += cellLength;
 		}
 	}
 
@@ -128,10 +128,10 @@ void Domain::PopulateDomainDimensions()
 	{
 		for (int yIdx = 0; yIdx < size[1]; yIdx++)
 		{
-			cellLength[0].main[cellLength[0].At(xIdx, yIdx)] = lengths[0][xIdx];
-			cellLength[1].main[cellLength[1].At(xIdx, yIdx)] = lengths[1][yIdx];
-			localCellCenterPosition[0].main[localCellCenterPosition[0].At(xIdx, yIdx)] = centerPositions[0][xIdx];
-			localCellCenterPosition[1].main[localCellCenterPosition[1].At(xIdx, yIdx)] = centerPositions[1][yIdx];
+			cellLengths[0].main[cellLengths[0].At(xIdx, yIdx)] = lengths[0][xIdx];
+			cellLengths[1].main[cellLengths[1].At(xIdx, yIdx)] = lengths[1][yIdx];
+			localCellCenterPositions[0].main[localCellCenterPositions[0].At(xIdx, yIdx)] = centerPositions[0][xIdx];
+			localCellCenterPositions[1].main[localCellCenterPositions[1].At(xIdx, yIdx)] = centerPositions[1][yIdx];
 		}
 	}
 }

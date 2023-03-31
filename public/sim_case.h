@@ -3,6 +3,8 @@
 #include <map>
 #include "runtime_parameters.h"
 
+struct Valve;
+
 
 struct SimCase {
 	SimCase();

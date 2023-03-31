@@ -26,18 +26,18 @@ struct MeshSpacing
 
 	EMeshSpacingType spacingType = EMeshSpacingType::CONSTANT;
 	
-	double left = 0;
-	double right = 0;
+	double left;
+	double right;
 
-	double length = 0;
-	int amountOfElements = 1;
+	double length;
+	int amountOfElements;
 
 	double GetCellWidth(const int i) const;
 
 private:
 	void FitSpacingToParameters();
 	// Function describing how close to fitting the current configuration is
-	double SpacingObjectiveFunction(std::vector<double>& funcLoc);
+	double SpacingObjectiveFunction(std::vector<double>& funcLoc) const;
 	static bool IsCloseToZero(const double x, const double tolerance=std::numeric_limits<double>::epsilon() );
 };
 

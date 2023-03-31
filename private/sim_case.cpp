@@ -7,13 +7,13 @@
 SimCase::SimCase()
 {
 	totalSimulationTimeStepCount = (int)(1 + TSIM / DT);  // Number of time steps
-	runtimeParameters = RuntimeParameters(this);
-
+	runtimeParameters = RuntimeParameters(totalSimulationTimeStepCount);
 }
 
 Domain* SimCase::AddDomain(const int id, const std::string name)
 {
-	auto it = domains.insert({ id, Domain(name) });
+	//todo: Handle creation of domains, and linking them here.
+	//auto it = domains.insert({ id, Domain(name) });
 	domainIDS.insert({ name, id });
 	return &it.first->second;
 }
