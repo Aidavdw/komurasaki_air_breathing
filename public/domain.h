@@ -36,9 +36,10 @@ struct Boundary
 // Contains information on a specific domain.
 struct Domain
 {
-	Domain(const std::string& name, const Position position, const double size[2], const int amountOfCells[2], const MeshSpacing meshSpacing[2], const EInitialisationMethod initialisationMethod);
+	Domain(const std::string& name, SimCase* simCase, const Position position, const double size[2], const int amountOfCells[2], const MeshSpacing meshSpacing[2], const EInitialisationMethod initialisationMethod);
 
 	std::string name;
+	SimCase* simCase;
 	EInitialisationMethod initialisationMethod;
 
 	Position position = {0,0};					// the coordinate of the most bottom left point for the domains.

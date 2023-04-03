@@ -1,13 +1,14 @@
 #include "reed_valve.h"
 #include "domain.h"
+#include "sim_case.h"
 #include <stdexcept>
 #include <cmath>
 
 #define HOLE_FACTOR 0.9
 
-ReedValve::ReedValve(Domain* intoDomain, const EBoundaryLocation boundary, const double positionAlongBoundary, const int amountOfFreeSections, const double lengthOfFreeSection, const int amountOfFixedNodes, const double lengthOfFixedSections) :
-	FemDeformation(),
-	Valve(intoDomain, boundary, positionAlongBoundary)
+ReedValve::ReedValve(Domain* intoDomain, const EBoundaryLocation boundary, const double positionAlongBoundary, const int amountOfFreeSections, const double lengthOfFreeSection, const int amountOfFixedNodes, const double lengthOfFixedSections, const EBeamProfile beamProfile) :
+	Valve(intoDomain, boundary, positionAlongBoundary),
+	FemDeformation(amountOfFreeSections, amountOfFixedNodes, beamProfile, lengthOfFreeSection, lengthOfFixedSections, intoDomain->simCase.dt)
 {
 
 	SetSourceCellIndices(boundary, positionAlongBoundary, lengthOfFreeSection, lengthOfFixedSections);

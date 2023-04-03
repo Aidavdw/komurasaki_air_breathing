@@ -5,8 +5,9 @@
 #include "parameters.h"
 
 
-Domain::Domain(const std::string& name, const Position position, const double sizeArg[2], const int amountOfCellsArg[2], const MeshSpacing meshSpacingArg[2], const EInitialisationMethod initialisationMethod) :
+Domain::Domain(const std::string& name, SimCase* simCase, Position position, const double sizeArg[2], const int amountOfCellsArg[2], const MeshSpacing meshSpacingArg[2], const EInitialisationMethod initialisationMethod) :
 	name(name),
+	simCase(simCase),
 	initialisationMethod(initialisationMethod),
 	position(position)
 {

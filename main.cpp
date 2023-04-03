@@ -56,27 +56,13 @@ int main()
     // Todo: make actual thing that handles how reed valves etc are chosen
     ReedValve reedvalve = ReedValve();
     simCase.RegisterValves({ reedvalve });
-
-    /* DEFINITION AND ALLOCATION OF FEM VARIABLES */
-	int N_DOF, N_NODE, N_ACTIVE, N_INACTIVE, *act_DOF;
-	double **x_FEM, **y_FEM, *b, *h, *A, *I;
-    double **K, **C, **M, **L_K, **LT_K, **L_R1, **LT_R1, **R1, **R2, **R3;
-    double **U0_DOF, **U1_DOF, **U2_DOF, **U2_DOF_K, **dp_interface, **p_FEM,**F_DOF;
-
-    /* MASS-FLOW RATE RELATED PARAMETERS DUE TO VALVE */
-    int *mfr_index_inf, *mfr_index_sup, *mfr_n; // To locate cells with source term
-    int *fem_index_inf, *fem_index_sup, *fem_n; // To locate cells whose pressure is used
-    int **p_neighbour; // For each FEM node, index of fluid cell associated (xIndex and xIndex+1)
-    double **p_coef; // Interpolation coefficients for pressure at FEM nodes
-    double *mfr, *mean_p_sup, *mean_p_inf, *mean_rho_sup, *ytip, *pratio, *stage_mfr;   // Mass flow rate through each reed valve
-    int n_cell_p_fem;
-    char valvename[40], index_char[10];
-    double mfr_tot = 0.0;
+    
 
     /* ROUTINE TO PERFORM IF SOLID MODELLING IS ACTIVATED */
     if (SOLID_ON==1)
     {
         /* NUMBER OF CELLS TO CONSIDER ALONG Y FOR ESTIMATION OF PRESSURE (PRESSURE RATIO AND FEM MODEL) */
+        
         n_cell_p_fem = (int)fmax(1.0,floor(L_T/5.0/(L_TUBE/NX)));
         printf("Pressure ratios based on %i cells.\n", n_cell_p_fem);
 

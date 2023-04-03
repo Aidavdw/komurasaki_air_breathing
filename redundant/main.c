@@ -256,7 +256,7 @@ int main()
 	double *ytip;
 	double *pratio;
 	double *stage_mfr;   // Mass flow rate through each reed valve
-    int n_cell_p_fem;
+    int n_cell_p_fem;			// The amount of cells in the y-direction that are used to determine the mean/average value.
     char valvename[40], index_char[10];
     double mfr_tot = 0.0;
 

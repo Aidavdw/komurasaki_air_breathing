@@ -7,7 +7,7 @@ struct Valve;
 
 
 struct SimCase {
-	SimCase();
+	SimCase(const double simulationDuration, const double dt);
 	
 	RuntimeParameters runtimeParameters;
 
@@ -18,7 +18,8 @@ struct SimCase {
 	double ambientTemperature = 288.15;			// Ambient temperature in Kelvin. Default is 288.15 K.
 	double ambientStaticPressure = 101325;		// Ambient static pressure in pascals. Default is 101325 Pa.
 
-
+	double simulationDuration;
+	double dt;
 	int totalSimulationTimeStepCount;			// The total amount of time steps that are in this simulation.
 
 	// Reed valve setup

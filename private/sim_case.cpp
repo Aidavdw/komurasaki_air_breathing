@@ -4,9 +4,11 @@
 #include "parameters.h"  // List of parameters specified by user
 #include "microwave.h"
 
-SimCase::SimCase()
+SimCase::SimCase(const double simulationDuration, const double dt) :
+	simulationDuration(simulationDuration),
+	dt(dt)
 {
-	totalSimulationTimeStepCount = (int)(1 + TSIM / DT);  // Number of time steps
+	totalSimulationTimeStepCount = (int)(1 + simulationDuration / dt);  // Number of time steps
 	runtimeParameters = RuntimeParameters(totalSimulationTimeStepCount);
 }
 
