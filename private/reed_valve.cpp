@@ -8,10 +8,11 @@
 
 ReedValve::ReedValve(Domain* intoDomain, const EBoundaryLocation boundary, const double positionAlongBoundary, const int amountOfFreeSections, const double lengthOfFreeSection, const int amountOfFixedNodes, const double lengthOfFixedSections, const EBeamProfile beamProfile) :
 	Valve(intoDomain, boundary, positionAlongBoundary),
-	FemDeformation(amountOfFreeSections, amountOfFixedNodes, beamProfile, lengthOfFreeSection, lengthOfFixedSections, intoDomain->simCase.dt)
+	FemDeformation(amountOfFreeSections, amountOfFixedNodes, beamProfile, lengthOfFreeSection, lengthOfFixedSections, intoDomain->simCase->dt)
 {
-
-	SetSourceCellIndices(boundary, positionAlongBoundary, lengthOfFreeSection, lengthOfFixedSections);
+	holeStartPos = intoDomain->InvertPositionToIndex(intoDomain->PositionAlongBoundaryToCoordinate(boundary, positionAlongBoundary));
+	holeEndPos = intoDomain->InvertPositionToIndex(intoDomain->PositionAlongBoundaryToCoordinate(boundary, positionAlongBoundary + lengthOfFixedSections + lengthOfFreeSection));
+	SetSourceCellIndices(sourceCellIndices, boundary, positionAlongBoundary, lengthOfFreeSection, lengthOfFixedSections);
 	//SetPressureReadingCellIndices(boundary, 2);
 
 }
@@ -45,7 +46,7 @@ void ReedValve::OnRegister()
 
 }
 
-void ReedValve::SetSourceCellIndices(const EBoundaryLocation boundary, double positionAlongBoundary, const double lengthOfFreeSection, const double lengthOfFixedSections)
+void ReedValve::SetSourceCellIndices(std::vector<CellIndex>& sourceCellIndicesOut, const EBoundaryLocation boundary, double positionAlongBoundary, const double lengthOfFreeSection, const double lengthOfFixedSections) const
 {
 	// calculate the 'starting position' based on the position along the boundary as provided, offsetting with the hole size etc.
 	double posAlongBoundaryStart = positionAlongBoundary + lengthOfFixedSections + lengthOfFreeSection * (1 - HOLE_FACTOR);
@@ -71,16 +72,69 @@ void ReedValve::SetSourceCellIndices(const EBoundaryLocation boundary, double po
 	{
 		for (int i = sourceStartIndexOnBoundary.x; i < sourceEndIndexOnBoundary.x; i++)
 		{
-			sourceCellIndices.emplace_back(i, sourceStartIndexOnBoundary.y);
+			sourceCellIndicesOut.emplace_back(i, sourceStartIndexOnBoundary.y);
 		}
 	}
 	else if (bVerticalDifference)
 	{
 		for (int i = sourceStartIndexOnBoundary.y; i < sourceEndIndexOnBoundary.y; i++)
 		{
-			sourceCellIndices.emplace_back(sourceStartIndexOnBoundary.x, i);
+			sourceCellIndicesOut.emplace_back(sourceStartIndexOnBoundary.x, i);
 		}
 	}
+}
+void ReedValve::GetAveragePressure() const
+{
+	GetAverageValueNearSourceTermsInternal(intoDomain->p);
+}
+void ReedValve::GetAverageValueNearSourceTermsInternal(const FieldQuantity &fieldQuantity) const
+{
+	// First check if the given field quantity is actually on the domain that the valve is at. better safe than sorry!
+	if (fieldQuantity.domain != intoDomain)
+		throw std::logic_error("Trying to get the average value of a field quantity from a valve on a domain that the valve is not connected to!");
+
+	double averageValue = 0;
+
+	// Use a bounding box, and average all the values in that.
+	// todo; move bounding box depth to a higher scope
+	const auto boundingBox = GetBoundingBox(4);
+	const double sizeX = abs(boundingBox.first.x - boundingBox.second.x);
+	const double sizeY = abs(boundingBox.first.y - boundingBox.second.y);
+	for (int xIdx = boundingBox.first.x; xIdx < boundingBox.second.x; xIdx++)
+	{
+		for (int yIdx = boundingBox.first.y; yIdx < boundingBox.second.y; yIdx++)
+		{
+			averageValue+= fieldQuantity.At(xIdx, yIdx) / (sizeX * sizeY);
+		}
+	}
+
+	
+
+	
+}
+std::pair<CellIndex, CellIndex> ReedValve::GetBoundingBox(const int depth) const
+{
+	int xOffset = 0;
+	int yOffset = 0;
+	
+	switch (boundary)
+	{
+	case EBoundaryLocation::TOP:
+		yOffset = -depth;
+		break;
+	case EBoundaryLocation::BOTTOM:
+		yOffset = depth;
+		break;
+	case EBoundaryLocation::LEFT:
+		xOffset = depth;
+		break;
+	case EBoundaryLocation::RIGHT:
+		xOffset = -depth;
+		break;
+	default:
+		throw std::logic_error("Invalid boundary location.");
+	}
+	return { holeStartPos, holeEndPos + CellIndex(xOffset, yOffset) };
 }
 
 /*

@@ -244,11 +244,11 @@ int main()
 	int  *mfr_index_sup;        // for a valve of index k, indexing this matrix gives the x-index of the cell where this valve will create a source term in the hard-coded source domain. This is for the top wall.
 	int  *mfr_n;                // the amount of source cells that this valve has, between the start- and end.
     
-    int *fem_index_inf;
-	int  *fem_index_sup;
-	int  *fem_n;                // To locate cells whose pressure is used
+    int *fem_index_inf;			// The index in the x-direction where a valve starts
+	int  *fem_index_sup;		// The index in the x-direction where a valve ends. 
+	int  *fem_n;                // The amount of cells between the ending- and starting associated pressure index.
     int **p_neighbour;          // For each FEM node, index of fluid cell associated (i and i+1)
-    double **p_coef;            // Interpolation coefficients for pressure at FEM nodes
+    double **p_coef;            // Interpolation coefficients for pressure at FEM nodes. Unknown what it physically represents. populated in build_fem_interface()
     double *mfr;
 	double *mean_p_sup;
 	double *mean_p_inf;

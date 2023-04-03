@@ -75,7 +75,10 @@ int * compute_solid(int n_v, int n_node, double **x_node, double *x_start, doubl
 	return dof_vector;
 }
 
-/* Define the cells that mark the beginning and end of each reed valve */
+/* Define the cells that mark the beginning and end of each reed valve.
+ * Sets p-neighbour first cell (x(j),x(j+1)) such that x(j)<x_fem(i) and x(j+1)>x_fem(i)
+ * 
+ */
 void build_fem_interface(int n_node, int n_interface, int n_start, double **x_fluid, double **xc_fluid, double *x_fem, int *p_neighbour,  double *coef, int nghost)
 {
 	int cur_index = n_start;

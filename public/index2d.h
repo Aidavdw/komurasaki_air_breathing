@@ -1,4 +1,6 @@
 #pragma once
+#include <stdexcept>
+
 // Really simple wrapper that represents a cell index in a grid or matrix.
 struct CellIndex
 {
@@ -18,5 +20,10 @@ struct CellIndex
 			return y;
 		else
 			throw std::invalid_argument("Invalid axis");
+	}
+
+	inline CellIndex operator + (const CellIndex& other) const
+	{
+		return { x + other.x, y+other.y };
 	}
 };

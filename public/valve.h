@@ -23,6 +23,7 @@ public:
 	// Called to all valves upon being registered by the SimCase
 	virtual void OnRegister();
 	virtual void SetSourceTerms();
+	virtual void GetAveragePressure() const;
 
 private:
 
