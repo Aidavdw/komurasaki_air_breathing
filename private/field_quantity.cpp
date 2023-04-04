@@ -69,13 +69,14 @@ double FieldQuantity::GetGradientInDirectionAndPosition(const CellIndex posIdx, 
 	// The angle will be decomposed in an x- component and a y component. Using a forward difference scheme, the two will then be linearly interpolated to get a gradient in the direction angle (theta) direction.
 
 	// Could do higher order finite difference method too?
-	
+
+	// todo: Right now, the entire cell is assumed to have the same value over its entire area, with a jump at the edge. The nearest cell center is considered only. Possible expansion would be to interpolate the values at these delta poses based on their neighbours.
 
 	/**** First get the partial derivatives in the xand y directions. ***/
 	CellIndex rootPos = posIdx;
 	CellIndex dxPos = { posIdx.x - 1 , posIdx.y };
 	CellIndex dyPos = { posIdx.x, posIdx.y - 1};
-
+	
 	// can't get values outside of the domain, so clamp if this is at the edge. Backward difference.
 	if (posIdx.x == 0)
 	{
@@ -88,13 +89,13 @@ double FieldQuantity::GetGradientInDirectionAndPosition(const CellIndex posIdx, 
 		rootPos.y += 1;
 	}
 
+	// Calculating the partial derivatives in the x-y directions.
 	double dx = (domain->meshSpacing[0].GetCellWidth(dxPos.x) + domain->meshSpacing[0].GetCellWidth(rootPos.x)) * 0.5;
 	double dy = (domain->meshSpacing[1].GetCellWidth(dyPos.y) + domain->meshSpacing[1].GetCellWidth(rootPos.y)) * 0.5;
-	
 	double partialDerivativeX = (main.GetAt(rootPos.x, rootPos.y) - main.GetAt(dxPos.x, dxPos.y)) / dx;
 	double partialDerivativeY = (main.GetAt(rootPos.x, rootPos.y) - main.GetAt(dyPos.x, dyPos.y)) / dy;
 
-	/***** Project the given angle onto these two partial derivatives ****/
+	// Turning the direction given into a unit vector, u = < cos(theta), sin(theta) >. Since this has unit length, decomposing the partial derivatives calculated above is really straightforward.
 	return cos(directionAngle) * partialDerivativeX + sin(directionAngle) * partialDerivativeY;
 
 }

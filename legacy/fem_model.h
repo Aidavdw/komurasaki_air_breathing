@@ -76,10 +76,10 @@ int * compute_solid(int n_v, int n_node, double **x_node, double *x_start, doubl
 }
 
 /* Define the cells that mark the beginning and end of each reed valve.
- * Sets p-neighbour first cell (x(j),x(j+1)) such that x(j)<x_fem(i) and x(j+1)>x_fem(i)
+ * Sets *coef and *p_neighbour
  * 
  */
-void build_fem_interface(int n_node, int n_interface, int n_start, double **x_fluid, double **xc_fluid, double *x_fem, int *p_neighbour,  double *coef, int nghost)
+void build_fem_interface(const int n_node, const int n_interface, const int n_start, const double **x_fluid, const double **xc_fluid, const double *x_fem, int *p_neighbour,  double *coef, const int nghost)
 {
 	int cur_index = n_start;
 	for (int i = 0; i < n_node; ++i)
@@ -90,6 +90,7 @@ void build_fem_interface(int n_node, int n_interface, int n_start, double **x_fl
 			cur_index ++;
 		}
 		p_neighbour[i] = cur_index;
+		// I have no idea what exactly this does. It's related to Florian (2017) eq 3.22, specifically the x/L_elem term, but what it actually represents is too vague.
 		coef[i] = (x_fem[i]-xc_fluid[cur_index][nghost])/(xc_fluid[cur_index+1][nghost]-xc_fluid[cur_index][nghost]);
 		//printf("NODE %i: NEIGHBOUR %i COEF %f\n", i,cur_index,coef[i]);
 	}
@@ -226,7 +227,7 @@ double v_width(double b0, double b1, double l, double x, double x0)
 // 	// }
 // }
 
-/* Generate the load vector applied to solve the FEM equation (Newmark scheme) */
+/* Generate the load vector applied to solve the FEM equation (Newmark scheme). Populates f_dof */
 void fem_load(int n_elem, int n_dof, int n_clamp, int n_dof_per_node, double *p_fem, double *u_dof, double *f_dof, double *x_fem, double *b)
 {
 	// For each element, compute total pressure-induced load and distribute between nodes
@@ -328,8 +329,8 @@ void fem_flow_damping(int n_elem, int n_dof, int n_clamp, int n_dof_per_node, do
 // }
 
 
-/* Generate tbe pressure difference that will be used by the FEM method at each element centre */
-void fem_pressure(int n_node, int n_interf, int index_min, double *x_fem, int *p_neighbour,double *p_coef, int ny_input, double **p_in_bot, double **p_in_top, int nghost, double *dp_output)
+/* Generate tbe pressure difference that will be used by the FEM method at each element centre by finite difference with its given pressure coefficient.  */
+void fem_pressure(const int n_node, int n_interf, int index_min, double *x_fem, const int *p_neighbour, const double *p_coef, const int ny_input, const double **p_in_bot, const double **p_in_top, const int nghost, double *dp_output)
 {
 	double dp_1 = 0.0;
 	double dp_2 = 0.0;
@@ -338,6 +339,7 @@ void fem_pressure(int n_node, int n_interf, int index_min, double *x_fem, int *p
 		dp_output[i] = 0.0;
 		dp_1 = p_in_top[p_neighbour[i]][nghost+2]-p_in_bot[p_neighbour[i]][ny_input-nghost-1-2];
 		dp_2 = p_in_top[p_neighbour[i]+1][nghost+2]-p_in_bot[p_neighbour[i]+1][ny_input-nghost-1-2];
+		// This is the (dp1 + (dp2 - dp1) * x/L_elem) in Florian (2017) eq 3.22
 		dp_output[i] = dp_1 + p_coef[i]*(dp_2-dp_1);
 		if (isnan(dp_output[i]))
 		{

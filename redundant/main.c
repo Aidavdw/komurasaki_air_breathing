@@ -385,6 +385,7 @@ int main()
             // fem_load(N_FEM,N_DOF,N_DOF_PER_NODE,N_CLAMP,NGHOST,X_V_START[k],p_neighbour[k],fem_n[k],dp_interface[k],x[dom_low],x_FEM[k],B0,B1,L_T,F_DOF[k]);
             // damping_load(N_FEM,N_DOF,N_DOF_PER_NODE,RHO_V,L_V,H0,H1,B0,B1,F_DOF[k]);
 
+        	// Setting p_FEM, the pressure differences between the up- and the bottom.
             fem_pressure(N_NODE,fem_n[k],fem_index_inf[k],x_FEM[k],p_neighbour[k],p_coef[k],NYtot[dom_low],p[dom_low],p[dom_up],NGHOST,p_FEM[k]);
             fem_load(N_FEM,N_DOF,N_CLAMP,N_DOF_PER_NODE,p_FEM[k],U2_DOF[k],F_DOF[k],x_FEM[k],b);
 
@@ -518,6 +519,7 @@ int main()
                     // fem_load(N_FEM,N_DOF,N_DOF_PER_NODE,N_CLAMP,NGHOST,X_V_START[k],p_neighbour[k],fem_n[k],dp_interface[k],x[dom_low],x_FEM[k],B0,B1,L_T,F_DOF[k]);
 
                     fem_pressure(N_NODE,fem_n[k],fem_index_inf[k],x_FEM[k],p_neighbour[k],p_coef[k],NYtot[dom_low],pRK[dom_low],pRK[dom_up],NGHOST,p_FEM[k]);
+                	// Populate F_DOF 
                     fem_load(N_FEM,N_DOF,N_CLAMP,N_DOF_PER_NODE,p_FEM[k],U2_DOF[k],F_DOF[k],x_FEM[k],b);
                     fem_flow_damping(N_FEM,N_DOF,N_CLAMP,N_DOF_PER_NODE,U1_DOF[k],U2_DOF[k],b,h,RHO_V,F0,DT,C1,C2,C3,F_DOF[k]);
 

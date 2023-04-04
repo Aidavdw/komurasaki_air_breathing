@@ -61,25 +61,6 @@ int main()
     /* ROUTINE TO PERFORM IF SOLID MODELLING IS ACTIVATED */
     if (SOLID_ON==1)
     {
-        /* NUMBER OF CELLS TO CONSIDER ALONG Y FOR ESTIMATION OF PRESSURE (PRESSURE RATIO AND FEM MODEL) */
-        
-        n_cell_p_fem = (int)fmax(1.0,floor(L_T/5.0/(L_TUBE/NX)));
-        printf("Pressure ratios based on %i cells.\n", n_cell_p_fem);
-
-	    /* INITIAL FEM MESH AND INDEXES NECESSARY TO APPLY LOADS AND SOURCE TERMS */
-	    for (int k = 0; k < N_VALVE; ++k)
-	    {
-	    	// Associate to FEM nodes a couple of fluid cells based on which node pressure is interpolated
-	    	build_fem_interface(N_NODE,fem_n[k],fem_index_inf[k],x[dom_low],xc[dom_low],x_FEM[k], p_neighbour[k], p_coef[k], NGHOST);
-
-            // Estimate pressure ratio and density around the valves
-            mean_p_sup[k] = mean_at_valve(fem_index_inf[k],fem_n[k],NGHOST,n_cell_p_fem,p[dom_up]);
-            mean_rho_sup[k] = mean_at_valve(fem_index_inf[k],fem_n[k],NGHOST,n_cell_p_fem,rho[dom_up]);
-            mean_p_inf[k] = mean_at_valve(fem_index_inf[k],fem_n[k],NYtot[dom_low]-NGHOST-n_cell_p_fem,n_cell_p_fem,p[dom_low]);
-	    }
-
-        // DEFINE INTERFACE PRESSURE DIFFERENCE VECTOR
-        // dp_interface = init_interface(N_VALVE,fem_n);
 
         /* EXPORT INITIAL MASS FLOW RATE AND TIP DISPLACEMENT FOR ALL VALVES (SET TO 0) */
         for (int k = 0; k < N_VALVE; ++k)
