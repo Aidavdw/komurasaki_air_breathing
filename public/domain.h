@@ -61,6 +61,7 @@ struct Domain
 
 	// returns the cell indices that this position is in.
 	CellIndex InvertPositionToIndex(const Position pos) const;
+	CellIndex InvertPositionToIndex(const Position pos, Position& distanceFromCenter) const;
 
 	Position PositionAlongBoundaryToCoordinate(const EBoundaryLocation boundary, const double positionAlongBoundary) const;
 

@@ -8,7 +8,8 @@
 
 ReedValve::ReedValve(Domain* intoDomain, const EBoundaryLocation boundary, const double positionAlongBoundary, const int amountOfFreeSections, const double lengthOfFreeSection, const int amountOfFixedNodes, const double lengthOfFixedSections, const EBeamProfile beamProfile) :
 	Valve(intoDomain, boundary, positionAlongBoundary),
-	FemDeformation(amountOfFreeSections, amountOfFixedNodes, beamProfile, lengthOfFreeSection, lengthOfFixedSections, intoDomain->simCase->dt)
+	FemDeformation(amountOfFreeSections, amountOfFixedNodes, beamProfile, lengthOfFreeSection, lengthOfFixedSections, intoDomain->simCase->dt),
+	positionInDomain(intoDomain->PositionAlongBoundaryToCoordinate(boundary, positionAlongBoundary))
 {
 	holeStartPos = intoDomain->InvertPositionToIndex(intoDomain->PositionAlongBoundaryToCoordinate(boundary, positionAlongBoundary));
 	holeEndPos = intoDomain->InvertPositionToIndex(intoDomain->PositionAlongBoundaryToCoordinate(boundary, positionAlongBoundary + lengthOfFixedSections + lengthOfFreeSection));
@@ -19,6 +20,7 @@ ReedValve::ReedValve(Domain* intoDomain, const EBoundaryLocation boundary, const
 
 void ReedValve::CalculatePressuresOnFemSections()
 {
+	throw std::logic_error("This function is not implemented yet.");
 	for (int beamIdx = 0; beamIdx < beamSections.size(); beamIdx++)
 	{
 		// the 'left' position
@@ -39,6 +41,36 @@ void ReedValve::CalculatePressuresOnFemSections()
 
 	}
 	//todo: add return based on how the code is structured.
+}
+void ReedValve::CalculateForceOnFemSections(std::vector<double>& forcesOut)
+{
+	// Only do this for the nodes that are considered 'free'.
+	// Note that the beam connecting the last fixed and the first free node is still considered 'fixed', it cannot create loading, as this would be impossible to distribute between the two nodes.
+	/*
+	 * Graphical representation:
+	 *   S1  S2  S3  S4  S5
+	 *               \/  \/
+	 * X---X---X---O---O---O
+	 * N1  N2  N3  N4  N5  N6
+	 *
+	 * f on N3 = 0.5 * S3
+	 */
+	
+	// This iterates over the beam section elements, but we need the indices to determine the positions. Hence, up to amountOfNodes-1
+	for (int nodeIdx = fixedNodes; nodeIdx < amountOfNodes - 1; nodeIdx++)
+	{
+		const Position beamSectionCenterPositionInDomain = (nodePositionsRelativeToRoot[nodeIdx] + nodePositionsRelativeToRoot[nodeIdx + 1]) * 0.5 + positionInDomain; // will nodeIdx+1 not overflow the array?
+		const double pressureAtBeamCenter = intoDomain->p.GetInterpolatedValueAtPosition(beamSectionCenterPositionInDomain);
+		const double deltaPressureWithAmbient = pressureAtBeamCenter - outOfDomain->p.At(sinkIndex);
+
+		const Position deltaPosition = nodePositionsRelativeToRoot[nodeIdx + 1] - nodePositionsRelativeToRoot[nodeIdx];
+		double cosTheta = deltaPosition.x / deltaPosition.Distance(); // Just really simple pythagoras.
+		double forceOnElement = deltaPressureWithAmbient * beamSections.at(nodeIdx).topOrBottomSurfaceArea;
+
+		// The forces is assumed to be equally distributed over the two different nodes.
+		forcesOut[nodeIdx] += 0.5* forceOnElement;
+		forcesOut[nodeIdx + 1] += 0.5* forceOnElement;
+	}
 }
 
 void ReedValve::OnRegister()
@@ -85,9 +117,9 @@ void ReedValve::SetSourceCellIndices(std::vector<CellIndex>& sourceCellIndicesOu
 }
 void ReedValve::GetAveragePressure() const
 {
-	GetAverageValueNearSourceTermsInternal(intoDomain->p);
+	GetAverageFieldQuantityInternal(intoDomain->p);
 }
-void ReedValve::GetAverageValueNearSourceTermsInternal(const FieldQuantity &fieldQuantity) const
+double ReedValve::GetAverageFieldQuantityInternal(const FieldQuantity &fieldQuantity) const
 {
 	// First check if the given field quantity is actually on the domain that the valve is at. better safe than sorry!
 	if (fieldQuantity.domain != intoDomain)
@@ -108,9 +140,7 @@ void ReedValve::GetAverageValueNearSourceTermsInternal(const FieldQuantity &fiel
 		}
 	}
 
-	
-
-	
+	return averageValue;	
 }
 std::pair<CellIndex, CellIndex> ReedValve::GetBoundingBox(const int depth) const
 {

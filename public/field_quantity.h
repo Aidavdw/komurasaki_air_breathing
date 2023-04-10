@@ -4,6 +4,7 @@
 #include "2dArray.h"
 #include "index2d.h"
 
+struct Position;
 struct Domain;
 
 enum EFieldQuantityBuffer
@@ -37,6 +38,9 @@ struct FieldQuantity
 
 	void CopyToBuffer(const EFieldQuantityBuffer from, const EFieldQuantityBuffer to);
 
+	// Instead of taking considering that the entire volume has one value (lumped parameter estimation), consider that the cell center has the value, and anything outside of that will be linearly interpolated between those cells.
+	double GetInterpolatedValueAtPosition(const Position atPosition) const;
+
 
 
 	// operator overloaded accessor. Note that this is not the fastest way to set, so if possible do that directly on the 2d arrays level.
@@ -47,10 +51,13 @@ struct FieldQuantity
 	}
 
 	inline int At(const int xIdx, const int yIdx) const; // Helper function for getting the flattened index in the internal arrays for a certain index. Use like buffer_name[At(x,y)].
+	inline int At(const CellIndex& cellIndex) const;
 
 	inline int AtGhostCell(const EBoundaryLocation location, const int ghostX, const int ghostY) const; // Helper function for getting the flattened index of a ghost cell in the internal arrays for a certain index. Use like buffer_name[At(x,y)].
 
 	double GetGradientInDirectionAndPosition(const CellIndex posIdx, const double directionAngle) const;
+
+	double GetAverageValue(const bool bExpectUniformField) const;
 
 private:
 	int nX = 0; // Amount of fields in the x-direction, not counting ghost cells.

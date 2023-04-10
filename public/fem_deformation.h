@@ -4,11 +4,7 @@
 #include "beam_section.h"
 #include "pos2d.h"
 
-// Describes what the beam looks like; is it straight? is it double tapered?
-enum EBeamProfile
-{
-	STRAIGHTDOUBLETAPERED // Has variable width (b) and variable thickness/height (h). Is exactly straight.
-};
+
 
 // Abstract class that implements data and methods for simple 1d fem deformation calculations
 class FemDeformation
@@ -25,8 +21,8 @@ public:
 	int N_DOF;									// The amoutn of degrees of freedom for the FEM system.
 
 	double dt;									// Time step used to assemble the newmark matrices.
-
-	std::vector<Position> nodePositionsRelativeToRoot;
+	
+	std::vector<Position> nodePositionsRelativeToRoot;	// The current positions of the nodes that comprise this valve.
 
 private:
 	double freeLength;							// Length of the part that can move freely

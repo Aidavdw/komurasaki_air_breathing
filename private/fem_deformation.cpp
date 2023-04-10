@@ -29,7 +29,7 @@ FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountO
 void FemDeformation::CreateBeamSections()
 {
 
-	//todo: Propogate density and YoungsModulus here.
+	//todo: Propogate density and YoungsModulus here, as well as bIsFixed.
 	if (!beamSections.empty())
 		beamSections.clear();
 

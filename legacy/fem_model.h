@@ -2,7 +2,7 @@
 */
 
 /* Compute the structural characteristics of the sections of the tapered reed valve. N is the number of nodes, which should coincide with the size of x_node, b, A, and I. */
-int * compute_solid(int n_v, int n_node, double **x_node, double *x_start, double *b, double *h, double *A, double *I, double b0, double b1, double h0, double h1, double l,double l_fix, int n_fix, int n_clamp, int n_dof_per_node,int *n_active,int *n_inactive)
+int * compute_solid(const int n_v, const int n_node, double **x_node, const double *x_start, double *b, double *h, double *A, double *I, const double b0, const double b1, const double h0, const double h1, const double l, const double l_fix, const int n_fix, const int n_clamp, const int n_dof_per_node,int *n_active,int *n_inactive)
 {
 	// The beam is split into two parts: A fixed part (0->l_fix, n_fix nodes), and a freely deforming part.
 
@@ -76,7 +76,7 @@ int * compute_solid(int n_v, int n_node, double **x_node, double *x_start, doubl
 }
 
 /* Define the cells that mark the beginning and end of each reed valve.
- * Sets *coef and *p_neighbour
+ * Sets *coef and *p_neighbour to the index of the cell that is 'next to it'.
  * 
  */
 void build_fem_interface(const int n_node, const int n_interface, const int n_start, const double **x_fluid, const double **xc_fluid, const double *x_fem, int *p_neighbour,  double *coef, const int nghost)
@@ -228,7 +228,7 @@ double v_width(double b0, double b1, double l, double x, double x0)
 // }
 
 /* Generate the load vector applied to solve the FEM equation (Newmark scheme). Populates f_dof */
-void fem_load(int n_elem, int n_dof, int n_clamp, int n_dof_per_node, double *p_fem, double *u_dof, double *f_dof, double *x_fem, double *b)
+void fem_load(const int n_elem, const int n_dof, const int n_clamp, const int n_dof_per_node, const double *p_fem, const double *u_dof, double *f_dof, const double *x_fem, const double *b)
 {
 	// For each element, compute total pressure-induced load and distribute between nodes
 	double f_elem = 0.0;
@@ -240,6 +240,8 @@ void fem_load(int n_elem, int n_dof, int n_clamp, int n_dof_per_node, double *p_
 	for (int i = n_clamp; i < n_elem; ++i)
 	{
 		// f_elem = elem_force(x_fem[i],x_fem[i+1],b[i],b[i+1],10000,10000);
+		
+		//
 		theta_elem = 0.5*(u_dof[i*n_dof_per_node+1]+u_dof[(i+1)*n_dof_per_node+1]);
 		f_elem = elem_force(x_fem[i],x_fem[i+1],b[i],b[i+1],p_fem[i],p_fem[i+1])*cos(theta_elem);
 
@@ -337,8 +339,9 @@ void fem_pressure(const int n_node, int n_interf, int index_min, double *x_fem, 
 	for (int i = 0; i < n_node; ++i)
 	{
 		dp_output[i] = 0.0;
+		// Gets the difference in pressure between the ambient and cell value for two different x-coordinates. Interpolates the two then, because the node is not exactly in one x-coordinate!
 		dp_1 = p_in_top[p_neighbour[i]][nghost+2]-p_in_bot[p_neighbour[i]][ny_input-nghost-1-2];
-		dp_2 = p_in_top[p_neighbour[i]+1][nghost+2]-p_in_bot[p_neighbour[i]+1][ny_input-nghost-1-2];
+		dp_2 = p_in_top[p_neighbour[i]+1][nghost+2]-p_in_bot[p_neighbour[i]+1][ny_input-nghost-1-2]; 
 		// This is the (dp1 + (dp2 - dp1) * x/L_elem) in Florian (2017) eq 3.22
 		dp_output[i] = dp_1 + p_coef[i]*(dp_2-dp_1);
 		if (isnan(dp_output[i]))
@@ -460,7 +463,7 @@ void build_newmark_mat(int N_dof, double **C, double **K, double **M, double dt,
 }
 
 /* Given a symmetric positive definite matrix M (size NxN) (should be checked by user), this function computes the Cholesky decomposition of this matrix and fills a matrix L (that should be allocated and initialized by the user) so that A = L*LT (LT is the transpose matrix of L). The outputed L matrix is a superior triangular matrix. */
-void cholesky_decomposition(int n_act,double **M,double **L, int *act_dof)
+void cholesky_decomposition(const int n_act, const double **M,double **L, const int *act_dof)
 {
    	for (int i = 0; i < n_act; ++i)
    	{	
@@ -499,8 +502,10 @@ void cholesky_decomposition(int n_act,double **M,double **L, int *act_dof)
 }
 
 /* The system "Ax = b", with A being symmetric definite positive of size NxN, is solved by using A's Cholesky decomposition. The system is only solved along the dimensions which are activated in the FEM model, i.e. referenced in active_dof. The returned solution is also of size NxN and includes all nodal displacements. The L matrix is lower triangular, and therefore A = L*LT. */
-void cholesky_solve(int n_dof,int n_active,double **L, double *load,int *active_dof, double *u_dof)
+void cholesky_solve(const int n_dof,const int n_active,double **L, const double *load, const int *active_dof, double *u_dof)
 {
+	// A: I think this is a variation on the Cholesky-Crout algorithm?
+	
 	double sum;
 	// double *solution = malloc(n_dof*sizeof(double));
 

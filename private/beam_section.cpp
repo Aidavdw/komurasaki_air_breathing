@@ -1,10 +1,14 @@
 #include "beam_section.h"
 #include <cmath>
+#include <stdexcept>
 
-BeamSection::BeamSection(const double length, const double width[2], const double thickness[2], const double density, const double youngsModulus) :
+BeamSection::BeamSection(const double length, const double width[2], const double thickness[2], const double density, const double youngsModulus, const EBeamProfile beamProfile, const bool bIsFixed) :
+	beamProfile(beamProfile),
+	bHasPressureLoad(bIsFixed),
 	length(length),
 	density(density),
 	youngsModulus(youngsModulus)
+	
 {
 	// idea for refactor, place left- and right variables into little structs that represent surface properties? Right now the 2 element array works too I guess.
 
@@ -17,6 +21,17 @@ BeamSection::BeamSection(const double length, const double width[2], const doubl
 	crossSectionalArea[1] = h[1] * b[1];
 	areaMomentOfInertia[0] = b[0] * pow(h[0], 3) / 12.0;
 	areaMomentOfInertia[1] = b[1] * pow(h[1], 3) / 12.0;
+
+	// Calculating the other properties; Right now, only the top surface area.
+	switch (beamProfile)
+	{
+	case EBeamProfile::STRAIGHTDOUBLETAPERED:
+		topOrBottomSurfaceArea = 0.5 * (b[1] + b[0]) * length;
+		break;
+	default:
+		throw std::logic_error("Calculating beam section properties not implemented for this beam profile.");	
+	}
+	
 
 	PopulateMassMatrix();
 }

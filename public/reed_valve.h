@@ -13,14 +13,21 @@ class ReedValve : public Valve, public FemDeformation
 public:
 	ReedValve(Domain* intoDomain, const EBoundaryLocation boundary, const double positionAlongBoundary, const int amountOfFreeSections, const double lengthOfFreeSection, const int amountOfFixedNodes, const double lengthOfFixedSections, const EBeamProfile beamProfile);
 
+	Position positionInDomain;
+
 	CellIndex holeStartPos; // The position (on the boundary) where the hole starts.
 	CellIndex holeEndPos;	// The position (on the boundary) where the hole ends.
 	
 	std::vector<CellIndex> sourceCellIndices;
+	CellIndex sinkIndex;		// The index in the outOfDomain* where the valve drains from.
 	//std::vector<std::pair<int, int>> pressureReadingCellIndices;
 
-
+	// Currently not implemented; alternative scheme to calculate pressure, but actually normal to the fem section.
 	void CalculatePressuresOnFemSections();
+
+	// Calculates the forces on all the fem sections similar to how Florian's original code did it.
+	void CalculateForceOnFemSections(std::vector<double>& forcesOut);
+
 
 	void OnRegister() override;
 
@@ -30,7 +37,7 @@ private:
 
 	void GetAveragePressure() const override;
 
-	void GetAverageValueNearSourceTermsInternal(const FieldQuantity& fieldQuantity) const;
+	double GetAverageFieldQuantityInternal(const FieldQuantity& fieldQuantity) const;
 
 	std::pair<CellIndex, CellIndex> GetBoundingBox(const int depth=5) const;
 	

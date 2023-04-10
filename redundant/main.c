@@ -60,8 +60,8 @@ int main()
     int NDOMAIN = 0;    // The amount of domains in the simulation case.
     int N_VALVE = 0;    // The amount of valves used for the simulation
     int SOLID_ON = 0;   // I think this is a flaf on whether or not the FEM modeling should be used for calculating the deflection of the reed valves.
-    int dom_low;        // I think this is the id of the domain that is on the bottom. Not sure what it's used for yet.
-    int dom_up;         // I think this is the id of the domain that is on the bottom. Not sure what it's used for yet.
+    int dom_low;        // I think this is the id of the domain that is on the bottom; the one that actually has the tube.
+    int dom_up;         // I think this is the id of the domain that is on top; the one that feeds the valves.
     int PLENUM_ON = 0;  // I think this is a flag that is set on whether or not to use the plenum
     init_case(SIM_CASE,&L_T,&M0,&dom_low,&dom_up,&XSTART,&YSTART,&XLENGTH,&YLENGTH,&GRID_RATIO_X,&GRID_RATIO_Y,&X_V_START,&B_LOC,&B_TYPE,&NXtot,&NYtot,&NDOMAIN,&N_VALVE,&SOLID_ON,&PLENUM_ON);
 
@@ -213,7 +213,7 @@ int main()
 	int  N_NODE;            // The amount of nodes that are in the FEM simulation. NFEM + 1
 	int  N_ACTIVE;          // The amount of nodes that is allowed to deform. FemDeformation::freeNodes * DOF_PER_NODE
 	int  N_INACTIVE;        // The amount of nodes that is forced to stay fixed in place. FemDeformation::fixedNodes * DOF_PER_NODE
-	int  *act_DOF;          // is the size of the N_DOF_PER_NODE * free node count. [n_clamp * N_DOF_PER_NODE, n_clamp * N_DOF_PER_NODE, (...), (n_total - n_clamp)*N_DOF_PER_NODE ]
+	int  *act_DOF;          // A vector that just increases by one every step, going from (n_node * N_DOF) -> (n_total * DOF + DOF-1).
 	double **x_FEM;         // X locations of the inidividual FEM cells, relative to the left-most point.
 	double **y_FEM;
 	double *b;              // The (average) width of the cell. Literally b in Florian (2017).
@@ -230,10 +230,10 @@ int main()
 	double **R1;                // Newmark matrix 1. This one is only used for cholesky decomposition. L_R1 is the one that's actually used for solving.
 	double **R2;                // Newmark matrix 2. Is used for newmark solving.
 	double **R3;                // Newmark matrix 3
-    double **U0_DOF;
-	double **U1_DOF;
-	double **U2_DOF;
-	double **U2_DOF_K;
+    double **U0_DOF;			// Some deflection of the reed valve?
+	double **U1_DOF;			// Some deflection of the reed valve?
+	double **U2_DOF;			// Some deflection of the reed valve?
+	double **U2_DOF_K;			// Some deflection of the reed valve?
 	double **dp_interface;
 	double **p_FEM;
 	double**F_DOF;
@@ -247,7 +247,7 @@ int main()
     int *fem_index_inf;			// The index in the x-direction where a valve starts
 	int  *fem_index_sup;		// The index in the x-direction where a valve ends. 
 	int  *fem_n;                // The amount of cells between the ending- and starting associated pressure index.
-    int **p_neighbour;          // For each FEM node, index of fluid cell associated (i and i+1)
+    int **p_neighbour;          // For each read valve, and for every FEM node, x-index of fluid cell associated
     double **p_coef;            // Interpolation coefficients for pressure at FEM nodes. Unknown what it physically represents. populated in build_fem_interface()
     double *mfr;
 	double *mean_p_sup;
@@ -387,6 +387,7 @@ int main()
 
         	// Setting p_FEM, the pressure differences between the up- and the bottom.
             fem_pressure(N_NODE,fem_n[k],fem_index_inf[k],x_FEM[k],p_neighbour[k],p_coef[k],NYtot[dom_low],p[dom_low],p[dom_up],NGHOST,p_FEM[k]);
+        	// Sets F_DOF for the current valve.
             fem_load(N_FEM,N_DOF,N_CLAMP,N_DOF_PER_NODE,p_FEM[k],U2_DOF[k],F_DOF[k],x_FEM[k],b);
 
             // Solve initial FEM problem based on static assumption with initial pressure field

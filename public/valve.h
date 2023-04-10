@@ -9,7 +9,7 @@ class Valve
 {
 public:
 	virtual ~Valve() = default;
-	Valve(Domain* intoDomain, const EBoundaryLocation boundary, double positionAlongBoundary);
+	Valve(Domain* intoDomain, Domain* outOfDomain, const EBoundaryLocation boundary, double positionAlongBoundary);
 
 
 	EBoundaryLocation boundary;			// which side of the domain the valve is attached to
@@ -17,6 +17,7 @@ public:
 
 protected:
 
+	Domain* outOfDomain;				// the domain that the valve sinks out of
 	Domain* intoDomain;					// The domain that the valve creates a source into.
 
 public:

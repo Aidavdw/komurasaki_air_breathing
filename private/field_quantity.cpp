@@ -1,4 +1,6 @@
 #include "field_quantity.h"
+#include "pos2d.h"
+#include "index2d.h"
 #include "domain.h"
 #include <stdexcept>
 #include <cmath>
@@ -28,10 +30,34 @@ void FieldQuantity::CopyToBuffer(const EFieldQuantityBuffer from, const EFieldQu
 {
 	TwoDimensionalArray::ElementWiseCopy(bufferMap.at(from), bufferMap.at(to));
 }
+double FieldQuantity::GetInterpolatedValueAtPosition(const Position atPosition) const
+{
+	Position distanceFromCellCenter;
+	const CellIndex cellIndex = domain->InvertPositionToIndex(atPosition, distanceFromCellCenter);
+
+	// Setting which cells to interpolate with
+	const CellIndex horizontalInterpolateTarget = (distanceFromCellCenter.x < 0) ? cellIndex + CellIndex{1,0} : cellIndex + CellIndex{-1, 0} ;
+	const CellIndex verticalInterpolateTarget = (distanceFromCellCenter.y < 0) ? cellIndex + CellIndex{0,1} : cellIndex + CellIndex{0, -1} ;
+
+	double sizeX, sizeXInterpolateTarget, sizeY, sizeYInterpolateTarget;
+	double discard;
+	domain->GetCellSizes(cellIndex, sizeX, sizeY);
+	domain->GetCellSizes(horizontalInterpolateTarget, sizeXInterpolateTarget, discard);
+	domain->GetCellSizes(verticalInterpolateTarget, discard, sizeYInterpolateTarget);
+
+	double deltaHorizontal = At(horizontalInterpolateTarget) + At(cellIndex) / (0.5*(sizeX + sizeXInterpolateTarget)) - At(cellIndex);
+	double deltaVertical = At(horizontalInterpolateTarget) + At(cellIndex) / (0.5*(sizeX + sizeXInterpolateTarget)) - At(cellIndex);
+	return At(cellIndex) + deltaHorizontal + deltaVertical;
+
+}
 
 inline int FieldQuantity::At(const int xIdx, const int yIdx) const
 {
 	return (xIdx + nGhostCells) + ((yIdx + nGhostCells)*nX);
+}
+int FieldQuantity::At(const CellIndex &cellIndex) const
+{
+	return (cellIndex.x + nGhostCells) + ((cellIndex.y + nGhostCells)*nX);
 }
 
 inline int FieldQuantity::AtGhostCell(const EBoundaryLocation location, const int ghostX, const int ghostY) const
@@ -99,3 +125,14 @@ double FieldQuantity::GetGradientInDirectionAndPosition(const CellIndex posIdx, 
 	return cos(directionAngle) * partialDerivativeX + sin(directionAngle) * partialDerivativeY;
 
 }
+double FieldQuantity::GetAverageValue(const bool bExpectUniformField) const
+{
+	/*
+	// If it's a uniform field, just do a littttttle check to make sure it actually is
+	double checkval1 = main.GetAt(main.nX/4, main.nY/2);
+	double checkval2 = main.GetAt(3*main.nX/4, main.nY/2);
+	if (checkval1 - checkval2 > 0.005)
+		throw std::logic_error("Expected uniform field, but it was not!")
+		*/
+}
+
