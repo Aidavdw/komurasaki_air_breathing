@@ -230,9 +230,9 @@ int main()
 	double **R1;                // Newmark matrix 1. This one is only used for cholesky decomposition. L_R1 is the one that's actually used for solving.
 	double **R2;                // Newmark matrix 2. Is used for newmark solving.
 	double **R3;                // Newmark matrix 3
-    double **U0_DOF;			// Some deflection of the reed valve?
-	double **U1_DOF;			// Some deflection of the reed valve?
-	double **U2_DOF;			// Some deflection of the reed valve?
+    double **U0_DOF;			// Some deflection of the reed valve? Input in update_valve() but is never actually referenced.
+	double **U1_DOF;			// Some deflection of the reed valve? in update valve, is used if u2[i] > 0.012 to set the physical deflection
+	double **U2_DOF;			// Some deflection of the reed valve? in update valve, is used if u2[i] < 0.012 to set the physical deflection
 	double **U2_DOF_K;			// Some deflection of the reed valve?
 	double **dp_interface;
 	double **p_FEM;

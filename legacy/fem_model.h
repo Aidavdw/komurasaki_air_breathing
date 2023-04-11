@@ -642,8 +642,8 @@ void transpose(int n,double **M, double **MT)
 		}
 	}
 }
-
-void update_valve(int n_node, int n_dof_per_node, double *u0,double *u1,double *u2, double *y_fem)
+// sets y_fem
+void update_valve(const int n_node, const int n_dof_per_node,const double *u0,const double *u1,const double *u2, double *y_fem)
 {
 	if (u2[(n_node-1)*n_dof_per_node] <= 0.012)
 	{

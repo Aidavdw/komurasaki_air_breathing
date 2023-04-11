@@ -27,10 +27,26 @@ FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountO
 	
 }
 
-void FemDeformation::UpdatePositions()
+void FemDeformation::UpdatePositions(const std::vector<double>& u1, const std::vector<double>& u2)
 {
-	// First, cholesky solve the FEM system of equations to give the deflection vector
-	
+	// Depending on the magic number, either use u1 or u2.
+	if (u2[(amountOfNodes-1)*N_DOF_PER_NODE] <= 0.012) // todo: figure out where this magic number comes from.
+	{
+		for (int i = 0; i < amountOfNodes; ++i)
+		{
+			const double deflection = u2[i*N_DOF_PER_NODE];
+			// Clamp if they're going outside of the hole.
+			nodePositionsRelativeToRoot[i].y = (deflection < 0) ? 0: deflection;
+		}	
+	}
+	else
+	{
+		for (int i = 0; i < amountOfNodes; ++i)
+		{
+			// In florian's original code, no checking if < 0. Is this correct?
+			nodePositionsRelativeToRoot[i].y = u1[i*N_DOF_PER_NODE];
+		}
+	}
 }
 
 void FemDeformation::CreateBeamSections()

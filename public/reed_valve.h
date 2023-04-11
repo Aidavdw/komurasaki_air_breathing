@@ -1,5 +1,5 @@
 #pragma once
-#include "valve.h"
+#include "IValve.h"
 #include "fem_deformation.h"
 #include <vector>
 
@@ -8,7 +8,7 @@
 struct FieldQuantity;
 
 // A reed valve that can bend under the loads, letting in more or less air.
-class ReedValve : public Valve, public FemDeformation
+class ReedValve : public IValve, public FemDeformation
 {
 public:
 	ReedValve(Domain* intoDomain, const EBoundaryLocation boundary, const double positionAlongBoundary, const int amountOfFreeSections, const double lengthOfFreeSection, const int amountOfFixedNodes, const double lengthOfFixedSections, const EBeamProfile beamProfile);
@@ -26,16 +26,19 @@ public:
 	void CalculatePressuresOnFemSections();
 
 	// Calculates the forces in the transverse direction on all the fem sections similar to how Florian's original code did it. The optional argument adds extra zeros to get the system of equations representations.
-	void CalculateForceOnFemSections(std::vector<double>& forcesOut, const bool addZerosForAlignedElements) const;
+	void CalculateForceOnNodes(std::vector<double>& forcesOut, const bool addZerosForAlignedElements) const;
 
-
+public:
+	// Overrides from Valve interface
 	void OnRegister() override;
+	void GetAveragePressure() const override;
+	void Update() override;
 
 private:
 	// Used in constructor; Sets the source cell indices based on the given 
 	void SetSourceCellIndices(std::vector<CellIndex>& sourceCellIndicesOut, const EBoundaryLocation boundary, const double positionAlongBoundary, const  double lengthOfFreeSection, const double lengthOfFixedSections) const;
 
-	void GetAveragePressure() const override;
+
 
 	double GetAverageFieldQuantityInternal(const FieldQuantity& fieldQuantity) const;
 

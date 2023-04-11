@@ -9,7 +9,7 @@
 #define HOLE_FACTOR 0.9
 
 ReedValve::ReedValve(Domain* intoDomain, const EBoundaryLocation boundary, const double positionAlongBoundary, const int amountOfFreeSections, const double lengthOfFreeSection, const int amountOfFixedNodes, const double lengthOfFixedSections, const EBeamProfile beamProfile) :
-	Valve(intoDomain, boundary, positionAlongBoundary),
+	IValve(intoDomain, boundary, positionAlongBoundary),
 	FemDeformation(amountOfFreeSections, amountOfFixedNodes, beamProfile, lengthOfFreeSection, lengthOfFixedSections, intoDomain->simCase->dt),
 	positionInDomain(intoDomain->PositionAlongBoundaryToCoordinate(boundary, positionAlongBoundary))
 {
@@ -42,9 +42,8 @@ void ReedValve::CalculatePressuresOnFemSections()
 		double pressureGradientNormalToBeamSection = intoDomain->p.GetGradientInDirectionAndPosition(cellThisSectionIsIn,  angle);
 
 	}
-	//todo: add return based on how the code is structured.
 }
-void ReedValve::CalculateForceOnFemSections(std::vector<double>& forcesOut, const bool bAddZerosForAlignedElements) const
+void ReedValve::CalculateForceOnNodes(std::vector<double>& forcesOut, const bool bAddZerosForAlignedElements) const
 {
 	// Only do this for the nodes that are considered 'free'.
 	// Note that the beam connecting the last fixed and the first free node is still considered 'fixed', it cannot create loading, as this would be impossible to distribute between the two nodes.
@@ -134,6 +133,16 @@ void ReedValve::SetSourceCellIndices(std::vector<CellIndex>& sourceCellIndicesOu
 void ReedValve::GetAveragePressure() const
 {
 	GetAverageFieldQuantityInternal(intoDomain->p);
+}
+void ReedValve::Update()
+{
+	std::vector<double> forcesOnNodes;
+	std::vector<double> u2Deflection; // Name based on florian's code, still need to actually figure out what it means...
+	const std::vector<double> u1Deflection = {};
+	CalculateForceOnNodes(forcesOnNodes, true);
+	SolveCholeskySystem(u2Deflection, forcesOnNodes);
+	UpdatePositions(u1Deflection, u2Deflection);
+	
 }
 double ReedValve::GetAverageFieldQuantityInternal(const FieldQuantity &fieldQuantity) const
 {

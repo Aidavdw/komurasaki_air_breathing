@@ -1,8 +1,8 @@
-#include "valve.h"
+#include "IValve.h"
 #include "domain.h"
 #include <stdexcept>
 
-Valve::Valve(Domain* intoDomain, const EBoundaryLocation boundary, double positionAlongBoundary) :
+IValve::IValve(Domain* intoDomain, const EBoundaryLocation boundary, double positionAlongBoundary) :
     intoDomain(intoDomain),
     boundary(boundary),
     positionAlongBoundary(positionAlongBoundary)
@@ -10,19 +10,21 @@ Valve::Valve(Domain* intoDomain, const EBoundaryLocation boundary, double positi
     
 }
 
-void Valve::OnRegister()
+void IValve::OnRegister()
 {
     throw std::logic_error("OnRegister() is not overridden for this type of valve!");
-    // Accessing the source cells:
-    //intoDomain->T.main.FlattenIndexOnBoundary(boundary,sourceStartIndexOnBoundary + idxBelowEndIndex)
 }
 
-void Valve::SetSourceTerms()
+void IValve::SetSourceTerms()
 {
     throw std::logic_error("SetSourceTerms() is not overridden for this type of valve!");
 }
-void Valve::GetAveragePressure() const
+void IValve::GetAveragePressure() const
 {
     throw std::logic_error("GetAveragePressure() is not overridden for this type of valve!");
+}
+void IValve::Update()
+{
+    throw std::logic_error("Update() is not overridden for this type of valve!");
 }
 

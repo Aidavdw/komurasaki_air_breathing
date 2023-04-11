@@ -22,7 +22,7 @@ public:
 
 	double dt;									// Time step used to assemble the newmark matrices.
 	
-	std::vector<Position> nodePositionsRelativeToRoot;	// The current positions of the nodes that comprise this valve.
+	std::vector<Position> nodePositionsRelativeToRoot;	// The current positions of the nodes, in a local coordinate space.
 
 private:
 	double freeLength;							// Length of the part that can move freely
@@ -50,7 +50,11 @@ private:
 public:
 
 	// Updates the position of the fem elements based on the current pressure field.
-	void UpdatePositions();
+	// todo: figure out what u1 and u2 actually are.
+	void UpdatePositions(const std::vector<double>& u1, const std::vector<double>& u2);
+	
+	// Solves the system of equations for the stiffness of the cholesky-decomposed stiffness matrix. Is only used once to set up the problem.
+	void SolveCholeskySystem(std::vector<double>& deflectionVectorOut, const std::vector<double>& load) const;
 
 	
 
@@ -71,6 +75,5 @@ private:
 
 	static TwoDimensionalArray CholeskyDecomposition(const TwoDimensionalArray& matrix, const std::vector<double>& DOFVector);
 
-	// Solves the system of equations for the stiffness of the cholesky-decomposed stiffness matrix. Is only used once to set up the problem.
-	void SolveCholeskySystem(std::vector<double>& deflectionVectorOut, const std::vector<double>& load) const;
+
 };
