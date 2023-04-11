@@ -49,6 +49,11 @@ private:
 
 public:
 
+	// Updates the position of the fem elements based on the current pressure field.
+	void UpdatePositions();
+
+	
+
 
 
 private:
@@ -66,4 +71,6 @@ private:
 
 	static TwoDimensionalArray CholeskyDecomposition(const TwoDimensionalArray& matrix, const std::vector<double>& DOFVector);
 
+	// Solves the system of equations for the stiffness of the cholesky-decomposed stiffness matrix. Is only used once to set up the problem.
+	void SolveCholeskySystem(std::vector<double>& deflectionVectorOut, const std::vector<double>& load) const;
 };

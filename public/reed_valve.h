@@ -25,8 +25,8 @@ public:
 	// Currently not implemented; alternative scheme to calculate pressure, but actually normal to the fem section.
 	void CalculatePressuresOnFemSections();
 
-	// Calculates the forces on all the fem sections similar to how Florian's original code did it.
-	void CalculateForceOnFemSections(std::vector<double>& forcesOut);
+	// Calculates the forces in the transverse direction on all the fem sections similar to how Florian's original code did it. The optional argument adds extra zeros to get the system of equations representations.
+	void CalculateForceOnFemSections(std::vector<double>& forcesOut, const bool addZerosForAlignedElements) const;
 
 
 	void OnRegister() override;

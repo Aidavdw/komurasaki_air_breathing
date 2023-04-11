@@ -1,6 +1,7 @@
 #include "mesh_spacing.h"
 #include <stdexcept>
 #include <functional>
+#include "AuxFunctions.h"
 #include "gradient_descent.h"
 
 MeshSpacing::MeshSpacing(const EMeshSpacingType meshSpacingType, const double length, const int amountOfElements, const double resolutionLeft, const double resolutionRight) :
@@ -91,11 +92,6 @@ void MeshSpacing::FitSpacingToParameters()
 	double funcVal;
 	solver.Optimize(&funcLoc, &funcVal);
 
-}
-
-bool MeshSpacing::IsCloseToZero(const double x, const double tolerance)
-{
-	return std::abs(x) < tolerance;
 }
 
 double MeshSpacing::SpacingObjectiveFunction(std::vector<double>& funcLoc) const

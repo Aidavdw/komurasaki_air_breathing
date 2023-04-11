@@ -22,8 +22,15 @@ FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountO
 
 	AssembleGlobalMassMatrix(globalMassMatrix);
 	AssembleGlobalStiffnessMatrix(globalStiffnessMatrix);
+	globalStiffnessMatrixCholeskyDecomposed = CholeskyDecomposition(globalStiffnessMatrix, GetDOFVector());
 	AssembleNewmarkMatrix(newmarkMatrixR1CholeskyDecomposed, newmarkMatrixR2, newmarkMatrixR3, globalStiffnessMatrixCholeskyDecomposed, dt);
+	
+}
 
+void FemDeformation::UpdatePositions()
+{
+	// First, cholesky solve the FEM system of equations to give the deflection vector
+	
 }
 
 void FemDeformation::CreateBeamSections()
@@ -146,7 +153,7 @@ void FemDeformation::AssembleNewmarkMatrix(TwoDimensionalArray& R1CholeskyOut, T
 		}
 	}
 
-	auto DOFVector = GetDOFVector();
+	const auto DOFVector = GetDOFVector();
 	R1CholeskyOut = CholeskyDecomposition(R1PreProcessing, DOFVector).Transpose();
 	KCholeskyOut = CholeskyDecomposition(globalStiffnessMatrix, DOFVector).Transpose();
 }
@@ -170,6 +177,13 @@ std::vector<double> FemDeformation::GetDOFVector() const
 /* Given a symmetric positive definite matrix M (size NxN) (should be checked by user), this function computes the Cholesky decomposition of this matrix and fills a matrix L (that should be allocated and initialized by the user) so that A = L*LT (LT is the transpose matrix of L). The output L matrix is a superior triangular matrix. */
 TwoDimensionalArray FemDeformation::CholeskyDecomposition(const TwoDimensionalArray& matrix, const std::vector<double>& DOFVector)
 {
+	#ifdef RUNTIMECHECKING
+	// Check if the matrix is symmetric.
+	
+
+	#endif
+	
+	// This is a variation on the Cholesky-Crout algorithm?
 	//const int activeDegreesOfFreedom = freeNodes * N_DOF_PER_NODE; <- the original thing, but should work like this too.
 	const int activeDegreesOfFreedom = matrix.nX;
 	TwoDimensionalArray out(matrix.nX, matrix.nX);
@@ -198,4 +212,62 @@ TwoDimensionalArray FemDeformation::CholeskyDecomposition(const TwoDimensionalAr
 	}
 
 	return out;
+}
+void FemDeformation::SolveCholeskySystem(std::vector<double> &deflectionVectorOut, const std::vector<double>& load) const
+{
+	#ifdef RUNTIMECHECKING
+	// Check if the vector sizes are compatible
+	if (static_cast<int>(load.size()) != globalStiffnessMatrix.nX)
+	{
+		throw std::invalid_argument("Cannot solve cholesky system, as the load vector is not the right size.");
+	}
+
+	// Check if the matrices are properly triangular.
+	if (!globalStiffnessMatrixCholeskyDecomposed.IsLowerTriangular())
+	{
+		throw std::invalid_argument("Cannot solve cholesky system, as the stiffness matrix is not lower triangular.");
+	}
+	
+	#endif
+	
+	
+	deflectionVectorOut.resize(load.size());
+	std::fill(deflectionVectorOut.begin(), deflectionVectorOut.end(), 0);
+	std::vector<double> DOFVector = GetDOFVector();
+
+
+	// First step : Forward substitution starting from first index
+	for (int i = 0; i < freeNodes * N_DOF_PER_NODE; ++i)
+	{
+		double sum = 0.0;
+		for (int j = 0; j < i; ++j)
+		{
+			//TODO: check if this does not weirdly cut the matrix.
+			sum += globalStiffnessMatrixCholeskyDecomposed.GetAt(i,j)*deflectionVectorOut[DOFVector.at(j)];
+		}
+		deflectionVectorOut[DOFVector.at(i)] = (load[DOFVector.at(i)] - sum)/globalStiffnessMatrixCholeskyDecomposed.GetAt(i,i);
+	}
+
+	
+	// Second step : Backward subsitution starting from last index
+	for (int i = freeNodes * N_DOF_PER_NODE - 1; i > -1; --i)
+	{
+		double sum = 0.0;
+		for (int j = i + 1; j < freeNodes * N_DOF_PER_NODE; ++j)
+		{
+			sum += globalStiffnessMatrixCholeskyDecomposed.GetAt(j,i)*deflectionVectorOut[DOFVector.at(j)];
+		}
+		deflectionVectorOut[DOFVector.at(i)] = (deflectionVectorOut[DOFVector.at(i)] - sum)globalStiffnessMatrixCholeskyDecomposed.GetAt(i,i);
+	}
+
+	#ifdef RUNTIMECHECKING
+
+	for (int i = 0; i < n_dof; ++i)
+	{
+		if (isnan(u_dof[i]))
+		{
+			throw std::logic_error("Cholesky solution contains an NAN");
+		}
+	}
+	#endif
 }

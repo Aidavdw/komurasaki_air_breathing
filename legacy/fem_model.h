@@ -465,6 +465,9 @@ void build_newmark_mat(int N_dof, double **C, double **K, double **M, double dt,
 /* Given a symmetric positive definite matrix M (size NxN) (should be checked by user), this function computes the Cholesky decomposition of this matrix and fills a matrix L (that should be allocated and initialized by the user) so that A = L*LT (LT is the transpose matrix of L). The outputed L matrix is a superior triangular matrix. */
 void cholesky_decomposition(const int n_act, const double **M,double **L, const int *act_dof)
 {
+
+	// A: I think this is a variation on the Cholesky-Crout algorithm?
+	
    	for (int i = 0; i < n_act; ++i)
    	{	
    		L[i][i] = M[act_dof[i]][act_dof[i]];
@@ -502,9 +505,9 @@ void cholesky_decomposition(const int n_act, const double **M,double **L, const 
 }
 
 /* The system "Ax = b", with A being symmetric definite positive of size NxN, is solved by using A's Cholesky decomposition. The system is only solved along the dimensions which are activated in the FEM model, i.e. referenced in active_dof. The returned solution is also of size NxN and includes all nodal displacements. The L matrix is lower triangular, and therefore A = L*LT. */
-void cholesky_solve(const int n_dof,const int n_active,double **L, const double *load, const int *active_dof, double *u_dof)
+void cholesky_solve(const int n_dof,const int n_active,const double **L, const double *load, const int *active_dof, double *u_dof)
 {
-	// A: I think this is a variation on the Cholesky-Crout algorithm?
+	
 	
 	double sum;
 	// double *solution = malloc(n_dof*sizeof(double));

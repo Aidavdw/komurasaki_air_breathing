@@ -4,6 +4,8 @@
 #include <stdexcept>
 #include <cmath>
 
+#include "parameters.h"
+
 #define HOLE_FACTOR 0.9
 
 ReedValve::ReedValve(Domain* intoDomain, const EBoundaryLocation boundary, const double positionAlongBoundary, const int amountOfFreeSections, const double lengthOfFreeSection, const int amountOfFixedNodes, const double lengthOfFixedSections, const EBeamProfile beamProfile) :
@@ -42,7 +44,7 @@ void ReedValve::CalculatePressuresOnFemSections()
 	}
 	//todo: add return based on how the code is structured.
 }
-void ReedValve::CalculateForceOnFemSections(std::vector<double>& forcesOut)
+void ReedValve::CalculateForceOnFemSections(std::vector<double>& forcesOut, const bool bAddZerosForAlignedElements) const
 {
 	// Only do this for the nodes that are considered 'free'.
 	// Note that the beam connecting the last fixed and the first free node is still considered 'fixed', it cannot create loading, as this would be impossible to distribute between the two nodes.
@@ -55,6 +57,11 @@ void ReedValve::CalculateForceOnFemSections(std::vector<double>& forcesOut)
 	 *
 	 * f on N3 = 0.5 * S3
 	 */
+	if (bAddZerosForAlignedElements)
+		forcesOut.resize(amountOfNodes * N_DOF_PER_NODE);
+	else
+		forcesOut.resize(amountOfNodes);
+	
 	
 	// This iterates over the beam section elements, but we need the indices to determine the positions. Hence, up to amountOfNodes-1
 	for (int nodeIdx = fixedNodes; nodeIdx < amountOfNodes - 1; nodeIdx++)
@@ -68,8 +75,17 @@ void ReedValve::CalculateForceOnFemSections(std::vector<double>& forcesOut)
 		double forceOnElement = deltaPressureWithAmbient * beamSections.at(nodeIdx).topOrBottomSurfaceArea;
 
 		// The forces is assumed to be equally distributed over the two different nodes.
-		forcesOut[nodeIdx] += 0.5* forceOnElement;
-		forcesOut[nodeIdx + 1] += 0.5* forceOnElement;
+		if (bAddZerosForAlignedElements)
+		{
+			forcesOut[nodeIdx * N_DOF_PER_NODE] += 0.5* forceOnElement;
+			forcesOut[(nodeIdx + 1) * N_DOF_PER_NODE] += 0.5* forceOnElement;
+		}
+		else
+		{
+			forcesOut[nodeIdx] += 0.5* forceOnElement;
+			forcesOut[nodeIdx + 1] += 0.5* forceOnElement;
+		}
+		
 	}
 }
 
@@ -166,43 +182,3 @@ std::pair<CellIndex, CellIndex> ReedValve::GetBoundingBox(const int depth) const
 	}
 	return { holeStartPos, holeEndPos + CellIndex(xOffset, yOffset) };
 }
-
-/*
-void ReedValve::SetPressureReadingCellIndices(const EBoundaryLocation boundary, const int offsetFromSourceCells)
-{
-	// Florian's original implementation was rather hacky and unphysical. So, instead we just choose the fields that are slightly deeper into the domain than the source cells.
-
-	if (sourceCellIndices.size() == 0)
-	{
-		throw std::logic_error("Pressure reading cell index setting requires source cell indices to be set.");
-	}
-
-	int xOffset = 0;
-	int yOffset = 0;
-	switch (boundary)
-	{
-	case EBoundaryLocation::TOP:
-		yOffset = -offsetFromSourceCells;
-		break;
-	case EBoundaryLocation::BOTTOM:
-		yOffset = offsetFromSourceCells;
-		break;
-	case EBoundaryLocation::LEFT:
-		xOffset = offsetFromSourceCells;
-		break;
-	case EBoundaryLocation::RIGHT:
-		xOffset = -offsetFromSourceCells;
-		break;
-	default:
-		throw std::logic_error("Invalid boundary location.");
-	}
-
-	//pressureReadingCellIndices = sourceCellIndices;
-
-	for (auto& pos : pressureReadingCellIndices)
-	{
-		pos.x += xOffset;
-		pos.y += yOffset;
-	}
-}
-*/

@@ -38,7 +38,7 @@ private:
 	void FitSpacingToParameters();
 	// Function describing how close to fitting the current configuration is
 	double SpacingObjectiveFunction(std::vector<double>& funcLoc) const;
-	static bool IsCloseToZero(const double x, const double tolerance=std::numeric_limits<double>::epsilon() );
+	
 };
 
 

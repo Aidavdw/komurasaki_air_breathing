@@ -1,6 +1,8 @@
 #include "2dArray.h"
 #include <stdexcept>
 
+#include "AuxFunctions.h"
+
 TwoDimensionalArray::TwoDimensionalArray(const int sizeX, const int sizeY, const double initialValue = 0) :
 	nX(sizeX),
 	nY(sizeY)
@@ -39,6 +41,42 @@ bool TwoDimensionalArray::IsEmpty() const
 	if (nX == 0 || nY == 0)
 		return true;
 	return data.empty();
+}
+bool TwoDimensionalArray::IsSquare() const
+{
+	return (nX == nY);
+}
+
+bool TwoDimensionalArray::IsLowerTriangular() const
+{
+	if (!IsSquare())
+		return false;
+	
+	for (int yIndex = 0; yIndex < nY; yIndex++)
+	{
+		for (int xIndex = yIndex; xIndex < nX; xIndex++)
+		{
+			if (IsCloseToZero(GetAt(xIndex, yIndex)))
+				return false;
+		}
+	}
+	return true;
+}
+
+bool TwoDimensionalArray::IsUpperTriangular() const
+{
+	if (!IsSquare())
+		return false;
+	
+	for (int yIndex = 0; yIndex < nX; yIndex++)
+	{
+		for (int xIndex = 0; xIndex < yIndex; xIndex++)
+		{
+			if (IsCloseToZero(GetAt(xIndex, yIndex)))
+				return false;
+		}
+	}
+	return true;
 }
 
 std::pair<int, int> TwoDimensionalArray::GetIndexFromIndexOnBoundary(const EBoundaryLocation boundary, const int indexOnBoundary) const

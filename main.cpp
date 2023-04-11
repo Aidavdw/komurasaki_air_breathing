@@ -20,6 +20,10 @@
 //#include "case_det_tube.cpp" // Temporary hard-code of specific case implementation
 #include "reed_valve.h"
 
+// A flag that does a lot of extra checking in between steps. Nice to find bugs, not so nice for performance. Turn off if you wish to compile it for fast execution.
+#ifndef RUNTIMECHECKING
+#define RUNTIMECHECKING
+#endif
 
 /* MAIN ROUTINE */
 int main()

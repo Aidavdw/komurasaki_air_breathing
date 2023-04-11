@@ -26,6 +26,11 @@ struct TwoDimensionalArray
 
 	bool IsEmpty() const;
 
+	bool IsSquare() const;
+	bool IsLowerTriangular() const;
+	bool IsUpperTriangular() const;
+	bool IsSymmetric() const;
+
 
 
 	/* Getters for index */
