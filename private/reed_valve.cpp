@@ -107,7 +107,8 @@ void ReedValve::SetSourceCellIndices(std::vector<CellIndex>& sourceCellIndicesOu
 	CellIndex sourceStartIndexOnBoundary = intoDomain->InvertPositionToIndex(posStart);		// The index (location) on the boundary where the valve starts creating a source term.
 	CellIndex sourceEndIndexOnBoundary = intoDomain->InvertPositionToIndex(posEnd);		// The index (location) on the boundary where the valve stops creating a source term.
 
-	// Determine all the positions between the two, and save them. Note that it can be either horizontal or vertical, so first check that
+	// Determine all the positions between the two points, and save them as source terms by interpolating a line between the two.
+	// This implementation assumes it is either perfectly horizontal or vertical, and does not allow for slanted lines or other profiles.
 	bool bHorizontalDifference = (sourceStartIndexOnBoundary.x != sourceEndIndexOnBoundary.x);
 	bool bVerticalDifference = (sourceStartIndexOnBoundary.y != sourceEndIndexOnBoundary.y);
 
@@ -139,6 +140,7 @@ void ReedValve::GetAveragePressure() const
 }
 void ReedValve::Update()
 {
+	// TODO: Right now creates & destroys them every time. Possible optimisation would be to cache them?
 	std::vector<double> forcesOnNodes;
 	std::vector<double> u2Deflection; // Name based on florian's code, still need to actually figure out what it means...
 	const std::vector<double> u1Deflection = {};

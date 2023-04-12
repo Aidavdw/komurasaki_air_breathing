@@ -1,4 +1,6 @@
 #include "fem_deformation.h"
+
+#include <assert.h>
 #include <stdexcept>
 #include <vector>
 
@@ -22,6 +24,8 @@ FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountO
 
 	AssembleGlobalMassMatrix(globalMassMatrix);
 	AssembleGlobalStiffnessMatrix(globalStiffnessMatrix);
+	AssembleDampingMatrix(dampingMatrix);
+	
 	globalStiffnessMatrixCholeskyDecomposed = CholeskyDecomposition(globalStiffnessMatrix, GetDOFVector());
 	AssembleNewmarkMatrix(newmarkMatrixR1CholeskyDecomposed, newmarkMatrixR2, newmarkMatrixR3, globalStiffnessMatrixCholeskyDecomposed, dt);
 	
@@ -115,6 +119,10 @@ void FemDeformation::AssembleGlobalMassMatrix(TwoDimensionalArray& matrixOut) co
 			}
 		}
 	}
+
+	#ifdef _DEBUG
+	assert(matrixOut.HasDiagonalGrainsOnly());
+	#endif
 }
 
 void FemDeformation::AssembleGlobalStiffnessMatrix(TwoDimensionalArray& matrixOut) const
@@ -133,6 +141,10 @@ void FemDeformation::AssembleGlobalStiffnessMatrix(TwoDimensionalArray& matrixOu
 			}
 		}
 	}
+
+	#ifdef _DEBUG
+	assert(matrixOut.HasDiagonalGrainsOnly());
+	#endif
 }
 
 void FemDeformation::AssembleDampingMatrix(TwoDimensionalArray& matrixOut)
@@ -144,14 +156,18 @@ void FemDeformation::AssembleDampingMatrix(TwoDimensionalArray& matrixOut)
 	{
 		for (int j = 0; j < N_DOF; ++j)
 		{
-			DampingMatrix(i,j) = rayleighDampingAlpha * globalMassMatrix(i,j) + rayleighDampingBeta * globalStiffnessMatrix(i,j);
+			dampingMatrix(i,j) = rayleighDampingAlpha * globalMassMatrix(i,j) + rayleighDampingBeta * globalStiffnessMatrix(i,j);
 		}
 	}
+	
+	#ifdef _DEBUG
+	assert(matrixOut.HasDiagonalGrainsOnly());
+	#endif
 }
 
 void FemDeformation::AssembleNewmarkMatrix(TwoDimensionalArray& R1CholeskyOut, TwoDimensionalArray& R2Out, TwoDimensionalArray& R3Out, TwoDimensionalArray& KCholeskyOut, const double dt)
 {
-	if (globalStiffnessMatrix.IsEmpty() || globalMassMatrix.IsEmpty() || DampingMatrix.IsEmpty())
+	if (globalStiffnessMatrix.IsEmpty() || globalMassMatrix.IsEmpty() || dampingMatrix.IsEmpty())
 		throw std::logic_error("Cannot assemble Newmark matrix, as the stiffness matrix or mass matrix has not yet been initialised.");
 
 	R2Out = TwoDimensionalArray(N_DOF, N_DOF);
@@ -163,9 +179,9 @@ void FemDeformation::AssembleNewmarkMatrix(TwoDimensionalArray& R1CholeskyOut, T
 	{
 		for (int j = 0; j < N_DOF; ++j)
 		{
-			R1PreProcessing(i,j) = globalMassMatrix(i,j) / dt / dt + DampingMatrix(i,j) / 2.0 / dt + globalStiffnessMatrix(i,j) / 3.0;
+			R1PreProcessing(i,j) = globalMassMatrix(i,j) / dt / dt + dampingMatrix(i,j) / 2.0 / dt + globalStiffnessMatrix(i,j) / 3.0;
 			R2Out(i,j) = 2.0 * globalMassMatrix(i,j) / dt / dt - globalStiffnessMatrix(i,j) / 3.0;
-			R3Out(i,j)= -globalMassMatrix(i,j) / dt / dt + DampingMatrix(i,j) / 2.0 / dt - globalStiffnessMatrix(i,j) / 3.0;
+			R3Out(i,j)= -globalMassMatrix(i,j) / dt / dt + dampingMatrix(i,j) / 2.0 / dt - globalStiffnessMatrix(i,j) / 3.0;
 		}
 	}
 
@@ -193,10 +209,8 @@ std::vector<double> FemDeformation::GetDOFVector() const
 /* Given a symmetric positive definite matrix M (size NxN) (should be checked by user), this function computes the Cholesky decomposition of this matrix and fills a matrix L (that should be allocated and initialized by the user) so that A = L*LT (LT is the transpose matrix of L). The output L matrix is a superior triangular matrix. */
 TwoDimensionalArray FemDeformation::CholeskyDecomposition(const TwoDimensionalArray& matrix, const std::vector<double>& DOFVector)
 {
-	#ifdef RUNTIMECHECKING
-	// Check if the matrix is symmetric.
-	
-
+	#ifdef _DEBUG
+	assert(matrix.IsDiagonallySymmetric());
 	#endif
 	
 	// This is a variation on the Cholesky-Crout algorithm?
@@ -227,11 +241,16 @@ TwoDimensionalArray FemDeformation::CholeskyDecomposition(const TwoDimensionalAr
 		}
 	}
 
+	#ifdef _DEBUG
+	assert(out.IsUpperTriangular());
+	#endif
+
+	// Todo: Change to return by reference, not value.
 	return out;
 }
 void FemDeformation::SolveCholeskySystem(std::vector<double> &deflectionVectorOut, const std::vector<double>& load) const
 {
-	#ifdef RUNTIMECHECKING
+	#ifdef _DEBUG
 	// Check if the vector sizes are compatible
 	if (static_cast<int>(load.size()) != globalStiffnessMatrix.nX)
 	{
@@ -276,7 +295,7 @@ void FemDeformation::SolveCholeskySystem(std::vector<double> &deflectionVectorOu
 		deflectionVectorOut[DOFVector.at(i)] = (deflectionVectorOut[DOFVector.at(i)] - sum)globalStiffnessMatrixCholeskyDecomposed.GetAt(i,i);
 	}
 
-	#ifdef RUNTIMECHECKING
+	#ifdef _DEBUG
 
 	for (int i = 0; i < n_dof; ++i)
 	{

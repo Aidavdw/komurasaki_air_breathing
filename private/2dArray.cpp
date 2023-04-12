@@ -1,5 +1,6 @@
 #include "2dArray.h"
 #include <stdexcept>
+#include <cmath>
 
 #include "AuxFunctions.h"
 
@@ -50,7 +51,7 @@ bool TwoDimensionalArray::IsSquare() const
 bool TwoDimensionalArray::IsLowerTriangular() const
 {
 	if (!IsSquare())
-		return false;
+		throw std::logic_error("Array is not square.");
 	
 	for (int yIndex = 0; yIndex < nY; yIndex++)
 	{
@@ -66,7 +67,7 @@ bool TwoDimensionalArray::IsLowerTriangular() const
 bool TwoDimensionalArray::IsUpperTriangular() const
 {
 	if (!IsSquare())
-		return false;
+		throw std::logic_error("Array is not square.");
 	
 	for (int yIndex = 0; yIndex < nX; yIndex++)
 	{
@@ -74,6 +75,83 @@ bool TwoDimensionalArray::IsUpperTriangular() const
 		{
 			if (IsCloseToZero(GetAt(xIndex, yIndex)))
 				return false;
+		}
+	}
+	return true;
+}
+
+bool TwoDimensionalArray::IsDiagonallySymmetric() const
+{
+	// An example of a diagonally symmetric matrix:
+	/*
+	 * X 1 2 3
+	 * 1 X 4 5
+	 * 2 4 X 6
+	 * 3 5 6 X
+	 */
+	
+	if (!IsSquare())
+		throw std::logic_error("Array is not square.");
+	
+	for (int yIndex = 0; yIndex < nX; yIndex++)
+	{
+		for (int xIndex = 0; xIndex < yIndex; xIndex++)
+		{
+			if (IsCloseToZero(GetAt(xIndex, yIndex) - GetAt(yIndex, xIndex)))
+				return false;
+		}
+	}
+	return true;
+	
+}
+
+bool TwoDimensionalArray::HasDiagonalGrainsOnly(const int kernelSize) const
+{	
+	// An example of a diagonally matrix with kernel size 2
+	/*
+	 * 1 1 0 0
+	 * 1 1 1 0
+	 * 0 1 1 1
+	 * 0 0 1 1
+	 */
+
+	// An example of a diagonally matrix with kernel size 4
+	/*
+	 * 1 1 1 1 0 0 0 0 0 0
+	 * 1 1 1 1 0 0 0 0 0 0
+	 * 1 1 2 2 2 2 0 0 0 0
+	 * 1 1 2 2 2 2 0 0 0 0
+	 * 0 0 2 2 3 3 3 3 0 0
+	 * 0 0 2 2 3 3 3 3 0 0
+	 * 0 0 0 0 3 3 4 4 4 4
+	 * 0 0 0 0 3 3 4 4 4 4
+	 * 0 0 0 0 0 0 4 4 4 4
+	 * 0 0 0 0 0 0 4 4 4 4
+	 */
+
+	// Can only work if the dimension is a multiple of the kernel size
+	if (!IsSquare())
+		throw std::logic_error("Array is not square.");
+	if (2*nX % kernelSize != 0)
+		throw std::logic_error("Cannot check if the matrix consists of grains only, as the matrix size is not a multiple of (half) the kernel size.");
+	if (kernelSize % 2 != 0)
+		throw std::logic_error("Diagonal grains check only works for even numbered grain sizes!");
+
+
+	const int amountOfGrains = (2*nX/kernelSize);
+	for (int yIndex = 0; yIndex < nX; yIndex++)
+	{
+		// Check if we're inside the kernel
+		const int offsetNumber = static_cast<int>(kernelSize/2) * static_cast<int>(std::floor(2*yIndex/kernelSize)); // little bit of a magic function, please check the drawings above!
+			
+		int grainStartIndex = kernelSize + offsetNumber;
+		int grainEndIndex = yIndex - kernelSize / 2 + offsetNumber;
+		
+		for (int xIndex = 0; xIndex < yIndex; xIndex++)
+		{
+			if (xIndex < grainStartIndex || xIndex > grainEndIndex)
+				if (!IsCloseToZero(GetAt(xIndex,yIndex)))
+					return false;
 		}
 	}
 	return true;
@@ -98,8 +176,12 @@ std::pair<int, int> TwoDimensionalArray::GetIndexFromIndexOnBoundary(const EBoun
 
 void TwoDimensionalArray::ElementWiseCopy(const TwoDimensionalArray& from, TwoDimensionalArray& to)
 {
+	#ifdef _DEBUG
 	if (from.nX != to.nX || from.nY != to.nY)
 		throw std::logic_error("Cannot do element-wise copying between two TwoDimensionalArrays that are not the same size.");
+
+	#endif
+	
 	// Needs to be a static function, because it's using the private data variable.
 	for (size_t i = 0; i < (from.nX*from.nY); i++)
 		to.data[i] = from.data[i];

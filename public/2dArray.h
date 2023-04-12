@@ -25,11 +25,11 @@ struct TwoDimensionalArray
 	TwoDimensionalArray Transpose() const;
 
 	bool IsEmpty() const;
-
 	bool IsSquare() const;
 	bool IsLowerTriangular() const;
 	bool IsUpperTriangular() const;
-	bool IsSymmetric() const;
+	bool IsDiagonallySymmetric() const;
+	bool HasDiagonalGrainsOnly(const int kernelSize=1) const; // Checks if the array only has nonzero entries on the diagonal, or a distance of kernelSize away from the diagonal.
 
 
 
