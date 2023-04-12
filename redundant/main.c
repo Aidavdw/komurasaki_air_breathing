@@ -231,12 +231,12 @@ int main()
 	double **R2;                // Newmark matrix 2. Is used for newmark solving.
 	double **R3;                // Newmark matrix 3
     double **U0_DOF;			// Some deflection of the reed valve? Input in update_valve() but is never actually referenced.
-	double **U1_DOF;			// Some deflection of the reed valve? in update valve, is used if u2[i] > 0.012 to set the physical deflection
-	double **U2_DOF;			// Some deflection of the reed valve? in update valve, is used if u2[i] < 0.012 to set the physical deflection
+	double **U1_DOF;			// Some deflection of the reed valve? in update valve, is used if u2[i] > 0.012 to set the physical deflection. After initialisation, this is set to U2_DOF
+	double **U2_DOF;			// Some deflection of the reed valve? in update valve, is used if u2[i] < 0.012 to set the physical deflection. After initialisation, this is set to U2_DOF
 	double **U2_DOF_K;			// Some deflection of the reed valve?
-	double **dp_interface;
-	double **p_FEM;
-	double**F_DOF;
+	double **dp_interface;		// Doesn't appear to be used.
+	double **p_FEM;				// The difference in pressure between the FEM node's set sample cell and the ambient conditions in Pa. 
+	double**F_DOF;				// Holds all the force components, to be used in solving the FEM system of equations.
 
     /* MASS-FLOW RATE RELATED PARAMETERS DUE TO VALVE */
     // To locate cells with source term
@@ -253,7 +253,7 @@ int main()
 	double *mean_p_sup;
 	double *mean_p_inf;
 	double *mean_rho_sup;
-	double *ytip;
+	double *ytip;		// The y-coordinate of the tip for each valve. After initialisation, is set using u2.
 	double *pratio;
 	double *stage_mfr;   // Mass flow rate through each reed valve
     int n_cell_p_fem;			// The amount of cells in the y-direction that are used to determine the mean/average value.
@@ -407,7 +407,7 @@ int main()
                 }
             }
 
-            ytip[k] = U2_DOF[k][N_DOF_PER_NODE*(N_NODE-1)];
+            ytip[k] = U2_DOF[k][N_DOF_PER_NODE*(N_NODE-1)]; // Set based on y deflection for each valve.
             stage_mfr[k] = 0.0;
             pratio[k] = mean_p_inf[k]/mean_p_sup[k];
 

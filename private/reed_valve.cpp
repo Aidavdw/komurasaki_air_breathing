@@ -10,7 +10,7 @@
 
 ReedValve::ReedValve(Domain* intoDomain, const EBoundaryLocation boundary, const double positionAlongBoundary, const int amountOfFreeSections, const double lengthOfFreeSection, const int amountOfFixedNodes, const double lengthOfFixedSections, const EBeamProfile beamProfile) :
 	IValve(intoDomain, boundary, positionAlongBoundary),
-	FemDeformation(amountOfFreeSections, amountOfFixedNodes, beamProfile, lengthOfFreeSection, lengthOfFixedSections, intoDomain->simCase->dt),
+	FemDeformation(amountOfFreeSections, amountOfFixedNodes, beamProfile, lengthOfFreeSection, lengthOfFixedSections, intoDomain->simCase->dt, boundary),
 	positionInDomain(intoDomain->PositionAlongBoundaryToCoordinate(boundary, positionAlongBoundary))
 {
 	holeStartPos = intoDomain->InvertPositionToIndex(intoDomain->PositionAlongBoundaryToCoordinate(boundary, positionAlongBoundary));
@@ -65,12 +65,15 @@ void ReedValve::CalculateForceOnNodes(std::vector<double>& forcesOut, const bool
 	// This iterates over the beam section elements, but we need the indices to determine the positions. Hence, up to amountOfNodes-1
 	for (int nodeIdx = fixedNodes; nodeIdx < amountOfNodes - 1; nodeIdx++)
 	{
-		const Position beamSectionCenterPositionInDomain = (nodePositionsRelativeToRoot[nodeIdx] + nodePositionsRelativeToRoot[nodeIdx + 1]) * 0.5 + positionInDomain; // will nodeIdx+1 not overflow the array?
+		// Sample the pressures where the element is in the physical domain. To get the position where the beam section is in the total domain, the positions of the nodes that it spans between are averaged, it is converted to the reference frame of the domain (instead of the reed valve), and then added to the actual position of the valve in the domain.
+		const Position beamSectionCenterPositionInDomain = positionInDomain.PlusPositionInOtherCoordinateFrame((nodePositionsRelativeToRoot[nodeIdx] + nodePositionsRelativeToRoot[nodeIdx + 1]) * 0.5); 
 		const double pressureAtBeamCenter = intoDomain->p.GetInterpolatedValueAtPosition(beamSectionCenterPositionInDomain);
 		const double deltaPressureWithAmbient = pressureAtBeamCenter - outOfDomain->p.At(sinkIndex);
 
+		// We're only interested in the (locally) vertical component. hence, determine theta, the angle it makes relative to the (local) horizontal axis.
 		const Position deltaPosition = nodePositionsRelativeToRoot[nodeIdx + 1] - nodePositionsRelativeToRoot[nodeIdx];
 		double cosTheta = deltaPosition.x / deltaPosition.Distance(); // Just really simple pythagoras.
+		
 		double forceOnElement = deltaPressureWithAmbient * beamSections.at(nodeIdx).topOrBottomSurfaceArea;
 
 		// The forces is assumed to be equally distributed over the two different nodes.
