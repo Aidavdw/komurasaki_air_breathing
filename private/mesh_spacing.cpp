@@ -23,7 +23,7 @@ double MeshSpacing::GetCellWidth(const int i) const
 	case EMeshSpacingType::CONSTANT:
 		return left;
 	case EMeshSpacingType::LINEAR:
-		return left + (right - left) * (double(i) / (amountOfElements - 1));
+		return left + (right - left) * (static_cast<double>(i) / (amountOfElements - 1));
 	default:
 		throw std::logic_error("Getting cell width for this spacing type has not yet been implemented.");
 	}

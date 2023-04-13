@@ -1,4 +1,7 @@
 #include "reed_valve.h"
+
+#include <cassert>
+
 #include "domain.h"
 #include "sim_case.h"
 #include <stdexcept>
@@ -133,6 +136,13 @@ void ReedValve::SetSourceCellIndices(std::vector<CellIndex>& sourceCellIndicesOu
 			sourceCellIndicesOut.emplace_back(sourceStartIndexOnBoundary.x, i);
 		}
 	}
+
+	#ifdef _DEBUG
+	if (bHorizontalDifference)
+		assert(sourceCellIndices.size() < intoDomain->size[0]);
+	else if (bVerticalDifference)
+		assert(sourceCellIndices.size() < intoDomain->size[1]);
+	#endif
 }
 void ReedValve::GetAveragePressure() const
 {
@@ -151,28 +161,30 @@ void ReedValve::Update()
 }
 double ReedValve::GetAverageFieldQuantityInternal(const FieldQuantity &fieldQuantity) const
 {
+	#ifdef _DEBUG
 	// First check if the given field quantity is actually on the domain that the valve is at. better safe than sorry!
 	if (fieldQuantity.domain != intoDomain)
 		throw std::logic_error("Trying to get the average value of a field quantity from a valve on a domain that the valve is not connected to!");
+	#endif
 
-	double averageValue = 0;
+	double totalSum = 0;
 
 	// Use a bounding box, and average all the values in that.
 	// todo; move bounding box depth to a higher scope
 	const auto boundingBox = GetBoundingBox(4);
-	const double sizeX = abs(boundingBox.first.x - boundingBox.second.x);
-	const double sizeY = abs(boundingBox.first.y - boundingBox.second.y);
 	for (int xIdx = boundingBox.first.x; xIdx < boundingBox.second.x; xIdx++)
 	{
 		for (int yIdx = boundingBox.first.y; yIdx < boundingBox.second.y; yIdx++)
 		{
-			averageValue+= fieldQuantity.At(xIdx, yIdx) / (sizeX * sizeY);
+			totalSum+= fieldQuantity.At(xIdx, yIdx);
 		}
 	}
 
-	return averageValue;	
+	const double sizeX = abs(boundingBox.first.x - boundingBox.second.x);
+	const double sizeY = abs(boundingBox.first.y - boundingBox.second.y);
+	return totalSum / (sizeX * sizeY);	
 }
-std::pair<CellIndex, CellIndex> ReedValve::GetBoundingBox(const int depth) const
+std::pair<CellIndex, CellIndex> ReedValve::GetBoundingBox(const int amountOfCellsDeep) const
 {
 	int xOffset = 0;
 	int yOffset = 0;
@@ -180,16 +192,16 @@ std::pair<CellIndex, CellIndex> ReedValve::GetBoundingBox(const int depth) const
 	switch (boundary)
 	{
 	case EBoundaryLocation::TOP:
-		yOffset = -depth;
+		yOffset = -amountOfCellsDeep;
 		break;
 	case EBoundaryLocation::BOTTOM:
-		yOffset = depth;
+		yOffset = amountOfCellsDeep;
 		break;
 	case EBoundaryLocation::LEFT:
-		xOffset = depth;
+		xOffset = amountOfCellsDeep;
 		break;
 	case EBoundaryLocation::RIGHT:
-		xOffset = -depth;
+		xOffset = -amountOfCellsDeep;
 		break;
 	default:
 		throw std::logic_error("Invalid boundary location.");

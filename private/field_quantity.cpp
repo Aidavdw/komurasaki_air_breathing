@@ -1,4 +1,7 @@
 #include "field_quantity.h"
+
+#include <cassert>
+
 #include "pos2d.h"
 #include "index2d.h"
 #include "domain.h"
@@ -46,9 +49,18 @@ double FieldQuantity::GetInterpolatedValueAtPosition(const Position atPosition) 
 	domain->GetCellSizes(verticalInterpolateTarget, discard, sizeYInterpolateTarget);
 
 	double deltaHorizontal = At(horizontalInterpolateTarget) + At(cellIndex) / (0.5*(sizeX + sizeXInterpolateTarget)) - At(cellIndex);
-	double deltaVertical = At(horizontalInterpolateTarget) + At(cellIndex) / (0.5*(sizeX + sizeXInterpolateTarget)) - At(cellIndex);
-	return At(cellIndex) + deltaHorizontal + deltaVertical;
-
+	double deltaVertical = At(verticalInterpolateTarget) + At(cellIndex) / (0.5*(sizeY + sizeYInterpolateTarget)) - At(cellIndex);
+	double interpolatedValue = At(cellIndex) + deltaHorizontal + deltaVertical;
+		
+	#ifdef _DEBUG
+	// Check if it's between the value of cells that it's interpolating from as a sanity check.
+	double highestVal = std::max(At(horizontalInterpolateTarget), At(verticalInterpolateTarget), At(cellIndex));
+	assert(interpolatedValue < highestVal);
+	double lowestVal = std::min(At(horizontalInterpolateTarget), At(verticalInterpolateTarget), At(cellIndex));
+	assert(interpolatedValue > lowestVal);
+	#endif
+	
+	return interpolatedValue;
 }
 
 inline int FieldQuantity::At(const int xIdx, const int yIdx) const
@@ -127,12 +139,30 @@ double FieldQuantity::GetGradientInDirectionAndPosition(const CellIndex posIdx, 
 }
 double FieldQuantity::GetAverageValue(const bool bExpectUniformField) const
 {
-	/*
-	// If it's a uniform field, just do a littttttle check to make sure it actually is
-	double checkval1 = main.GetAt(main.nX/4, main.nY/2);
-	double checkval2 = main.GetAt(3*main.nX/4, main.nY/2);
-	if (checkval1 - checkval2 > 0.005)
-		throw std::logic_error("Expected uniform field, but it was not!")
-		*/
+	#ifdef _DEBUG
+	if (bExpectUniformField)
+	{
+		// Even if it's a uniform field, just do a littttttle check to make sure it actually is
+		double checkval1 = main.GetAt(main.nX/4, main.nY/2);
+		double checkval2 = main.GetAt(3*main.nX/4, main.nY/2);
+		if (checkval1 - checkval2 > 0.005)
+			throw std::logic_error("Expected uniform field, but it was not!");
+	}
+	#endif
+
+	// sort of arbitrary where it reads from.
+	if (bExpectUniformField)
+		return main.GetAt(main.nX/4, main.nY/2);
+
+	double totalSum = 0;
+	for (int xIdx = 0; xIdx < nX; xIdx++)
+	{
+		for (int yIdx = 0; yIdx < nY; yIdx++)
+		{
+			totalSum += main.GetAt(xIdx,yIdx);
+		}
+	}
+	
+	return totalSum / (nX * nY);
 }
 

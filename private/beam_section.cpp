@@ -32,7 +32,7 @@ BeamSection::BeamSection(const double length, const double width[2], const doubl
 		throw std::logic_error("Calculating beam section properties not implemented for this beam profile.");	
 	}
 	
-
+	PopulateStiffnessMatrix();
 	PopulateMassMatrix();
 }
 

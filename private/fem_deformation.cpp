@@ -121,7 +121,7 @@ void FemDeformation::AssembleGlobalMassMatrix(TwoDimensionalArray& matrixOut) co
 	}
 
 	#ifdef _DEBUG
-	assert(matrixOut.HasDiagonalGrainsOnly());
+	assert(matrixOut.HasDiagonalGrainsOnly(4));
 	#endif
 }
 
@@ -143,7 +143,7 @@ void FemDeformation::AssembleGlobalStiffnessMatrix(TwoDimensionalArray& matrixOu
 	}
 
 	#ifdef _DEBUG
-	assert(matrixOut.HasDiagonalGrainsOnly());
+	assert(matrixOut.HasDiagonalGrainsOnly(4));
 	#endif
 }
 
@@ -165,13 +165,13 @@ void FemDeformation::AssembleDampingMatrix(TwoDimensionalArray& matrixOut)
 	#endif
 }
 
-void FemDeformation::AssembleNewmarkMatrix(TwoDimensionalArray& R1CholeskyOut, TwoDimensionalArray& R2Out, TwoDimensionalArray& R3Out, TwoDimensionalArray& KCholeskyOut, const double dt)
+void FemDeformation::AssembleNewmarkMatrix(TwoDimensionalArray& R1CholeskyOut, TwoDimensionalArray& R2Out, TwoDimensionalArray& R3Out, TwoDimensionalArray& KCholeskyOut, const double dt) const
 {
 	if (globalStiffnessMatrix.IsEmpty() || globalMassMatrix.IsEmpty() || dampingMatrix.IsEmpty())
 		throw std::logic_error("Cannot assemble Newmark matrix, as the stiffness matrix or mass matrix has not yet been initialised.");
 
-	R2Out = TwoDimensionalArray(N_DOF, N_DOF);
-	R3Out = TwoDimensionalArray(N_DOF, N_DOF);
+	R2Out.Resize(N_DOF, N_DOF);
+	R3Out.Resize(N_DOF, N_DOF);
 
 	// We will do a cholesky decomposition + transposition on R1, so separate it for now.
 	TwoDimensionalArray R1PreProcessing(N_DOF,N_DOF);
@@ -179,15 +179,20 @@ void FemDeformation::AssembleNewmarkMatrix(TwoDimensionalArray& R1CholeskyOut, T
 	{
 		for (int j = 0; j < N_DOF; ++j)
 		{
-			R1PreProcessing(i,j) = globalMassMatrix(i,j) / dt / dt + dampingMatrix(i,j) / 2.0 / dt + globalStiffnessMatrix(i,j) / 3.0;
-			R2Out(i,j) = 2.0 * globalMassMatrix(i,j) / dt / dt - globalStiffnessMatrix(i,j) / 3.0;
-			R3Out(i,j)= -globalMassMatrix(i,j) / dt / dt + dampingMatrix(i,j) / 2.0 / dt - globalStiffnessMatrix(i,j) / 3.0;
+			R1PreProcessing(i,j) = globalMassMatrix.GetAt(i,j) / dt / dt + dampingMatrix.GetAt(i,j) / 2.0 / dt + globalStiffnessMatrix.GetAt(i,j) / 3.0;
+			R2Out(i,j) = 2.0 * globalMassMatrix.GetAt(i,j) / dt / dt - globalStiffnessMatrix.GetAt(i,j) / 3.0;
+			R3Out(i,j)= -globalMassMatrix.GetAt(i,j) / dt / dt + dampingMatrix.GetAt(i,j) / 2.0 / dt - globalStiffnessMatrix.GetAt(i,j) / 3.0;
 		}
 	}
 
 	const auto DOFVector = GetDOFVector();
 	R1CholeskyOut = CholeskyDecomposition(R1PreProcessing, DOFVector).Transpose();
 	KCholeskyOut = CholeskyDecomposition(globalStiffnessMatrix, DOFVector).Transpose();
+
+	#ifdef _DEBUG
+	assert(R1CholeskyOut.IsLowerTriangular());
+	assert(KCholeskyOut.IsLowerTriangular());
+	#endif
 }
 
 std::vector<double> FemDeformation::GetDOFVector() const
@@ -210,7 +215,9 @@ std::vector<double> FemDeformation::GetDOFVector() const
 TwoDimensionalArray FemDeformation::CholeskyDecomposition(const TwoDimensionalArray& matrix, const std::vector<double>& DOFVector)
 {
 	#ifdef _DEBUG
-	assert(matrix.IsDiagonallySymmetric());
+	// Technically, the matrix m ust be positive-definite, which is a subset of symmetric matrices where all the local determinants are positive. However, testing that is relatively costly for a big matrix and its a big long algorithm, so it's left out- this is just to catch the obvious cases anyway!
+	if (!matrix.IsDiagonallySymmetric())
+		throw std::logic_error("An matrix that is not diagonally symmetric cannot be cholesky decomposed.");
 	#endif
 	
 	// This is a variation on the Cholesky-Crout algorithm?
@@ -258,11 +265,7 @@ void FemDeformation::SolveCholeskySystem(std::vector<double> &deflectionVectorOu
 	}
 
 	// Check if the matrices are properly triangular.
-	if (!globalStiffnessMatrixCholeskyDecomposed.IsLowerTriangular())
-	{
-		throw std::invalid_argument("Cannot solve cholesky system, as the stiffness matrix is not lower triangular.");
-	}
-	
+	assert(globalStiffnessMatrixCholeskyDecomposed.IsLowerTriangular());
 	#endif
 	
 	
@@ -296,13 +299,8 @@ void FemDeformation::SolveCholeskySystem(std::vector<double> &deflectionVectorOu
 	}
 
 	#ifdef _DEBUG
-
-	for (int i = 0; i < n_dof; ++i)
-	{
-		if (isnan(u_dof[i]))
-		{
+	for (const auto num : deflectionVectorOut)
+		if(isnan(num))
 			throw std::logic_error("Cholesky solution contains an NAN");
-		}
-	}
 	#endif
 }

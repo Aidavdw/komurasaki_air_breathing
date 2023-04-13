@@ -71,7 +71,7 @@ private:
 	void AssembleDampingMatrix(TwoDimensionalArray& matrixOut);
 
 	// Computes matrices needed for resolution according to Newmark's scheme
-	void AssembleNewmarkMatrix(TwoDimensionalArray& R1CholeskyOut, TwoDimensionalArray& R2Out, TwoDimensionalArray& R3Out, TwoDimensionalArray& KCholeskyOut, const double dt);
+	void AssembleNewmarkMatrix(TwoDimensionalArray& R1CholeskyOut, TwoDimensionalArray& R2Out, TwoDimensionalArray& R3Out, TwoDimensionalArray& KCholeskyOut, const double dt) const;
 
 	static TwoDimensionalArray CholeskyDecomposition(const TwoDimensionalArray& matrix, const std::vector<double>& DOFVector);
 

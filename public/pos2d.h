@@ -40,11 +40,13 @@ struct Position
 	
 	inline Position operator + (const Position& other) const
 	{
+		#ifdef _DEBUG
 		// If two positions are given in different coordinate frames, use PlusPositionInOtherCoordinateFrame(). Deliberately separated to make it easier to catch bugs.
-		if (upDirection == other.upDirection)
-			return { x + other.x, y+other.y, upDirection};
-		else
+		if (upDirection != other.upDirection)
 			throw std::logic_error("Cannot add two positions in different coordinate frames using the + operator, you have to explicitly use PlusPositionInOtherCoordinateFrame(). This is to make it easier to catch bugs :)");
+		#endif
+		
+		return { x + other.x, y+other.y, upDirection};
 	}
 
 	inline Position operator * (const double scale) const
