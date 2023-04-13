@@ -69,9 +69,33 @@ void ReedValve::CalculateForceOnNodes(std::vector<double>& forcesOut, const bool
 	for (int nodeIdx = fixedNodes; nodeIdx < amountOfNodes - 1; nodeIdx++)
 	{
 		// Sample the pressures where the element is in the physical domain. To get the position where the beam section is in the total domain, the positions of the nodes that it spans between are averaged, it is converted to the reference frame of the domain (instead of the reed valve), and then added to the actual position of the valve in the domain.
-		const Position beamSectionCenterPositionInDomain = positionInDomain.PlusPositionInOtherCoordinateFrame((nodePositionsRelativeToRoot[nodeIdx] + nodePositionsRelativeToRoot[nodeIdx + 1]) * 0.5); 
+		const Position beamSectionCenterPositionLocal = (nodePositionsRelativeToRoot[nodeIdx] + nodePositionsRelativeToRoot[nodeIdx + 1]) * 0.5;
+		const Position beamSectionCenterPositionInDomain = positionInDomain.PlusPositionInOtherCoordinateFrame(beamSectionCenterPositionLocal); 
 		const double pressureAtBeamCenter = intoDomain->p.GetInterpolatedValueAtPosition(beamSectionCenterPositionInDomain);
-		const double deltaPressureWithAmbient = pressureAtBeamCenter - outOfDomain->p.At(sinkIndex);
+
+		// The pressure is now sampled in a very similar manner in the the domain that this valve source from.
+		// To get the position, the fact that the position of the node is known in a local coordinate system is used to essentially 'mirror' it over the boundary, into the other domain.
+		const double depthIntoOtherDomain = 2; // Right now this is just a fixed number. // todo make this a parameter.
+		Position ambientSamplePositionLocal;
+		switch (boundary)
+		{
+		case LEFT:
+			ambientSamplePositionLocal = {outOfDomain->size[0] - depthIntoOtherDomain, beamSectionCenterPositionInDomain.y};
+			break;
+		case RIGHT:
+			ambientSamplePositionLocal = {depthIntoOtherDomain, beamSectionCenterPositionInDomain.y};
+			break;
+		case TOP:
+			ambientSamplePositionLocal = {beamSectionCenterPositionInDomain.x, depthIntoOtherDomain};
+			break;
+		case BOTTOM:
+			ambientSamplePositionLocal = {beamSectionCenterPositionInDomain.x, outOfDomain->size[1] - depthIntoOtherDomain};
+			break;
+		default:
+			throw std::logic_error("Sampling position in other domain is not implemented for this boundary type.");
+		}
+		
+		const double deltaPressureWithAmbient = pressureAtBeamCenter - pressureAtSink;
 
 		// We're only interested in the (locally) vertical component. hence, determine theta, the angle it makes relative to the (local) horizontal axis.
 		const Position deltaPosition = nodePositionsRelativeToRoot[nodeIdx + 1] - nodePositionsRelativeToRoot[nodeIdx];

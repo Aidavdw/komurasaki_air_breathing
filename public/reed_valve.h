@@ -43,6 +43,8 @@ private:
 	double GetAverageFieldQuantityInternal(const FieldQuantity& fieldQuantity) const;
 
 	std::pair<CellIndex, CellIndex> GetBoundingBox(const int amountOfCellsDeep=5) const;
+
+	
 	
 
 	// Not in use anymore; replaced by reading off the gradients directly.

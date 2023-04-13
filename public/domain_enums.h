@@ -1,4 +1,5 @@
 #pragma once
+#include <ios>
 
 // Decides how this domain will be initialised
 enum EInitialisationMethod
@@ -27,3 +28,20 @@ enum EBoundaryLocation
 	TOP,
 	BOTTOM
 };
+
+inline EBoundaryLocation Opposite(const EBoundaryLocation location)
+{
+	switch (location)
+	{
+	case TOP:
+		return BOTTOM;
+	case BOTTOM:
+		return TOP;
+	case LEFT:
+		return RIGHT;
+	case RIGHT:
+		return LEFT;
+	default:
+			throw std::logic_error("Handling the Opposite() for this side is not implemented.");
+	}
+}

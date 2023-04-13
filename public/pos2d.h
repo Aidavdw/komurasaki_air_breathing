@@ -16,6 +16,12 @@ struct Position
 		upDirection(upDirection)
 	{}
 
+	Position(const double x, const double y) :
+	x(x),
+	y(y),
+	upDirection(EBoundaryLocation::TOP)
+	{}
+
 	double x;
 	double y;
 

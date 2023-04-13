@@ -340,6 +340,7 @@ void fem_pressure(const int n_node, int n_interf, int index_min, double *x_fem, 
 	{
 		dp_output[i] = 0.0;
 		// Gets the difference in pressure between the ambient and cell value for two different x-coordinates. Interpolates the two then, because the node is not exactly in one x-coordinate!
+		// the [][nghost+2] implies that it reads (arbitrarily) 2 cells above the ghost cells. Maybe to combat circular dependency and add some diffusion?
 		dp_1 = p_in_top[p_neighbour[i]][nghost+2]-p_in_bot[p_neighbour[i]][ny_input-nghost-1-2];
 		dp_2 = p_in_top[p_neighbour[i]+1][nghost+2]-p_in_bot[p_neighbour[i]+1][ny_input-nghost-1-2]; 
 		// This is the (dp1 + (dp2 - dp1) * x/L_elem) in Florian (2017) eq 3.22

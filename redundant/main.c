@@ -254,7 +254,7 @@ int main()
 	double *mean_p_inf;
 	double *mean_rho_sup;
 	double *ytip;		// The y-coordinate of the tip for each valve. After initialisation, is set using u2.
-	double *pratio;
+	double *pratio;		// The ratio of the p_inf and p_sup
 	double *stage_mfr;   // Mass flow rate through each reed valve
     int n_cell_p_fem;			// The amount of cells in the y-direction that are used to determine the mean/average value.
     char valvename[40], index_char[10];

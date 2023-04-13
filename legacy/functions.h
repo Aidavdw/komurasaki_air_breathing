@@ -38,7 +38,7 @@ double mean_along_line(double **data,int nx, int ny,int nghost,char direction,in
 }
 
 /* Takes all the values in a rectangle around the valve, and returns the average value between all of them to approximate mean value around valve */
-double mean_at_valve(int nx_start, int nx, int ny_start, int ny, double **data)
+double mean_at_valve(const int nx_start, const int nx, const int ny_start, const int ny, const double **data)
 {
     double mean = 0.0;
     for (int i = nx_start; i < nx_start + nx; ++i)
