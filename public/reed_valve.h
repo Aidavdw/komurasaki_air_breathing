@@ -42,9 +42,12 @@ public:
 	void CalculateForceOnNodes(std::vector<double>& forcesOut, const bool addZerosForAlignedElements) const;
 	
 	/********* Overrides from Valve interface **********/
+	// Actually sets up the valve inside of the domain.
 	void OnRegister() override;
 	void GetAveragePressure() const override;
 	void Update() override;
+
+	// Reads off the field, and solves the FEM equations a first time to determine the initial deflection for the FEM members.
 	void SetInitialConditions() override;
 
 protected:

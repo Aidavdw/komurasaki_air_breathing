@@ -6,7 +6,7 @@
 
 #define N_DOF_PER_NODE 2		// The total amount of degrees of freedom for a 2d beam element.
 
-FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const EBeamProfile beamProfile, const double freeLength, const double fixedLength, const double dt, EBoundaryLocation upDirection) :
+FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const EBeamProfile beamProfile, const double freeLength, const double fixedLength, const double dt) :
 	fixedNodes(amountOfFixedNodes),
 	dt(dt),
 	beamProfile_(beamProfile)
@@ -16,7 +16,7 @@ FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountO
 	N_DOF = N_DOF_PER_NODE * amountOfNodes;
 
 	CreateBeamSections();
-	nodePositionsRelativeToRoot.emplace_back(0,0, Opposite(boundary_));
+	nodePositionsRelativeToRoot.emplace_back(0,0);
 	for (int i = 0; i < beamSections.size(); i++)
 	{
 		nodePositionsRelativeToRoot.emplace_back(nodePositionsRelativeToRoot[i].x + beamSections[i].length, 0, Opposite(boundary_));

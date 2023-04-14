@@ -131,6 +131,7 @@ void ReedValve::OnRegister()
 {
 	fem_ = FemDeformation(amountOfFreeSections, amountOfFixedNodes, beamProfile_, lengthOfFreeSection, lengthOfFixedSections, intoDomain_->simCase->dt, boundary_);
 	SetSourceCellIndices(sourceCellIndices, boundary_, positionAlongBoundary_, lengthOfFreeSection, lengthOfFixedSections);
+	
 }
 
 void ReedValve::SetSourceCellIndices(std::vector<CellIndex>& sourceCellIndicesOut, const EBoundaryLocation boundary, double positionAlongBoundary, const double lengthOfFreeSection, const double lengthOfFixedSections) const
@@ -201,7 +202,20 @@ void ReedValve::Update()
 }
 void ReedValve::SetInitialConditions()
 {
-		
+	#ifdef _DEBUG
+	if (fem_.dt == 0)
+		throw std::logic_error("FEM module is not initialised.");
+	#endif
+
+	// TODO: Right now creates & destroys them every time. Possible optimisation would be to cache them?
+	std::vector<double> forcesOnNodes;
+	std::vector<double> u2Deflection; // Name based on florian's code, still need to actually figure out what it means...
+	const std::vector<double> u1Deflection = {};
+	CalculateForceOnNodes(forcesOnNodes, true);
+	fem_.SolveCholeskySystem(u2Deflection, forcesOnNodes);
+	fem_.UpdatePositions(u1Deflection, u2Deflection);
+
+	
 }
 
 double ReedValve::GetAverageFieldQuantityInternal(const FieldQuantity &fieldQuantity) const
