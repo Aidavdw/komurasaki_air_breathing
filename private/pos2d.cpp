@@ -12,15 +12,18 @@ double Position::Distance() const
     return sqrt(x*x + y*y);
 }
 
-Position Position::PlusPositionInOtherCoordinateFrame(const Position& other) const
+
+Position TransformToOtherCoordinateSystem(const Position& positionInOtherCoordinateSystem, const Position& fromOrigin, const Position& toOrigin)
 {
-    int amountOfCounterClockwiseQuarterRotations; // The amount of counterclockwise rotations that the other object needs to do to match the master position.
+    // The order of operations is important here; First de-rotate the original coordinate system
+    
+     int amountOfCounterClockwiseQuarterRotations; // The amount of counterclockwise rotations that the original coordinate system has to do to align with the new one.
 
     // Not the most elegant way to do this, but doesn't make any assumptions on the layout of the struct in its cpp definition.
-    switch (upDirection)
+    switch (fromOrigin)
     {
     case TOP:
-        switch (other.upDirection)
+        switch (toOrigin.upDirection)
         {
             case TOP:
                 amountOfCounterClockwiseQuarterRotations = 0;
@@ -37,7 +40,7 @@ Position Position::PlusPositionInOtherCoordinateFrame(const Position& other) con
         }
         break;
     case LEFT:
-        switch (other.upDirection)
+        switch (toOrigin.upDirection)
         {
         case TOP:
             amountOfCounterClockwiseQuarterRotations = 1;
@@ -54,7 +57,7 @@ Position Position::PlusPositionInOtherCoordinateFrame(const Position& other) con
         }
         break;
     case RIGHT:
-        switch (other.upDirection)
+        switch (toOrigin.upDirection)
         {
         case TOP:
             amountOfCounterClockwiseQuarterRotations = -1;
@@ -71,7 +74,7 @@ Position Position::PlusPositionInOtherCoordinateFrame(const Position& other) con
         }
         break;
     case BOTTOM:
-        switch (other.upDirection)
+        switch (toOrigin.upDirection)
         {
         case TOP:
             amountOfCounterClockwiseQuarterRotations = 2;
@@ -89,18 +92,27 @@ Position Position::PlusPositionInOtherCoordinateFrame(const Position& other) con
         break;
     }
 
+    // Express the position as what it would be if the other coordinate system was oriented in the same direction as the target one.
+    // In essence, this is doing an inverse rotation in local space.
+    Position posInLocalDeRotatedReferenceFrame;
+
     // Now that the rotation required is set, apply it
     switch (amountOfCounterClockwiseQuarterRotations)
     {
     case 0:
-        return operator+(other);
+        break;
     case 1:
-        return {x + other.y, y + other.x, upDirection};
+        posInLocalDeRotatedReferenceFrame = {positionInOtherCoordinateSystem.y, positionInOtherCoordinateSystem.x};
+        break;
     case 2:
-        return {x - other.x, y - other.y, upDirection};
+        posInLocalDeRotatedReferenceFrame = {-positionInOtherCoordinateSystem.x, -positionInOtherCoordinateSystem.y};
+        break;
     case -1:
-        return {x - other.y, y - other.x, upDirection};
+        posInLocalDeRotatedReferenceFrame = {-positionInOtherCoordinateSystem.y, -positionInOtherCoordinateSystem.x};
+        break;
     default:
         throw std::logic_error("Impossible transformation in converting coordinate systems for 2 Pos objects.");
     }
+
+    return fromOrigin + posInLocalDeRotatedReferenceFrame;
 }

@@ -7,19 +7,19 @@
 #define N_DOF_PER_NODE 2		// The total amount of degrees of freedom for a 2d beam element.
 
 FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const EBeamProfile beamProfile, const double freeLength, const double fixedLength, const double dt, EBoundaryLocation upDirection) :
-	beamProfile(beamProfile),
 	fixedNodes(amountOfFixedNodes),
-	dt(dt)
+	dt(dt),
+	beamProfile_(beamProfile)
 {
 	freeNodes = amountOfFreeSections + 1;
 	amountOfNodes = freeNodes + amountOfFixedNodes;
 	N_DOF = N_DOF_PER_NODE * amountOfNodes;
 
 	CreateBeamSections();
-	nodePositionsRelativeToRoot.emplace_back(0,0, upDirection);
+	nodePositionsRelativeToRoot.emplace_back(0,0, Opposite(boundary_));
 	for (int i = 0; i < beamSections.size(); i++)
 	{
-		nodePositionsRelativeToRoot.emplace_back(nodePositionsRelativeToRoot[i].x + beamSections[i].length, 0, upDirection);
+		nodePositionsRelativeToRoot.emplace_back(nodePositionsRelativeToRoot[i].x + beamSections[i].length, 0, Opposite(boundary_));
 	}
 
 	AssembleGlobalMassMatrix(globalMassMatrix);
@@ -28,8 +28,25 @@ FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountO
 	
 	globalStiffnessMatrixCholeskyDecomposed = CholeskyDecomposition(globalStiffnessMatrix, GetDOFVector());
 	AssembleNewmarkMatrix(newmarkMatrixR1CholeskyDecomposed, newmarkMatrixR2, newmarkMatrixR3, globalStiffnessMatrixCholeskyDecomposed, dt);
-	
 }
+
+// Empty constructor
+FemDeformation::FemDeformation():
+	fixedNodes(0),
+	freeNodes(0),
+	amountOfNodes(0),
+	N_DOF(0),
+	dt(0),
+	beamProfile_(EBeamProfile::STRAIGHTDOUBLETAPERED),
+	freeLength(0),
+	fixedLength(0),
+	rayleighDampingAlpha(0),
+	rayleighDampingBeta(0),
+	rootWidth(0),
+	tipWidth(0),
+	rootThickness(0),
+	tipThickness(0)
+{ }
 
 void FemDeformation::UpdatePositions(const std::vector<double>& u1, const std::vector<double>& u2)
 {
@@ -80,7 +97,7 @@ void FemDeformation::CreateBeamSections()
 		{
 			const double ratioCovered = currentNodePosX / freeLength;
 			// Handling how the free element is created based on the selected profile.
-			switch (beamProfile)
+			switch (beamProfile_)
 			{
 			case STRAIGHTDOUBLETAPERED:
 				width = rootWidth + (tipWidth - rootWidth)*ratioCovered;

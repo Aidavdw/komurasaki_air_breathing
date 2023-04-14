@@ -12,20 +12,20 @@ public:
 	IValve(Domain* intoDomain, Domain* outOfDomain, const EBoundaryLocation boundary, double positionAlongBoundary);
 
 
-	EBoundaryLocation boundary;			// which side of the domain the valve is attached to
-	double positionAlongBoundary;
+
 
 protected:
-
-	Domain* outOfDomain;				// the domain that the valve sinks out of
-	Domain* intoDomain;					// The domain that the valve creates a source into.
+	EBoundaryLocation boundary_;			// which side of the domain the valve is attached to
+	double positionAlongBoundary_;
+	Domain* outOfDomain_;				// the domain that the valve sinks out of
+	Domain* intoDomain_;					// The domain that the valve creates a source into.
 
 public:
 	// Called to all valves upon being registered by the SimCase
 	virtual void OnRegister();
-	virtual void SetSourceTerms();
 	virtual void GetAveragePressure() const;
 	virtual void Update();
+	virtual void SetInitialConditions();
 
 private:
 

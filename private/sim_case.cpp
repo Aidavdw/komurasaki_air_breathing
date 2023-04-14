@@ -1,6 +1,7 @@
 #include "sim_case.h"
 #include <stdexcept>
 
+#include "IValve.h"
 #include "parameters.h"  // List of parameters specified by user
 #include "microwave.h"
 
@@ -10,6 +11,13 @@ SimCase::SimCase(const double simulationDuration, const double dt) :
 {
 	totalSimulationTimeStepCount = (int)(1 + simulationDuration / dt);  // Number of time steps
 	runtimeParameters = RuntimeParameters(totalSimulationTimeStepCount);
+}
+
+void SimCase::RegisterValve(const IValve& valve)
+{
+	// Create a new one by copy.
+	valves.push_back(valve);
+	valves.back().OnRegister();
 }
 
 Domain* SimCase::AddDomain(const int id, const std::string name)
@@ -65,6 +73,7 @@ void SimCase::ConnectBoundaries(const std::string domainOneName, const EBoundary
 
 void SimCase::ApplyInitialConditions()
 {
+	// Setting the initial values for all the cells in the domains.
 	for (auto& domainIter : domains)
 	{
 		Domain& domain = domainIter.second;
@@ -81,5 +90,11 @@ void SimCase::ApplyInitialConditions()
 		default:
 			throw std::logic_error("The provided type of initialisation method is not (yet) implemented.");
 		}
+	}
+
+	// Setting the starting deflections for the valves based on the starting fields.
+	for (IValve& valve : valves)
+	{
+		valve.SetInitialConditions();
 	}
 }

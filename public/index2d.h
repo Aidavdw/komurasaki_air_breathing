@@ -4,6 +4,12 @@
 // Really simple wrapper that represents a cell index in a grid or matrix.
 struct CellIndex
 {
+	CellIndex() :
+		x(NAN),
+		y(NAN)
+	{}
+
+	
 	CellIndex(const int x,const int y) :
 		x(x),
 		y(y)

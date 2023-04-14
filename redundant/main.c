@@ -250,12 +250,12 @@ int main()
     int **p_neighbour;          // For each read valve, and for every FEM node, x-index of fluid cell associated
     double **p_coef;            // Interpolation coefficients for pressure at FEM nodes. Unknown what it physically represents. populated in build_fem_interface()
     double *mfr;
-	double *mean_p_sup;
-	double *mean_p_inf;
-	double *mean_rho_sup;
-	double *ytip;		// The y-coordinate of the tip for each valve. After initialisation, is set using u2.
-	double *pratio;		// The ratio of the p_inf and p_sup
-	double *stage_mfr;   // Mass flow rate through each reed valve
+	double *mean_p_sup;			// The average pressure in the region above a valve (in the 'top' domain);
+	double *mean_p_inf;			// The average pressure in the region where the valve moves around in (in the 'low' domain).
+	double *mean_rho_sup;		// The average density in the region above a valve (in the 'top' domain);
+	double *ytip;				// The y-coordinate of the tip for each valve. After initialisation, is set using u2.
+	double *pratio;				// The ratio of the average pressure in the sampling region above and inside the lower domain.
+	double *stage_mfr;			// Mass flow rate through each reed valve
     int n_cell_p_fem;			// The amount of cells in the y-direction that are used to determine the mean/average value.
     char valvename[40], index_char[10];
     double mfr_tot = 0.0;

@@ -13,6 +13,7 @@ struct SimCase {
 
 	std::map<int, Domain> domains; // The domains that are part of this SimCase
 	std::map<std::string, int> domainIDS;
+	std::vector<IValve> valves;
 
 	double reference_mach = 0.;					// Reference mach number. I assume of the flow outside of the domain?. Formerly M0.
 	double ambientTemperature = 288.15;			// Ambient temperature in Kelvin. Default is 288.15 K.
@@ -26,7 +27,7 @@ struct SimCase {
 	int numberOfReedValves = 0;
 	double reed_valve_total_length = 0.; // Total length of the reed valve, with the fixed part and the flexible part combined.
 
-	void RegisterValves(const std::vector<IValve>& valves);
+	void RegisterValve(const IValve& valve);
 
 	Domain* AddDomain(const int id, const std::string name);
 

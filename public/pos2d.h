@@ -65,3 +65,5 @@ struct Position
 		return operator+(other * -1) ;
 	}
 };
+
+Position TransformToOtherCoordinateSystem(const Position& positionInOtherCoordinateSystem, const Position& fromOrigin, const Position& toOrigin);

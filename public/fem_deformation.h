@@ -6,14 +6,14 @@
 
 
 
-// Abstract class that implements data and methods for simple 1d fem deformation calculations
+// A simple beam in bending, modeled as an FEM system.
 class FemDeformation
 {
-
-	FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const EBeamProfile beamProfile, const double freeLength, const double fixedLength, const double dt, , EBoundaryLocation upDirection);
-
 public:
-	EBeamProfile beamProfile;
+	FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const EBeamProfile beamProfile, const double freeLength, const double fixedLength, const double dt, EBoundaryLocation upDirection);
+
+	FemDeformation();
+	
 	std::vector<BeamSection> beamSections;		// Data on the individual FEM segments in this valve. Note that this is one less than there are nodes!
 	int fixedNodes;								// The amount of nodes (=sections+1) in the beam that are considered 'fixed', unable to deform.
 	int freeNodes;								//  The amount of nodes (=sections+1) in the beam that are considered able to deform
@@ -24,7 +24,8 @@ public:
 	
 	std::vector<Position> nodePositionsRelativeToRoot;	// The current positions of the nodes, in a local coordinate space.
 
-private:
+protected:
+	EBeamProfile beamProfile_;
 	double freeLength;							// Length of the part that can move freely
 	double fixedLength;							// Length of the part that is fixed in place.
 
@@ -60,7 +61,8 @@ public:
 
 
 
-private:
+protected:
+	// Creates geometry for the nodes and the edges between them. Populates the beamSections and nodePositionsRelativeToRoot.
 	void CreateBeamSections();
 	void AssembleGlobalMassMatrix(TwoDimensionalArray& matrixOut) const;
 	void AssembleGlobalStiffnessMatrix(TwoDimensionalArray& matrixOut) const;

@@ -48,14 +48,16 @@ int main()
     ChapmanJougetDetonationSolution initialDetonationSolution = SolveChapmanJougetDetonationProblem(T0, P0, ETA, S0, R, GAMMA, L_TUBE, R0);
     std::cout << "Chapman-Jouget Detonation solution for initial conditions found after " << initialDetonationSolution.iters_performed << " iterations." << std::endl;
 
+    // Todo: make actual thing that handles how reed valves etc are chosen
+    ReedValve reedvalve = ReedValve();
+    simCase.RegisterValves({ reedvalve });
+
 
     /* INITIAL CONDITIONS ON DOMAINS */
     simCase.ApplyInitialConditions();
     printf("\nInitial conditions applied...\n");
 
-    // Todo: make actual thing that handles how reed valves etc are chosen
-    ReedValve reedvalve = ReedValve();
-    simCase.RegisterValves({ reedvalve });
+
     
 
     /* ROUTINE TO PERFORM IF SOLID MODELLING IS ACTIVATED */
