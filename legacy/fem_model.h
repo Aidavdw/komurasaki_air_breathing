@@ -276,7 +276,7 @@ void fem_flow_damping(const int nElem, int n_dof, const int nClamp, const int nD
 
 	for (int i = nClamp; i < nElem; ++i)
 	{
-		m_valve = 0.25*rho_v*(b[i]+b[i+1])*(h[i]+h[i+1]);
+		m_valve = 0.25*rho_v*(b[i]+b[i+1])*(h[i]+h[i+1]); // Isn't this forgetting the thicknesss?
 		dy = 0.5*(u2[(i+1)*nDofPerNode]-u1[(i+1)*nDofPerNode] + (u2[i*nDofPerNode]-u1[i*nDofPerNode]));
 		y = 0.5*(u2[i*nDofPerNode]+u2[(i+1)*nDofPerNode]);
 

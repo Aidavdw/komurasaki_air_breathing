@@ -28,6 +28,9 @@ FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountO
 	
 	globalStiffnessMatrixCholeskyDecomposed = CholeskyDecomposition(globalStiffnessMatrix, GetDOFVector());
 	AssembleNewmarkMatrix(newmarkMatrixR1CholeskyDecomposed, newmarkMatrixR2, newmarkMatrixR3, globalStiffnessMatrixCholeskyDecomposed, dt);
+
+	positionsInPreviousTimeStep = std::vector<Position>(amountOfNodes);
+	nodePositionsRelativeToRoot = std::vector<Position>(amountOfNodes);
 }
 
 // Empty constructor
@@ -50,23 +53,18 @@ FemDeformation::FemDeformation():
 
 void FemDeformation::UpdatePositions(const std::vector<double>& u1, const std::vector<double>& u2)
 {
-	// Depending on the magic number, either use u1 or u2.
-	if (u2[(amountOfNodes-1)*N_DOF_PER_NODE] <= 0.012) // todo: figure out where this magic number comes from.
+	// Depending on the magic number, either use the current position, or just keep using the original value.
+	if (nodePositionsRelativeToRoot.back().y <= 0.012) // todo: figure out where this magic number comes from.
 	{
-		for (int i = 0; i < amountOfNodes; ++i)
+		for (auto& nodePos : nodePositionsRelativeToRoot)
 		{
-			const double deflection = u2[i*N_DOF_PER_NODE];
-			// Clamp if they're going outside of the hole.
-			nodePositionsRelativeToRoot[i].y = (deflection < 0) ? 0: deflection;
-		}	
+			//clamp to be minimum 0, don't allow going outside of the hole backwards.
+			nodePos.y = (nodePos.y < 0) ? 0: nodePos.y;
+		}
 	}
 	else
 	{
-		for (int i = 0; i < amountOfNodes; ++i)
-		{
-			// In florian's original code, no checking if < 0. Is this correct?
-			nodePositionsRelativeToRoot[i].y = u1[i*N_DOF_PER_NODE];
-		}
+		std::copy(nodePositionsRelativeToRoot.begin(), nodePositionsRelativeToRoot.end(), std::back_inserter(positionsInPreviousTimeStep));
 	}
 }
 
@@ -78,30 +76,34 @@ void FemDeformation::CreateBeamSections()
 		beamSections.clear();
 
 	double currentNodePosX = 0;
-	double length, width, thickness;
+	double length, leftWidth, rightWidth, leftThickness, rightThickness;
+	bool bIsFixed;
 
-	// Pre-add the first beam section. 
-
-	for (int i = 1; i < amountOfNodes; i++)
+	for (int nodeIndex = 0; nodeIndex < amountOfNodes - 1; nodeIndex++) //todo: check if this actually sets the fixed nodes properly.
 	{
 		// The 'fixed' sections are always considered at constant properties.
-		if (i < fixedNodes)
+		if (nodeIndex < fixedNodes)
 		{
 			length = fixedLength / fixedNodes;
-			width = rootWidth;
-			thickness = rootThickness;
-			BeamSection beamSection = BeamSection(length, {rootWidth, rootWidth}, {rootThickness, rootThickness}, density, youngsModulus);
-			beamSections.emplace_back(beamSection);
+			leftWidth = rootWidth;
+			rightWidth = rootWidth;
+			leftThickness = rootThickness;
+			rightThickness = rootThickness;
+			bIsFixed = true;
 		}
 		else
 		{
+			bIsFixed = false;
 			const double ratioCovered = currentNodePosX / freeLength;
+			// It's continuous with the previous element, so re-use those values!
+			leftWidth = beamSections.back().b[1];
+			leftThickness = beamSections.back().h[1];
 			// Handling how the free element is created based on the selected profile.
 			switch (beamProfile_)
 			{
 			case STRAIGHTDOUBLETAPERED:
-				width = rootWidth + (tipWidth - rootWidth)*ratioCovered;
-				thickness = rootThickness + (tipThickness - rootThickness)*ratioCovered;
+				rightWidth = rootWidth + (tipWidth - rootWidth)*ratioCovered;
+				rightThickness = rootThickness + (tipThickness - rootThickness)*ratioCovered;
 				break;
 			default:
 				throw std::logic_error("Determining beam properties is not implemented for this type of beam profile!");
@@ -109,14 +111,20 @@ void FemDeformation::CreateBeamSections()
 			// TODO: Right now, all nodes are exactly equidistant, and the same size. Make this variable?
 			length = freeLength / freeNodes;
 			
-			BeamSection beamSection = BeamSection(length, {rootWidth, rootWidth}, {rootThickness, rootThickness}, density, youngsModulus);
+			BeamSection beamSection = BeamSection(length, {leftWidth, rightWidth}, {leftThickness, rightThickness}, density, youngsModulus, beamProfile_, bIsFixed, nodeIndex );
 			beamSections.emplace_back(beamSection);
+			
 		}
 
 		// Advancing & resetting the values so it's easier to spot if there's a mistake.
 		currentNodePosX += length;
-		width = 0;
-		thickness = 0;
+
+		#ifdef _DEBUG
+		leftWidth = 0;
+		rightWidth = 0;
+		leftThickness = 0;
+		rightThickness = 0;
+		#endif
 	}
 }
 
@@ -336,4 +344,8 @@ BeamSection* FemDeformation::BeamSectionsConnectedToNode(const int nodeIndex, co
 	}
 
 	return &(beamSections[nodeIndex - fixedNodes]);
+}
+Position FemDeformation::GetPositionOfBeamSection(const BeamSection &beamSection) const
+{
+	return (nodePositionsRelativeToRoot.at(beamSection.leftNodeIndex) + nodePositionsRelativeToRoot.at(beamSection.rightNodeIndex)) * 0.5;
 }

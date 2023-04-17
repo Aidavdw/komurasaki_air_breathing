@@ -18,7 +18,7 @@ public:
 	int fixedNodes;								// The amount of nodes (=sections+1) in the beam that are considered 'fixed', unable to deform.
 	int freeNodes;								//  The amount of nodes (=sections+1) in the beam that are considered able to deform
 	int amountOfNodes;							// The total amount of nodes that this beam is modeled with. This means fixed, and free nodes.
-	int N_DOF;									// The amoutn of degrees of freedom for the FEM system.
+	int N_DOF;									// The amount of degrees of freedom for the FEM system.
 
 	double dt;									// Time step used to assemble the newmark matrices.
 	
@@ -60,7 +60,7 @@ public:
 	// Every node (bar the first one and the last one) has two beam sectioned connected to it. This gets a reference to those two beam sections. The optional argument says whether to return the left (false) value or the right (true) value
 	BeamSection* BeamSectionsConnectedToNode(const int nodeIndex, const bool bRight);
 
-	
+	Position GetPositionOfBeamSection(const BeamSection& beamSection) const;
 
 
 

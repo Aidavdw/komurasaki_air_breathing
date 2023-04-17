@@ -2,13 +2,15 @@
 #include <cmath>
 #include <stdexcept>
 
-BeamSection::BeamSection(const double length, const double width[2], const double thickness[2], const double density, const double youngsModulus, const EBeamProfile beamProfile, const bool bIsFixed) :
+BeamSection::BeamSection(const double length, const double width[2], const double thickness[2], const double density, const double youngsModulus, const EBeamProfile beamProfile, const bool bIsFixed, const int leftNodeIndex) :
+	leftNodeIndex(leftNodeIndex),
+	rightNodeIndex(leftNodeIndex+1),
 	beamProfile(beamProfile),
 	bHasPressureLoad(bIsFixed),
 	length(length),
 	density(density),
 	youngsModulus(youngsModulus)
-	
+
 {
 	// idea for refactor, place left- and right variables into little structs that represent surface properties? Right now the 2 element array works too I guess.
 

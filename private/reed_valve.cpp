@@ -272,14 +272,30 @@ std::pair<CellIndex, CellIndex> ReedValve::GetBoundingBox(const int amountOfCell
 }
 void ReedValve::CalculateAerodynamicDamping(std::vector<double> &forceVectorOut) //const
 {
-	for (int nodeIndex = fem_.fixedNodes + 1; nodeIndex < fem_.amountOfNodes; ++nodeIndex)
+	#ifdef _DEBUG
+	assert(forceVectorOut.size() == fem_.amountOfNodes * N_DOF_PER_NODE);
+	#endif
+	
+	for (BeamSection& section : fem_.beamSections)
 	{
-		const BeamSection* leftBeamSection = fem_.BeamSectionsConnectedToNode(nodeIndex, false);
-		const BeamSection* rightBeamSection = fem_.BeamSectionsConnectedToNode(nodeIndex, true);
+		double mass = section.density * (section.b[0] + section.b[1]) * (section.h[0] + section.h[1]) * (section.length) * 0.125;
 
-		double massOfNode = 0.5 * (leftBeamSection->density * leftBeamSection->b[1] * leftBeamSection->h[1]) + 0.5 * (rightBeamSection->density * rightBeamSection->b[0] * rightBeamSection->h[0]); // gets the average of half of both of the connected beam sections
+		Position posNow = fem_.GetPositionOfBeamSection(section);
+		Position posPreviously = (fem_.positionsInPreviousTimeStep.at(section.leftNodeIndex) + fem_.positionsInPreviousTimeStep.at(section.rightNodeIndex)) * 0.5; // Little ugly, but not necessary to make a separate function for this.
+		double leftDy = fem_.nodePositionsRelativeToRoot.at(section.leftNodeIndex).y - fem_.positionsInPreviousTimeStep.at(section.leftNodeIndex).y;
+		double rightDy = fem_.nodePositionsRelativeToRoot.at(section.rightNodeIndex).y - fem_.positionsInPreviousTimeStep.at(section.rightNodeIndex).y;
+		double dyDt = (posNow.y - posPreviously.y) / intoDomain_->simCase->dt;
 		
-		double dy = 0.5*(u2[(i+1)*nDofPerNode]-u1[(i+1)*nDofPerNode] + (u2[i*nDofPerNode]-u1[i*nDofPerNode]));
-		y = 0.5*(u2[i*nDofPerNode]+u2[(i+1)*nDofPerNode]);
+
+		double dampingFactor; // Called epsilon in Florian (2017)
+		if (dyDt >= 0)
+			dampingFactor = DAMPING_C1 + DAMPING_C2 * dyDt;
+		else // dy < 0
+			dampingFactor = DAMPING_C3 * posNow.y;
+
+		double dampingForce = -2 * naturalFrequency / mass * dyDt * dampingFactor;
+
+		forceVectorOut[section.leftNodeIndex] += 0.5*dampingForce;
+		forceVectorOut[section.rightNodeIndex] += 0.5*dampingForce;
 	}
 }

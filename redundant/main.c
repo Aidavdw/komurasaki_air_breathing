@@ -215,7 +215,7 @@ int main()
 	int  N_INACTIVE;        // The amount of nodes that is forced to stay fixed in place. FemDeformation::fixedNodes * DOF_PER_NODE
 	int  *act_DOF;          // A vector that just increases by one every step, going from (n_node * N_DOF) -> (n_total * DOF + DOF-1).
 	double **x_FEM;         // X locations of the inidividual FEM cells, relative to the left-most point.
-	double **y_FEM;
+	double **y_FEM;			// y locations of the individual fem cells, I think? 
 	double *b;              // The (average) width of the cell. Literally b in Florian (2017).
 	double *h;
 	double *A;

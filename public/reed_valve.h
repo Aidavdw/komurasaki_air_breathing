@@ -16,6 +16,8 @@ public:
 
 	Position hingePositionInDomain;		// The exact position in the intoDomain where the hinge is, aka where the reed valve starts.
 	Position holeEndPositionInDomain;	// The exact position in the intoDomain where the hole of this reed valve ends.
+
+	double naturalFrequency = 470.0; // todo: figure out where on earth this comes from.
 	
 	std::vector<CellIndex> sourceCellIndices;	// The cell indices where the mass flow will be sourced into in the intoDomain.
 
