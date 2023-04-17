@@ -18,6 +18,8 @@
 
 #include "sim_case.h"
 //#include "case_det_tube.cpp" // Temporary hard-code of specific case implementation
+#include <chrono>
+
 #include "reed_valve.h"
 
 
@@ -49,78 +51,14 @@ int main()
     std::cout << "Chapman-Jouget Detonation solution for initial conditions found after " << initialDetonationSolution.iters_performed << " iterations." << std::endl;
 
     // Todo: make actual thing that handles how reed valves etc are chosen
-    ReedValve reedvalve = ReedValve();
-    simCase.RegisterValves({ reedvalve });
+    ReedValve reedValve = ReedValve();
+    simCase.RegisterValve(reedValve);
 
 
     /* INITIAL CONDITIONS ON DOMAINS */
     simCase.ApplyInitialConditions();
-    printf("\nInitial conditions applied...\n");
+    std::cout << "Initial conditions applied." << std::endl;
 
-
-    
-
-    /* ROUTINE TO PERFORM IF SOLID MODELLING IS ACTIVATED */
-    if (SOLID_ON==1)
-    {
-
-        /* EXPORT INITIAL MASS FLOW RATE AND TIP DISPLACEMENT FOR ALL VALVES (SET TO 0) */
-        for (int k = 0; k < N_VALVE; ++k)
-        {
-            // Compute pressure at FEM nodes and deduce load on each node
-            // fem_pressure(fem_n[domainNumber],fem_index_inf[domainNumber],x_FEM[domainNumber],NYtot[dom_low],n_cell_p_fem,p[dom_low],p[dom_up],NGHOST,dp_interface[domainNumber]);
-            // fem_load(N_FEM,N_DOF,N_DOF_PER_NODE,N_CLAMP,NGHOST,X_V_START[domainNumber],p_neighbour[domainNumber],fem_n[domainNumber],dp_interface[domainNumber],x[dom_low],x_FEM[domainNumber],B0,B1,L_T,F_DOF[domainNumber]);
-            // damping_load(N_FEM,N_DOF,N_DOF_PER_NODE,RHO_V,L_V,H0,H1,B0,B1,F_DOF[domainNumber]);
-
-            fem_pressure(N_NODE,fem_n[k],fem_index_inf[k],x_FEM[k],p_neighbour[k],p_coef[k],NYtot[dom_low],p[dom_low],p[dom_up],NGHOST,p_FEM[k]);
-            fem_load(N_FEM,N_DOF,N_CLAMP,N_DOF_PER_NODE,p_FEM[k],U2_DOF[k],F_DOF[k],x_FEM[k],b);
-
-            // Solve initial FEM problem based on static assumption with initial pressure field
-            cholesky_solve(N_DOF,N_ACTIVE,L_K,F_DOF[k],act_DOF,U2_DOF[k]);
-            update_valve(N_NODE,N_DOF_PER_NODE,U0_DOF[k],U1_DOF[k],U2_DOF[k],y_FEM[k]);
-            for (int k = 0; k < N_VALVE; ++k)
-            {
-                for (int i = 0; i < N_DOF; ++i)
-                {
-                    U1_DOF[k][i] = U2_DOF[k][i];
-                    U0_DOF[k][i] = U2_DOF[k][i];
-                }
-
-                for (int i = 0; i < N_DOF; ++i)
-                {
-                    F_DOF[k][i]=0.0;
-                }
-            }
-
-            ytip[k] = U2_DOF[k][N_DOF_PER_NODE*(N_NODE-1)];
-            stage_mfr[k] = 0.0;
-            pratio[k] = mean_p_inf[k]/mean_p_sup[k];
-
-            // strcpy(valvename,Y_TIP_FILENAME);
-            // sprintf(index_char,"_%xIndex",domainNumber);
-            // strcat(valvename,index_char);
-            // append_data_to_file(p_wall,0.0,P_MEAN_WALL_FILENAME,EXP_EXTENSION);
-            // append_data_to_file(U2_DOF[domainNumber][N_DOF_PER_NODE*(N_NODE-1)],0.0,valvename,EXP_EXTENSION);
-            // strcpy(valvename,MFR_TOT_FILENAME);
-            // sprintf(index_char,"_%xIndex",domainNumber);
-            // strcat(valvename,index_char);
-            // append_data_to_file(0.0,0.0,valvename,EXP_EXTENSION);
-            // append_data_to_file(0.0,0.0,MFR_TOT_FILENAME,EXP_EXTENSION);
-            // append_data_to_file(0.0,0.0,PFR_FILENAME,EXP_EXTENSION);
-            // strcpy(valvename,P_RATIO_FILENAME);
-            // sprintf(index_char,"_%xIndex",domainNumber);
-            // strcat(valvename,index_char);
-            // append_data_to_file(0.0,0.0,valvename,EXP_EXTENSION);    
-            // append_data_to_file(plenum_p,0.0,PLEN_P_FILENAME,EXP_EXTENSION);
-        }
-
-        // Export tip displacement, pressure ratio and mass flow rate
-        append_multidata_to_file(N_VALVE,ytip,0.0,Y_TIP_FILENAME,EXP_EXTENSION);
-        append_multidata_to_file(N_VALVE,stage_mfr,0.0,MFR_FILENAME,EXP_EXTENSION);
-        append_multidata_to_file(N_VALVE,pratio,0.0,P_RATIO_FILENAME,EXP_EXTENSION);
-
-        printf("\nInitial solid conditions applied...\n");
-    }
 
 
 
@@ -131,32 +69,23 @@ int main()
     double SIM_TIME_LOOP;                // To monitor real time between two exports
     double total_mfr = 0.0, total_pfr = 0.0;
 
-    /* CELL VOLUME AT REED VALVE INTERFACE BETWEEN INSIDE/OUTSIDE TUBE */
-    // double v_cell = M_PI*(pow(y[dom_low][NGHOST][NYtot[dom_low]-NGHOST-1],2)-pow(y[dom_low][NGHOST][NYtot[dom_low]-NGHOST-2],2))*(x[dom_low][NGHOST+1][NYtot[dom_low]-NGHOST-2]-x[dom_low][NGHOST][NYtot[dom_low]-NGHOST-1]);
-    //double r_low = y[dom_low][NGHOST][NYtot[dom_low]-NGHOST]; 
-    //double r_up = y[dom_up][NGHOST][NGHOST];
-    // printf("Interface cell volume is: %g m^3.\n",v_cell);
-
 
     /* COUNTING TIME BETWEEN ITERATIONS */
-    std::time_t timeAtStartOfCalculations = std::time(0);
+    auto timeAtStartOfCalculations = std::chrono::system_clock::now();
 
-    printf("Starting main time loop...\n");
+    std::cout << "Starting time loop." << std::endl;
     /* START TIME LOOP */
     for (int timeStepNumber = 1; timeStepNumber < simCase.totalSimulationTimeStepCount; ++timeStepNumber)
     {
-
-
         /* 4TH ORDER RUNGE-KUTTA PREDICTOR-CORRECTOR LOOP (iterate 4 times)*/
         for (int rungeKuttaIterationNumber = 0; rungeKuttaIterationNumber < RK_ORDER; ++rungeKuttaIterationNumber)
         {
             /* FOR FIRST ITERATION, TAKE PARAMETERS OF PREVIOUS SOLUTION */
-            //for (int domainNumber = 0; domainNumber < simCase.domains.size(); ++domainNumber)
             for (auto& domainIter : simCase.domains)
             {
                 Domain& domain = domainIter.second;
 
-                #pragma omp parallel for // START PARALLEL LOOP
+                //#pragma omp parallel for // START PARALLEL LOOP
                 for (int xIndex = 0; xIndex < domain.size[0]; ++xIndex)
                 {
                     for (int yIndex = 0; yIndex < domain.size[1]; ++yIndex)
@@ -190,26 +119,27 @@ int main()
                 }
             }
 
-            /* SOLVE SOLID AND COMPUTE SOURCE TERM BASED ON CURRENT FLUID SOLUTION */
-            if (SOLID_ON==1)
+            for (IValve& valve : simCase.valves)
             {
-                #pragma omp parallel for num_threads(N_VALVE)
-                for (int valveIndex = 0; valveIndex < N_VALVE; ++valveIndex)
-                {
-                    // Compute pressure difference at FEM nodes and deduce load on each element/node
-                    // fem_pressure(fem_n[domainNumber],fem_index_inf[domainNumber],x_FEM[domainNumber],NYtot[dom_low],n_cell_p_fem,pRK[dom_low],pRK[dom_up],NGHOST,dp_interface[domainNumber]);
-                    // fem_load(N_FEM,N_DOF,N_DOF_PER_NODE,N_CLAMP,NGHOST,X_V_START[domainNumber],p_neighbour[domainNumber],fem_n[domainNumber],dp_interface[domainNumber],x[dom_low],x_FEM[domainNumber],B0,B1,L_T,F_DOF[domainNumber]);
+                valve.Update();
+            }
+            
+            //#pragma omp parallel for num_threads(N_VALVE)
+            for (int valveIndex = 0; valveIndex < N_VALVE; ++valveIndex)
+            {
+                // Compute pressure difference at FEM nodes and deduce load on each element/node
+                // fem_pressure(fem_n[domainNumber],fem_index_inf[domainNumber],x_FEM[domainNumber],NYtot[dom_low],n_cell_p_fem,pRK[dom_low],pRK[dom_up],NGHOST,dp_interface[domainNumber]);
+                // fem_load(N_FEM,N_DOF,N_DOF_PER_NODE,N_CLAMP,NGHOST,X_V_START[domainNumber],p_neighbour[domainNumber],fem_n[domainNumber],dp_interface[domainNumber],x[dom_low],x_FEM[domainNumber],B0,B1,L_T,F_DOF[domainNumber]);
 
-                    fem_pressure(N_NODE,fem_n[valveIndex],fem_index_inf[valveIndex],x_FEM[valveIndex],p_neighbour[valveIndex],p_coef[valveIndex],NYtot[dom_low],pRK[dom_low],pRK[dom_up],NGHOST,p_FEM[valveIndex]);
-                    fem_load(N_FEM,N_DOF,N_CLAMP,N_DOF_PER_NODE,p_FEM[valveIndex],U2_DOF[valveIndex],F_DOF[valveIndex],x_FEM[valveIndex],b);
-                    fem_flow_damping(N_FEM,N_DOF,N_CLAMP,N_DOF_PER_NODE,U1_DOF[valveIndex],U2_DOF[valveIndex],b,h,RHO_V,F0,DT,C1,C2,C3,F_DOF[valveIndex]);
+                fem_pressure(N_NODE,fem_n[valveIndex],fem_index_inf[valveIndex],x_FEM[valveIndex],p_neighbour[valveIndex],p_coef[valveIndex],NYtot[dom_low],pRK[dom_low],pRK[dom_up],NGHOST,p_FEM[valveIndex]);
+                fem_load(N_FEM,N_DOF,N_CLAMP,N_DOF_PER_NODE,p_FEM[valveIndex],U2_DOF[valveIndex],F_DOF[valveIndex],x_FEM[valveIndex],b);
+                fem_flow_damping(N_FEM,N_DOF,N_CLAMP,N_DOF_PER_NODE,U1_DOF[valveIndex],U2_DOF[valveIndex],b,h,RHO_V,F0,DT,C1,C2,C3,F_DOF[valveIndex]);
 
-                    // Solve FEM system and obtain Runge-Kutta valve distorsion at current RK loop
-                    newmark_solve(N_DOF,N_ACTIVE,L_R1,R2,R3,F_DOF[valveIndex],act_DOF,U1_DOF[valveIndex],U2_DOF[valveIndex],U2_DOF_K[valveIndex]);
+                // Solve FEM system and obtain Runge-Kutta valve distorsion at current RK loop
+                newmark_solve(N_DOF,N_ACTIVE,L_R1,R2,R3,F_DOF[valveIndex],act_DOF,U1_DOF[valveIndex],U2_DOF[valveIndex],U2_DOF_K[valveIndex]);
 
-                    // Update FEM mesh and contrain displacement in positive domain
-                    update_valve(N_NODE,N_DOF_PER_NODE,U0_DOF[valveIndex],U1_DOF[valveIndex],U2_DOF_K[valveIndex],y_FEM[valveIndex]);
-                }
+                // Update FEM mesh and contrain displacement in positive domain
+                update_valve(N_NODE,N_DOF_PER_NODE,U0_DOF[valveIndex],U1_DOF[valveIndex],U2_DOF_K[valveIndex],y_FEM[valveIndex]);
             }
 
             if (SOLID_ON==1)

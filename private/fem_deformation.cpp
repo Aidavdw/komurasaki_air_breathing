@@ -321,3 +321,19 @@ void FemDeformation::SolveCholeskySystem(std::vector<double> &deflectionVectorOu
 			throw std::logic_error("Cholesky solution contains an NAN");
 	#endif
 }
+BeamSection* FemDeformation::BeamSectionsConnectedToNode(const int nodeIndex, const bool bRight)
+{
+	if (nodeIndex == 0 && bRight == false)
+		return nullptr;
+	else if (nodeIndex == (amountOfNodes - 1) && bRight == true )
+		return nullptr;
+	else if (nodeIndex >= amountOfNodes)
+	{
+		#ifdef _DEBUG
+		throw std::invalid_argument("Cannot get a beam section for a node index that is longer than the amount of nodes!");
+		#endif
+		return nullptr;
+	}
+
+	return &(beamSections[nodeIndex - fixedNodes]);
+}

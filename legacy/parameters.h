@@ -71,7 +71,7 @@ int N_DOF_PER_NODE    = 2;         // Number of DOFs per node (beam element in 2
 double RAYLEIGH_ALPHA = 0.0;       // Alpha coef. for Rayleigh damping (alpha*M + beta*K)
 double RAYLEIGH_BETA  = 5.0e-6;    // Beta coef. for Rayleigh damping
 double C1 = 5.0E-8;//5.0E-7        // C1 damping factor in: eps_eff = C1 + y_tip_dot*C2 (y_tip_dot>0)
-double C2 = 0.0E-8;//2.0E-8
+double C2 = 0.0E-8;//2.0E-8        // Magic damping factor
 double C3 = 0.0007;                // Flow damping coefficient for closing: eps_eff = C3*y_tip (y_tip_dot<0)
 // double YTIP_RATIO = 2.0;
 

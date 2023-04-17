@@ -11,11 +11,15 @@
 
 #define HOLE_FACTOR 0.9
 
+#define DAMPING_C1 5.0E-8 //5.0E-7  
+#define DAMPING_C2 0.0E-8 //2.0E-8 // Why on earth is this 0??
+#define DAMPING_C3 0.0007
+
 ReedValve::ReedValve(Domain* intoDomain, Domain* outOfDomain, const EBoundaryLocation boundary, const double positionAlongBoundary, const int amountOfFreeSections, const double lengthOfFreeSection, const int amountOfFixedNodes, const double lengthOfFixedSections, const EBeamProfile beamProfile, const bool bMirrored) :
 	IValve(intoDomain,outOfDomain,boundary,positionAlongBoundary),
 	bMirrored(bMirrored),
 	amountOfFixedNodes(amountOfFixedNodes),
-	amountOfFreeSections(amountOfFreeSections),
+	amountOfFreeNodes(amountOfFreeSections),
 	lengthOfFreeSection(lengthOfFreeSection),
 	lengthOfFixedSections(lengthOfFixedSections),
 	beamProfile_(beamProfile)
@@ -53,7 +57,7 @@ void ReedValve::CalculatePressuresOnFemSections()
 
 	}
 }
-void ReedValve::CalculateForceOnNodes(std::vector<double>& forcesOut, const bool bAddZerosForAlignedElements) const
+void ReedValve::CalculateForceOnNodes(std::vector<double>& forceVectorOut) const
 {
 	// Only do this for the nodes that are considered 'free'.
 	// Note that the beam connecting the last fixed and the first free node is still considered 'fixed', it cannot create loading, as this would be impossible to distribute between the two nodes.
@@ -66,11 +70,8 @@ void ReedValve::CalculateForceOnNodes(std::vector<double>& forcesOut, const bool
 	 *
 	 * f on N3 = 0.5 * S3
 	 */
-	if (bAddZerosForAlignedElements)
-		forcesOut.resize(fem_.amountOfNodes * N_DOF_PER_NODE);
-	else
-		forcesOut.resize(fem_.amountOfNodes);
-	
+
+	forceVectorOut.resize(fem_.amountOfNodes * N_DOF_PER_NODE);
 	
 	// This iterates over the beam section elements, but we need the indices to determine the positions. Hence, up to amountOfNodes-1
 	for (int nodeIdx = fem_.fixedNodes; nodeIdx < fem_.amountOfNodes - 1; nodeIdx++)
@@ -110,26 +111,18 @@ void ReedValve::CalculateForceOnNodes(std::vector<double>& forcesOut, const bool
 		const Position deltaPosition = fem_.nodePositionsRelativeToRoot[nodeIdx + 1] - fem_.nodePositionsRelativeToRoot[nodeIdx];
 		double cosTheta = deltaPosition.x / deltaPosition.Distance(); // Just really simple pythagoras.
 		
-		double forceOnElement = deltaPressureWithAmbient * fem_.beamSections.at(nodeIdx).topOrBottomSurfaceArea;
+		double forceOnElement = deltaPressureWithAmbient * fem_.beamSections.at(nodeIdx).topOrBottomSurfaceArea * cosTheta;
 
 		// The forces is assumed to be equally distributed over the two different nodes.
-		if (bAddZerosForAlignedElements)
-		{
-			forcesOut[nodeIdx * N_DOF_PER_NODE] += 0.5* forceOnElement;
-			forcesOut[(nodeIdx + 1) * N_DOF_PER_NODE] += 0.5* forceOnElement;
-		}
-		else
-		{
-			forcesOut[nodeIdx] += 0.5* forceOnElement;
-			forcesOut[nodeIdx + 1] += 0.5* forceOnElement;
-		}
+		forceVectorOut[nodeIdx * N_DOF_PER_NODE] += 0.5* forceOnElement;
+		forceVectorOut[(nodeIdx + 1) * N_DOF_PER_NODE] += 0.5* forceOnElement;
 		
 	}
 }
 
 void ReedValve::OnRegister()
 {
-	fem_ = FemDeformation(amountOfFreeSections, amountOfFixedNodes, beamProfile_, lengthOfFreeSection, lengthOfFixedSections, intoDomain_->simCase->dt, boundary_);
+	fem_ = FemDeformation(amountOfFreeNodes, amountOfFixedNodes, beamProfile_, lengthOfFreeSection, lengthOfFixedSections, intoDomain_->simCase->dt, boundary_);
 	SetSourceCellIndices(sourceCellIndices, boundary_, positionAlongBoundary_, lengthOfFreeSection, lengthOfFixedSections);
 	
 }
@@ -195,8 +188,18 @@ void ReedValve::Update()
 	std::vector<double> forcesOnNodes;
 	std::vector<double> u2Deflection; // Name based on florian's code, still need to actually figure out what it means...
 	const std::vector<double> u1Deflection = {};
-	CalculateForceOnNodes(forcesOnNodes, true);
-	fem_.SolveCholeskySystem(u2Deflection, forcesOnNodes);
+	CalculateForceOnNodes(forcesOnNodes);
+	
+	// LEFT OFF HERE
+
+	fem_flow_damping(N_FEM,N_DOF,N_CLAMP,N_DOF_PER_NODE,U1_DOF[valveIndex],U2_DOF[valveIndex],b,h,RHO_V,F0,DT,C1,C2,C3,F_DOF[valveIndex]);
+
+	// Solve FEM system and obtain Runge-Kutta valve distorsion at current RK loop
+	newmark_solve(N_DOF,N_ACTIVE,L_R1,R2,R3,F_DOF[valveIndex],act_DOF,U1_DOF[valveIndex],U2_DOF[valveIndex],U2_DOF_K[valveIndex]);
+
+	// Update FEM mesh and contrain displacement in positive domain
+	update_valve(N_NODE,N_DOF_PER_NODE,U0_DOF[valveIndex],U1_DOF[valveIndex],U2_DOF_K[valveIndex],y_FEM[valveIndex]);
+
 	fem_.UpdatePositions(u1Deflection, u2Deflection);
 	
 }
@@ -266,4 +269,17 @@ std::pair<CellIndex, CellIndex> ReedValve::GetBoundingBox(const int amountOfCell
 		throw std::logic_error("Invalid boundary location.");
 	}
 	return { hingePositionIndex_, holeEndPositionIndex_ + CellIndex(xOffset, yOffset) };
+}
+void ReedValve::CalculateAerodynamicDamping(std::vector<double> &forceVectorOut) //const
+{
+	for (int nodeIndex = fem_.fixedNodes + 1; nodeIndex < fem_.amountOfNodes; ++nodeIndex)
+	{
+		const BeamSection* leftBeamSection = fem_.BeamSectionsConnectedToNode(nodeIndex, false);
+		const BeamSection* rightBeamSection = fem_.BeamSectionsConnectedToNode(nodeIndex, true);
+
+		double massOfNode = 0.5 * (leftBeamSection->density * leftBeamSection->b[1] * leftBeamSection->h[1]) + 0.5 * (rightBeamSection->density * rightBeamSection->b[0] * rightBeamSection->h[0]); // gets the average of half of both of the connected beam sections
+		
+		double dy = 0.5*(u2[(i+1)*nDofPerNode]-u1[(i+1)*nDofPerNode] + (u2[i*nDofPerNode]-u1[i*nDofPerNode]));
+		y = 0.5*(u2[i*nDofPerNode]+u2[(i+1)*nDofPerNode]);
+	}
 }

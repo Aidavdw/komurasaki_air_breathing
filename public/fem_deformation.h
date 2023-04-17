@@ -10,7 +10,7 @@
 class FemDeformation
 {
 public:
-	FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const EBeamProfile beamProfile, const double freeLength, const double fixedLength, const double dt, const EBoundaryLocation upDirection);
+	FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const EBeamProfile beamProfile, const double freeLength, const double fixedLength, const double dt);
 
 	FemDeformation();
 	
@@ -23,7 +23,8 @@ public:
 	double dt;									// Time step used to assemble the newmark matrices.
 	
 	std::vector<Position> nodePositionsRelativeToRoot;	// The current positions of the nodes, in a local coordinate space.
-
+	std::vector<Position> positionsInPreviousTimeStep;
+	
 protected:
 	EBeamProfile beamProfile_;
 	double freeLength;							// Length of the part that can move freely
@@ -31,8 +32,7 @@ protected:
 
 	double rayleighDampingAlpha;				 // Alpha coef. for Rayleigh damping (alpha*M + beta*K)
 	double rayleighDampingBeta;				 // Beta coef. for Rayleigh damping (alpha*M + beta*K)
-
-
+	
 	double rootWidth;
 	double tipWidth;
 	double rootThickness;
@@ -56,6 +56,9 @@ public:
 	
 	// Solves the system of equations for the stiffness of the cholesky-decomposed stiffness matrix. Is only used once to set up the problem.
 	void SolveCholeskySystem(std::vector<double>& deflectionVectorOut, const std::vector<double>& load) const;
+
+	// Every node (bar the first one and the last one) has two beam sectioned connected to it. This gets a reference to those two beam sections. The optional argument says whether to return the left (false) value or the right (true) value
+	BeamSection* BeamSectionsConnectedToNode(const int nodeIndex, const bool bRight);
 
 	
 

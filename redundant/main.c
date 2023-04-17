@@ -231,8 +231,8 @@ int main()
 	double **R2;                // Newmark matrix 2. Is used for newmark solving.
 	double **R3;                // Newmark matrix 3
     double **U0_DOF;			// Some deflection of the reed valve? Input in update_valve() but is never actually referenced.
-	double **U1_DOF;			// Some deflection of the reed valve? in update valve, is used if u2[i] > 0.012 to set the physical deflection. After initialisation, this is set to U2_DOF
-	double **U2_DOF;			// Some deflection of the reed valve? in update valve, is used if u2[i] < 0.012 to set the physical deflection. After initialisation, this is set to U2_DOF
+	double **U1_DOF;			// Deflection of the reed valve node in the previous time step. in update valve, is used if u2[i] > 0.012 to set the physical deflection. After initialisation, this is set to U2_DOF
+	double **U2_DOF;			// Deflection of the reed valve node in the current time step. in update valve, is used if u2[i] < 0.012 to set the physical deflection. After initialisation, this is set to U2_DOF
 	double **U2_DOF_K;			// Some deflection of the reed valve?
 	double **dp_interface;		// Doesn't appear to be used.
 	double **p_FEM;				// The difference in pressure between the FEM node's set sample cell and the ambient conditions in Pa. 
@@ -395,8 +395,10 @@ int main()
             update_valve(N_NODE,N_DOF_PER_NODE,U0_DOF[k],U1_DOF[k],U2_DOF[k],y_FEM[k]);
             for (int k = 0; k < N_VALVE; ++k)
             {
+            	
                 for (int i = 0; i < N_DOF; ++i)
                 {
+                	// Artificially set the solution for the previous time step to be equal to this one; so it starts in stand still.
                     U1_DOF[k][i] = U2_DOF[k][i];
                     U0_DOF[k][i] = U2_DOF[k][i];
                 }

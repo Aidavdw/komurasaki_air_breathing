@@ -20,7 +20,7 @@ public:
 	std::vector<CellIndex> sourceCellIndices;	// The cell indices where the mass flow will be sourced into in the intoDomain.
 
 	int amountOfFixedNodes;
-	int amountOfFreeSections;
+	int amountOfFreeNodes;
 
 	double lengthOfFreeSection;
 	double lengthOfFixedSections;
@@ -39,7 +39,7 @@ public:
 	void CalculatePressuresOnFemSections();
 
 	// Calculates the forces in the transverse direction on all the fem sections similar to how Florian's original code did it. The optional argument adds extra zeros to get the system of equations representations.
-	void CalculateForceOnNodes(std::vector<double>& forcesOut, const bool addZerosForAlignedElements) const;
+	void CalculateForceOnNodes(std::vector<double>& forceVectorOut) const;
 	
 	/********* Overrides from Valve interface **********/
 	// Actually sets up the valve inside of the domain.
@@ -57,4 +57,6 @@ protected:
 	double GetAverageFieldQuantityInternal(const FieldQuantity& fieldQuantity) const;
 
 	std::pair<CellIndex, CellIndex> GetBoundingBox(const int amountOfCellsDeep=5) const;
+
+	void CalculateAerodynamicDamping(std::vector<double>& forceVectorOut);
 };

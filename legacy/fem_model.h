@@ -266,7 +266,7 @@ void fem_load(const int n_elem, const int n_dof, const int n_clamp, const int n_
 }
 
 /* Apply the aerodynamic damping correction term (should be improved because might not be physical!) */
-void fem_flow_damping(int n_elem, int n_dof, int n_clamp, int n_dof_per_node, double *u1, double *u2, double *b, double *h, double rho_v, double f0, double dt, double c1, double c2, double c3, double *f_dof)
+void fem_flow_damping(const int nElem, int n_dof, const int nClamp, const int nDofPerNode, const double *u1, const double *u2, const double *b, const double *h, const double rho_v, const double f0, const double dt, const double c1, const double c2, const double c3, double *f_dof)
 {
 	double f_damping = 0.0;
 	double eps_eff = 0.0;
@@ -274,11 +274,11 @@ void fem_flow_damping(int n_elem, int n_dof, int n_clamp, int n_dof_per_node, do
 	double dy = 0.0;
 	double y = 0.0;
 
-	for (int i = n_clamp; i < n_elem; ++i)
+	for (int i = nClamp; i < nElem; ++i)
 	{
 		m_valve = 0.25*rho_v*(b[i]+b[i+1])*(h[i]+h[i+1]);
-		dy = 0.5*(u2[(i+1)*n_dof_per_node]-u1[(i+1)*n_dof_per_node] + (u2[i*n_dof_per_node]-u1[i*n_dof_per_node]));
-		y = 0.5*(u2[i*n_dof_per_node]+u2[(i+1)*n_dof_per_node]);
+		dy = 0.5*(u2[(i+1)*nDofPerNode]-u1[(i+1)*nDofPerNode] + (u2[i*nDofPerNode]-u1[i*nDofPerNode]));
+		y = 0.5*(u2[i*nDofPerNode]+u2[(i+1)*nDofPerNode]);
 
 		if (dy>= 0.0)
 		{
@@ -292,10 +292,10 @@ void fem_flow_damping(int n_elem, int n_dof, int n_clamp, int n_dof_per_node, do
 
 		f_damping = -2.0*f0/m_valve*dy/dt*eps_eff;
 		
-		f_dof[i*n_dof_per_node] += f_damping/2.0;
-		f_dof[(i+1)*n_dof_per_node] += f_damping/2.0;
+		f_dof[i*nDofPerNode] += f_damping/2.0;
+		f_dof[(i+1)*nDofPerNode] += f_damping/2.0;
 
-		if (isnan(f_dof[i*n_dof_per_node]))
+		if (isnan(f_dof[i*nDofPerNode]))
 		{
 			fprintf(stderr,"\nERROR: COMPUTED FEM LOAD IS NaN\n"); exit(0);
 		}
@@ -643,7 +643,7 @@ void transpose(int n,double **M, double **MT)
 		}
 	}
 }
-// sets y_fem
+// sets the deflection of the valve; y_fem
 void update_valve(const int n_node, const int n_dof_per_node,const double *u0,const double *u1,const double *u2, double *y_fem)
 {
 	if (u2[(n_node-1)*n_dof_per_node] <= 0.012)
