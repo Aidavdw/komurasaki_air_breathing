@@ -123,24 +123,6 @@ int main()
             {
                 valve.Update();
             }
-            
-            //#pragma omp parallel for num_threads(N_VALVE)
-            for (int valveIndex = 0; valveIndex < N_VALVE; ++valveIndex)
-            {
-                // Compute pressure difference at FEM nodes and deduce load on each element/node
-                // fem_pressure(fem_n[domainNumber],fem_index_inf[domainNumber],x_FEM[domainNumber],NYtot[dom_low],n_cell_p_fem,pRK[dom_low],pRK[dom_up],NGHOST,dp_interface[domainNumber]);
-                // fem_load(N_FEM,N_DOF,N_DOF_PER_NODE,N_CLAMP,NGHOST,X_V_START[domainNumber],p_neighbour[domainNumber],fem_n[domainNumber],dp_interface[domainNumber],x[dom_low],x_FEM[domainNumber],B0,B1,L_T,F_DOF[domainNumber]);
-
-                fem_pressure(N_NODE,fem_n[valveIndex],fem_index_inf[valveIndex],x_FEM[valveIndex],p_neighbour[valveIndex],p_coef[valveIndex],NYtot[dom_low],pRK[dom_low],pRK[dom_up],NGHOST,p_FEM[valveIndex]);
-                fem_load(N_FEM,N_DOF,N_CLAMP,N_DOF_PER_NODE,p_FEM[valveIndex],U2_DOF[valveIndex],F_DOF[valveIndex],x_FEM[valveIndex],b);
-                fem_flow_damping(N_FEM,N_DOF,N_CLAMP,N_DOF_PER_NODE,U1_DOF[valveIndex],U2_DOF[valveIndex],b,h,RHO_V,F0,DT,C1,C2,C3,F_DOF[valveIndex]);
-
-                // Solve FEM system and obtain Runge-Kutta valve distorsion at current RK loop
-                newmark_solve(N_DOF,N_ACTIVE,L_R1,R2,R3,F_DOF[valveIndex],act_DOF,U1_DOF[valveIndex],U2_DOF[valveIndex],U2_DOF_K[valveIndex]);
-
-                // Update FEM mesh and contrain displacement in positive domain
-                update_valve(N_NODE,N_DOF_PER_NODE,U0_DOF[valveIndex],U1_DOF[valveIndex],U2_DOF_K[valveIndex],y_FEM[valveIndex]);
-            }
 
             if (SOLID_ON==1)
             {

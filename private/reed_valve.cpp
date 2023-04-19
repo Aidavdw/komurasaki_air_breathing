@@ -186,22 +186,11 @@ void ReedValve::Update()
 	
 	// TODO: Right now creates & destroys them every time. Possible optimisation would be to cache them?
 	std::vector<double> forcesOnNodes;
-	std::vector<double> u2Deflection; // Name based on florian's code, still need to actually figure out what it means...
-	const std::vector<double> u1Deflection = {};
+	std::vector<double> newDeflection;
 	CalculateForceOnNodes(forcesOnNodes);
-	
-	// LEFT OFF HERE
-
-	fem_flow_damping(N_FEM,N_DOF,N_CLAMP,N_DOF_PER_NODE,U1_DOF[valveIndex],U2_DOF[valveIndex],b,h,RHO_V,F0,DT,C1,C2,C3,F_DOF[valveIndex]);
-
-	// Solve FEM system and obtain Runge-Kutta valve distorsion at current RK loop
-	newmark_solve(N_DOF,N_ACTIVE,L_R1,R2,R3,F_DOF[valveIndex],act_DOF,U1_DOF[valveIndex],U2_DOF[valveIndex],U2_DOF_K[valveIndex]);
-
-	// Update FEM mesh and contrain displacement in positive domain
-	update_valve(N_NODE,N_DOF_PER_NODE,U0_DOF[valveIndex],U1_DOF[valveIndex],U2_DOF_K[valveIndex],y_FEM[valveIndex]);
-
-	fem_.UpdatePositions(u1Deflection, u2Deflection);
-	
+	CalculateAerodynamicDamping(forcesOnNodes);
+	fem_.CalculateNewDeflections(newDeflection, forcesOnNodes);
+	fem_.UpdatePositions(newDeflection);
 }
 void ReedValve::SetInitialConditions()
 {
@@ -212,11 +201,10 @@ void ReedValve::SetInitialConditions()
 
 	// TODO: Right now creates & destroys them every time. Possible optimisation would be to cache them?
 	std::vector<double> forcesOnNodes;
-	std::vector<double> u2Deflection; // Name based on florian's code, still need to actually figure out what it means...
-	const std::vector<double> u1Deflection = {};
-	CalculateForceOnNodes(forcesOnNodes, true);
-	fem_.SolveCholeskySystem(u2Deflection, forcesOnNodes);
-	fem_.UpdatePositions(u1Deflection, u2Deflection);
+	std::vector<double> newDeflection; // Name based on florian's code, still need to actually figure out what it means...
+	CalculateForceOnNodes(forcesOnNodes);
+	fem_.SolveCholeskySystem(newDeflection, forcesOnNodes);
+	fem_.UpdatePositions(newDeflection);
 
 	
 }

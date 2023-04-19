@@ -570,7 +570,7 @@ void cholesky_solve(const int n_dof,const int n_active,const double **L, const d
 	}
 }
 
-void newmark_solve(int n_dof, int n_active, double **LR1, double **R2, double **R3, double *load, int *active_dof, double *u0, double *u1, double *u2)
+void newmark_solve(const int n_dof, const int n_active, const double **LR1, const double **R2, const double **R3, const double *load, const int *active_dof, const double *u0, const double *u1, double *u2)
 {
 	double sum;
 	double b[n_dof];

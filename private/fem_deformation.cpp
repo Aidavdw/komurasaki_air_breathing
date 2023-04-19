@@ -4,6 +4,8 @@
 #include <stdexcept>
 #include <vector>
 
+#include "AuxFunctions.h"
+
 #define N_DOF_PER_NODE 2		// The total amount of degrees of freedom for a 2d beam element.
 
 FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const EBeamProfile beamProfile, const double freeLength, const double fixedLength, const double dt) :
@@ -14,6 +16,7 @@ FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountO
 	freeNodes = amountOfFreeSections + 1;
 	amountOfNodes = freeNodes + amountOfFixedNodes;
 	N_DOF = N_DOF_PER_NODE * amountOfNodes;
+	n_active(freeNodes*N_DOF_PER_NODE);
 
 	CreateBeamSections();
 	nodePositionsRelativeToRoot.emplace_back(0,0);
@@ -51,21 +54,42 @@ FemDeformation::FemDeformation():
 	tipThickness(0)
 { }
 
-void FemDeformation::UpdatePositions(const std::vector<double>& u1, const std::vector<double>& u2)
+void FemDeformation::UpdatePositions(const std::vector<double>& newDeflection)
 {
-	// Depending on the magic number, either use the current position, or just keep using the original value.
-	if (nodePositionsRelativeToRoot.back().y <= 0.012) // todo: figure out where this magic number comes from.
+	#ifdef _DEBUG
+	assert(nodePositionsRelativeToRoot.size() == positionsInPreviousTimeStep.size());
+	assert(nodePositionsRelativeToRoot.size() == 2*newDeflection.size());
+	#endif
+	// First set the values of the previous time step as the one from the current time step.
+	std::copy(nodePositionsRelativeToRoot.begin(), nodePositionsRelativeToRoot.end(), std::back_inserter(positionsInPreviousTimeStep));
+
+	#ifdef _DEBUG
+	for (int i = 0; i<nodePositionsRelativeToRoot.size(); i++)
 	{
-		for (auto& nodePos : nodePositionsRelativeToRoot)
-		{
-			//clamp to be minimum 0, don't allow going outside of the hole backwards.
-			nodePos.y = (nodePos.y < 0) ? 0: nodePos.y;
-		}
+		assert(IsCloseToZero(nodePositionsRelativeToRoot[i].x - positionsInPreviousTimeStep[i].x));
+		assert(IsCloseToZero(nodePositionsRelativeToRoot[i].y - positionsInPreviousTimeStep[i].y));
 	}
-	else
+	#endif
+	
+	// in the deflection vector, it is x1,y1,x2,x3,[...], so skip an index every time
+	for (int i = 0; i < nodePositionsRelativeToRoot.size(); i++)
 	{
-		std::copy(nodePositionsRelativeToRoot.begin(), nodePositionsRelativeToRoot.end(), std::back_inserter(positionsInPreviousTimeStep));
+		double nodeYDeflection = newDeflection[i*2 + 1];
+		nodeYDeflection = (nodeYDeflection < 0) ? 0: nodeYDeflection;			//clamp to be minimum 0, don't allow going outside of the hole backwards.
+		nodeYDeflection = (nodeYDeflection > 0.012) ? 0.012: nodeYDeflection;	// clamp to max 0.012, magic value. Not sure where it comes from.
+		nodePositionsRelativeToRoot[i].y = newDeflection[i*2 + 1];
+		
+		// Not sure if I should set the x positions too, as florian's code does NOT do this.
+		//nodePositionsRelativeToRoot[i].x = newDeflection[i*2];
 	}
+
+}
+void FemDeformation::CalculateNewDeflections(std::vector<double> &u2Out, const std::vector<double> &load) const
+{
+	std::vector<double> deflectionNow, deflectionPrevious;
+	GetDeflectionVectorFromPositions(deflectionPrevious, positionsInPreviousTimeStep);
+	GetDeflectionVectorFromPositions(deflectionNow, nodePositionsRelativeToRoot);
+	NewmarkSolve(u2Out, newmarkMatrixR1CholeskyDecomposed, newmarkMatrixR2, newmarkMatrixR3, load, deflectionPrevious, deflectionNow);
 }
 
 void FemDeformation::CreateBeamSections()
@@ -235,6 +259,16 @@ std::vector<double> FemDeformation::GetDOFVector() const
 
 	return DOFVector;
 }
+void FemDeformation::GetDeflectionVectorFromPositions(std::vector<double>& deflectionVectorOut, const std::vector<Position>& positions)
+{
+	deflectionVectorOut.resize(positions.size()*2);
+	for (int i = 0; i < positions.size(); i++)
+	{
+		//TODO: Doublecheck if the deflection vectors are in fact x,y,x,y and not y,x,y,x
+		deflectionVectorOut[2*i] = positions[i].x;
+		deflectionVectorOut[2*i + 1] = positions[i].y;
+	}
+}
 
 /* Given a symmetric positive definite matrix M (size NxN) (should be checked by user), this function computes the Cholesky decomposition of this matrix and fills a matrix L (that should be allocated and initialized by the user) so that A = L*LT (LT is the transpose matrix of L). The output L matrix is a superior triangular matrix. */
 TwoDimensionalArray FemDeformation::CholeskyDecomposition(const TwoDimensionalArray& matrix, const std::vector<double>& DOFVector)
@@ -279,6 +313,64 @@ TwoDimensionalArray FemDeformation::CholeskyDecomposition(const TwoDimensionalAr
 
 	// Todo: Change to return by reference, not value.
 	return out;
+}
+void FemDeformation::NewmarkSolve(std::vector<double>& u2Out, const TwoDimensionalArray& R1Cholesky, const TwoDimensionalArray& R2, const TwoDimensionalArray& R3, const std::vector<double>& load, const std::vector<double>& u0, const std::vector<double>& u1) const
+{
+	#ifdef _DEBUG
+	assert(load.size() == u2Out.size());
+	assert(u0.size() == u1.size());
+	assert(load.size() == u1.size());
+	assert(static_cast<int>(load.size()) == R1Cholesky.nX);
+	assert(R1Cholesky.nX == R1Cholesky.nY);
+	assert(R2.nX == R2.nY);
+	assert(R3.nX == R3.nX);
+	assert(R1Cholesky.nX == R2.nX);
+	assert(R2.nX == R3.nX);
+	#endif
+	
+	const std::vector<double> activeDof = GetDOFVector();
+	double sum;
+	std::vector<double> b = load;
+	
+	// Compute right-hand term of "A1*U(n+1) = F(n) + A2*U(n) + A3*U(n-1)"
+	for (int i = 0; i < N_DOF; ++i)
+	{
+		for (int j = 0; j < N_DOF; ++j)
+		{
+			b[i] += R2.GetAt(i,j)*u1[j] + R3.GetAt(i,j)*u0[j];
+		}
+	}
+
+	// First step : Forward substitution starting from first index
+	for (int i = 0; i < n_active; ++i)
+	{
+		sum = 0.0;
+		for (int j = 0; j < i; ++j)
+		{
+			sum += R1Cholesky.GetAt(i,j)*u2Out[activeDof[j]];
+		}
+		u2Out[activeDof[i]] = (b[activeDof[i]] - sum)/R1Cholesky.GetAt(i,i);
+	}
+
+	// Second step : Backward subsitution starting from last index
+	for (int i = n_active - 1; i > -1; --i)
+	{
+		sum = 0.0;
+		for (int j = i + 1; j < n_active; ++j)
+		{
+			sum += R1Cholesky.GetAt(j,i)*u2Out[activeDof[j]];
+		}
+		u2Out[activeDof[i]] = (u2Out[activeDof[i]] - sum)/R1Cholesky.GetAt(i,i);
+	}
+
+	#ifdef _DEBUG
+	for (int i = 0; i < N_DOF; ++i)
+	{
+		if (isnan(u2Out[i]))
+			throw std::logic_error("Encountered a NaN in newmark solving!");
+	}
+	#endif
+
 }
 void FemDeformation::SolveCholeskySystem(std::vector<double> &deflectionVectorOut, const std::vector<double>& load) const
 {

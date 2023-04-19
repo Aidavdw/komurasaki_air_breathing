@@ -19,6 +19,7 @@ public:
 	int freeNodes;								//  The amount of nodes (=sections+1) in the beam that are considered able to deform
 	int amountOfNodes;							// The total amount of nodes that this beam is modeled with. This means fixed, and free nodes.
 	int N_DOF;									// The amount of degrees of freedom for the FEM system.
+	int n_active;
 
 	double dt;									// Time step used to assemble the newmark matrices.
 	
@@ -52,7 +53,9 @@ public:
 
 	// Updates the position of the fem elements based on the current pressure field.
 	// todo: figure out what u1 and u2 actually are.
-	void UpdatePositions(const std::vector<double>& u1, const std::vector<double>& u2);
+	void UpdatePositions(const std::vector<double>& newDeflection);
+
+	void CalculateNewDeflections(std::vector<double> &u2Out, const std::vector<double> &load) const;
 	
 	// Solves the system of equations for the stiffness of the cholesky-decomposed stiffness matrix. Is only used once to set up the problem.
 	void SolveCholeskySystem(std::vector<double>& deflectionVectorOut, const std::vector<double>& load) const;
@@ -71,6 +74,7 @@ protected:
 	void AssembleGlobalStiffnessMatrix(TwoDimensionalArray& matrixOut) const;
 
 	std::vector<double> GetDOFVector() const;
+	
 
 	// Build Damping matrix based on Rayleigh's damping model. ALPHA and BETA factors (respectively of M and K) should be specified by the user. These coefficients can be known from experiment.
 	void AssembleDampingMatrix(TwoDimensionalArray& matrixOut);
@@ -78,7 +82,9 @@ protected:
 	// Computes matrices needed for resolution according to Newmark's scheme
 	void AssembleNewmarkMatrix(TwoDimensionalArray& R1CholeskyOut, TwoDimensionalArray& R2Out, TwoDimensionalArray& R3Out, TwoDimensionalArray& KCholeskyOut, const double dt) const;
 
+	void NewmarkSolve(std::vector<double> &u2Out, const TwoDimensionalArray &R1Cholesky, const TwoDimensionalArray &R2, const TwoDimensionalArray &R3, const std::vector<double> &load, const std::vector<double> &u0, const std::vector<double> &u1) const;
+
 	static TwoDimensionalArray CholeskyDecomposition(const TwoDimensionalArray& matrix, const std::vector<double>& DOFVector);
-
-
+	static void GetDeflectionVectorFromPositions(std::vector<double>& deflectionVectorOut, const std::vector<Position>& positions);
 };
+
