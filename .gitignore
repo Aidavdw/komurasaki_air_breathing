@@ -56,7 +56,3 @@ dkms.conf
 .idea/
 x64/
 .vs/
-
-air_breathing.sln
-air_breathing.vcxproj
-air_breathing.vcxproj.filters
