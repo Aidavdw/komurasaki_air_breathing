@@ -20,7 +20,7 @@ FieldQuantity::FieldQuantity(Domain* domain, const int sizeX, const int sizeY, c
 
 	bufferMap.insert({ EFieldQuantityBuffer::MAIN, main });
 	bufferMap.insert({ EFieldQuantityBuffer::RUNGEKUTTA, rungeKuttaBuffer });
-	bufferMap.insert({ EFieldQuantityBuffer::T, TBuffer });
+	bufferMap.insert({ EFieldQuantityBuffer::NEXTITER, TBuffer });
 }
 
 void FieldQuantity::SetAllToValue(const double value, const EFieldQuantityBuffer bufferToWriteTo)

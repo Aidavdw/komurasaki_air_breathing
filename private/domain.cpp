@@ -2,7 +2,6 @@
 #include "sim_case.h"
 #include <stdexcept>
 #include <algorithm>
-#include "parameters.h"
 
 
 Domain::Domain(const std::string& name, SimCase* simCase, Position position, const double sizeArg[2], const int amountOfCellsArg[2], const MeshSpacing meshSpacingArg[2], const EInitialisationMethod initialisationMethod) :

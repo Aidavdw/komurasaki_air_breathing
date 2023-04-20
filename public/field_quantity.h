@@ -11,7 +11,7 @@ enum EFieldQuantityBuffer
 {
 	MAIN,			// The field that physically represents the value
 	RUNGEKUTTA,		// to be used for runge kutta iteration. A temporary buffer.
-	T,				// not yet sure what this means but oh well!
+	NEXTITER,				// not yet sure what this means but oh well!
 };
 
 // Thin wrapper around a 2d array with doubles, representing a value over an entire domain (in a grid). It is implemented as a flattened 2d arary.
