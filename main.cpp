@@ -58,12 +58,7 @@ int main()
     /* INITIAL CONDITIONS ON DOMAINS */
     simCase.ApplyInitialConditions();
     std::cout << "Initial conditions applied." << std::endl;
-
-
-
-
-
-
+    
     /* TIME LOOP VARIABLES */
     double CFL=0;                        // For display of CFL
     double SIM_TIME_LOOP;                // To monitor real time between two exports
@@ -99,19 +94,8 @@ int main()
                         else
                         {
                             // Second, third, etc. iterations...
-                            domain.CopyFieldQuantitiesToBuffer(EFieldQuantityBuffer::T, EFieldQuantityBuffer::RUNGEKUTTA);
+                            domain.CopyFieldQuantitiesToBuffer(EFieldQuantityBuffer::NEXTITER, EFieldQuantityBuffer::RUNGEKUTTA);
                         }
-
-                        // Reset all variable arrays used for final memory saving
-                        // A: if they're being written further down, no need to set them to 0, they might just be overwritten.
-                        rhot[domainNumber][xIndex][yIndex]=0;
-                        ut[domainNumber][xIndex][yIndex]=0;
-                        vt[domainNumber][xIndex][yIndex]=0;
-                        Et[domainNumber][xIndex][yIndex]=0;
-                        pt[domainNumber][xIndex][yIndex]=0;
-                        Tt[domainNumber][xIndex][yIndex]=0;
-                        Ht[domainNumber][xIndex][yIndex]=0;
-
                         // In addition, reset "sonicPoints" arrays
                         sonic_x[domainNumber][xIndex][yIndex]=0;
                         sonic_y[domainNumber][xIndex][yIndex]=0;

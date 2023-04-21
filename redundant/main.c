@@ -114,20 +114,20 @@ int main()
 	double  ***E;       // the internal energy for all cells
 	double  ***T;       // the temperature for all cells
 	double  ***H;       // the enthalpy for all cells 
-    double ***pt;       
-	double  ***rhot;
-	double  ***ut;
-	double  ***vt;
-	double  ***Et;
-	double  ***Tt;
-	double  ***Ht;
-    double*** pRK;      // temporary copy of the pressure to be used in runge-kutta iteration 
-    double*** rhoRK;
-    double ***uRK;
-	double  *** vRK;
-	double  *** ERK;
-	double  *** TRK;
-	double  *** HRK;
+    double ***pt;		// field variable that will be set as the main one for the next time step; the iteration buffer.
+	double  ***rhot;	// field variable that will be set as the main one for the next time step; the iteration buffer.
+	double  ***ut;		// field variable that will be set as the main one for the next time step; the iteration buffer.
+	double  ***vt;		// field variable that will be set as the main one for the next time step; the iteration buffer.
+	double  ***Et;		// field variable that will be set as the main one for the next time step; the iteration buffer.
+	double  ***Tt;		// field variable that will be set as the main one for the next time step; the iteration buffer.
+	double  ***Ht;		// field variable that will be set as the main one for the next time step; the iteration buffer.
+    double*** pRK;      // runge kutta field buffer.
+    double*** rhoRK;	// runge kutta field buffer.
+    double ***uRK;		// runge kutta field buffer.
+	double  *** vRK;	// runge kutta field buffer.
+	double  *** ERK;	// runge kutta field buffer.
+	double  *** TRK;	// runge kutta field buffer.
+	double  *** HRK;	// runge kutta field buffer.
 	double  *** sonic_x;
 	double  *** sonic_y;
     init_domain(NDOMAIN,NXtot,NYtot,&rho,&u,&v,&p,&E,&T,&H);
