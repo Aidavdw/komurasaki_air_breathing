@@ -52,7 +52,5 @@ Mkfile.old
 dkms.conf
 *.pdf
 
-
-.idea/
 x64/
 .vs/
