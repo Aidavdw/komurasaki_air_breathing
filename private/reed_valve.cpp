@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <cmath>
 
+#include "AuxFunctions.h"
 #include "parameters.h"
 
 #define HOLE_FACTOR 0.9
@@ -14,9 +15,10 @@
 #define DAMPING_C1 5.0E-8 //5.0E-7  
 #define DAMPING_C2 0.0E-8 //2.0E-8 // Why on earth is this 0??
 #define DAMPING_C3 0.0007
+#define SAMPLING_DEPTH_FOR_OUT_OF_DOMAIN 2
 
 ReedValve::ReedValve(Domain* intoDomain, Domain* outOfDomain, const EBoundaryLocation boundary, const double positionAlongBoundary, const int amountOfFreeSections, const double lengthOfFreeSection, const int amountOfFixedNodes, const double lengthOfFixedSections, const EBeamProfile beamProfile, const bool bMirrored) :
-	IValve(intoDomain,outOfDomain,boundary,positionAlongBoundary),
+	IValve(intoDomain, outOfDomain, boundary, positionAlongBoundary),
 	bMirrored(bMirrored),
 	amountOfFixedNodes(amountOfFixedNodes),
 	amountOfFreeNodes(amountOfFreeSections),
@@ -25,13 +27,14 @@ ReedValve::ReedValve(Domain* intoDomain, Domain* outOfDomain, const EBoundaryLoc
 	beamProfile_(beamProfile)
 {
 	positionMirrorModifier_ = bMirrored ? -1 : 1;
-	hingePositionInDomain = intoDomain->PositionAlongBoundaryToCoordinate(boundary,positionAlongBoundary,0);
-	holeEndPositionInDomain = intoDomain->PositionAlongBoundaryToCoordinate(boundary,positionAlongBoundary+(lengthOfFixedSections+lengthOfFreeSection)*positionMirrorModifier_,0);
+	hingePositionInDomain = intoDomain->PositionAlongBoundaryToCoordinate(boundary, positionAlongBoundary, 0);
+	holeEndPositionAlongBoundary = positionAlongBoundary + (lengthOfFixedSections + lengthOfFreeSection) * positionMirrorModifier_;
+	holeEndPositionInDomain = intoDomain->PositionAlongBoundaryToCoordinate(boundary, holeEndPositionAlongBoundary , 0);
 
 	hingePositionIndex_ = intoDomain->InvertPositionToIndex(hingePositionInDomain);
 	holeEndPositionIndex_ = intoDomain->InvertPositionToIndex(holeEndPositionInDomain);
 
-	fem_ = FemDeformation(amountOfFreeSections,amountOfFixedNodes,beamProfile,lengthOfFreeSection,lengthOfFixedSections,intoDomain->simCase->dt,boundary);
+	fem_ = FemDeformation(amountOfFreeSections, amountOfFixedNodes, beamProfile, lengthOfFreeSection, lengthOfFixedSections, intoDomain->simCase->dt, boundary);
 }
 
 void ReedValve::CalculatePressuresOnFemSections()
@@ -172,10 +175,6 @@ void ReedValve::SetSourceCellIndices(std::vector<CellIndex>& sourceCellIndicesOu
 		assert(sourceCellIndices.size() < intoDomain_->size[1]);
 	#endif
 }
-void ReedValve::GetAveragePressure() const
-{
-	GetAverageFieldQuantityInternal(intoDomain_->p);
-}
 
 void ReedValve::Update()
 {
@@ -192,6 +191,14 @@ void ReedValve::Update()
 	fem_.CalculateNewDeflections(newDeflection, forcesOnNodes);
 	fem_.UpdatePositions(newDeflection);
 }
+
+void ReedValve::GetMassFlowRate() const
+{
+	double averagePressure = GetAverageFieldQuantityAroundValve(intoDomain_->p);
+	double averageDensity = GetAverageFieldQuantityAroundValve(intoDomain_->rho);
+
+}
+
 void ReedValve::SetInitialConditions()
 {
 	#ifdef _DEBUG
@@ -209,55 +216,58 @@ void ReedValve::SetInitialConditions()
 	
 }
 
-double ReedValve::GetAverageFieldQuantityInternal(const FieldQuantity &fieldQuantity) const
+double ReedValve::GetTipDeflection() const
 {
-	#ifdef _DEBUG
+	return fem_.nodePositionsRelativeToRoot.back().y;
+}
+
+double ReedValve::GetAverageFieldQuantityAroundValve(const FieldQuantity& fieldQuantity, const double depth, const bool bInwards) const
+{
+#ifdef _DEBUG
 	// First check if the given field quantity is actually on the domain that the valve is at. better safe than sorry!
-	if (fieldQuantity.domain != intoDomain_)
+	if (fieldQuantity.domain != intoDomain_ || fieldQuantity.domain != outOfDomain_)
 		throw std::logic_error("Trying to get the average value of a field quantity from a valve on a domain that the valve is not connected to!");
 	#endif
 
 	double totalSum = 0;
 
-	// Use a bounding box, and average all the values in that.
-	// todo; move bounding box depth to a higher scope
-	const auto boundingBox = GetBoundingBox(4);
-	for (int xIdx = boundingBox.first.x; xIdx < boundingBox.second.x; xIdx++)
+	// Define a bounding box, where within all cells will be sampled.
+	CellIndex boundingBoxCells[2];
+	if (bInwards)
 	{
-		for (int yIdx = boundingBox.first.y; yIdx < boundingBox.second.y; yIdx++)
+		// The location in the intoDomain is saved, so that can be used directly to extrude. Extend up to the depth of the tip deflection.
+		const auto extrudedPositions = ExtrudeAlongNormal(hingePositionInDomain, holeEndPositionInDomain,GetTipDeflection());
+		boundingBoxCells[0] = intoDomain_->InvertPositionToIndex(extrudedPositions.first);
+		boundingBoxCells[1] = intoDomain_->InvertPositionToIndex(extrudedPositions.second);
+	}
+	else
+	{
+		// the location is in the outOfDomain. The location of the valve is not defined in this coordinate frame yet, so first transform it.
+		// Alternative way to do it would be to first compute to global coordinate frame, but since it is already known the start positions are on the edge, it can be done simpler
+		const auto start = intoDomain_->GetLocationAlongBoundaryInAdjacentDomain(boundary_, positionAlongBoundary_);
+		const Position startPos = outOfDomain_->PositionAlongBoundaryToCoordinate(start.first, start.second, 0);
+		boundingBoxCells[0] = outOfDomain_->InvertPositionToIndex(startPos);
+		
+		const auto end = intoDomain_->GetLocationAlongBoundaryInAdjacentDomain(boundary_, holeEndPositionAlongBoundary);
+		const Position endPos = outOfDomain_->PositionAlongBoundaryToCoordinate(end.first, end.second, SAMPLING_DEPTH_FOR_OUT_OF_DOMAIN);
+		boundingBoxCells[1] = outOfDomain_->InvertPositionToIndex(endPos);
+	}
+
+	// Determine the total sum of all those cells
+	for (int xIdx = boundingBoxCells[0].x; xIdx < boundingBoxCells[1].x; xIdx++)
+	{
+		for (int yIdx = boundingBoxCells[0].y; yIdx < boundingBoxCells[1].y; yIdx++)
 		{
 			totalSum+= fieldQuantity.At(xIdx, yIdx);
 		}
 	}
 
-	const double sizeX = abs(boundingBox.first.x - boundingBox.second.x);
-	const double sizeY = abs(boundingBox.first.y - boundingBox.second.y);
+	// Divide by total amount of cells to get average.
+	const double sizeX = abs(boundingBoxCells[0].x - boundingBoxCells[1].x);
+	const double sizeY = abs(boundingBoxCells[0].y - boundingBoxCells[1].y);
 	return totalSum / (sizeX * sizeY);	
 }
-std::pair<CellIndex, CellIndex> ReedValve::GetBoundingBox(const int amountOfCellsDeep) const
-{
-	int xOffset = 0;
-	int yOffset = 0;
-	
-	switch (boundary_)
-	{
-	case EBoundaryLocation::TOP:
-		yOffset = -amountOfCellsDeep;
-		break;
-	case EBoundaryLocation::BOTTOM:
-		yOffset = amountOfCellsDeep;
-		break;
-	case EBoundaryLocation::LEFT:
-		xOffset = amountOfCellsDeep;
-		break;
-	case EBoundaryLocation::RIGHT:
-		xOffset = -amountOfCellsDeep;
-		break;
-	default:
-		throw std::logic_error("Invalid boundary location.");
-	}
-	return { hingePositionIndex_, holeEndPositionIndex_ + CellIndex(xOffset, yOffset) };
-}
+
 void ReedValve::CalculateAerodynamicDamping(std::vector<double> &forceVectorOut) //const
 {
 	#ifdef _DEBUG

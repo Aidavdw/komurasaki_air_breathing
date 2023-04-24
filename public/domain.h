@@ -4,33 +4,13 @@
 #include "mesh_spacing.h"
 #include "pos2d.h"
 #include "index2d.h"
+#include <map>
 
+#include "boundary.h"
 #include "domain_enums.h"
 
 
 struct SimCase;
-
-// Describes a boundary that a domain has four of (considering it is 2d, and all domains are rectangular
-struct Boundary
-{
-	Boundary() :
-		boundaryType(EBoundaryType::NOT_SET),
-		connectedBoundary(nullptr)
-	{}
-
-	explicit Boundary(const EBoundaryType boundaryType) :
-		boundaryType(boundaryType),
-		connectedBoundary(nullptr)
-	{}
-
-	// This boundary itself:
-	//Domain* domain; // The domain that this boundary is a part of
-	EBoundaryType boundaryType;
-
-	// If it's connected to another boundary too:
-	Boundary* connectedBoundary;
-};
-
 
 
 // Contains information on a specific domain.
@@ -42,11 +22,11 @@ struct Domain
 	SimCase* simCase;
 	EInitialisationMethod initialisationMethod;
 
-	Position position = {0,0};					// the coordinate of the most bottom left point for the domains.
-	double size[2] = {0,0};						// The total extents of the domain
-	int amountOfCells[2] = {0,0};				// total amount of cells in the axis direction. This includes the ghost cells.
-	Boundary boundaries[4];						// Left, right, bottom, and up boundaries. Access using EBoundaryLocation struct.
-	MeshSpacing meshSpacing[2];								
+	Position position = {0,0};						// the coordinate of the most bottom left point for the domains.
+	double size[2] = {0,0};								// The total extents of the domain
+	int amountOfCells[2] = {0,0};						// total amount of cells in the axis direction. This includes the ghost cells.
+	std::map<EBoundaryLocation, Boundary> boundaries;	// Left, right, bottom, and up boundaries.
+	MeshSpacing meshSpacing[2];							// How the grid spacing looks; first in x-direction, then in y-direction.
 
 	FieldQuantity rho;							// Density
 	FieldQuantity u;							// velocity x-component
@@ -62,6 +42,7 @@ struct Domain
 	// returns the cell indices that this position is in.
 	CellIndex InvertPositionToIndex(const Position pos) const;
 	CellIndex InvertPositionToIndex(const Position pos, Position& distanceFromCenter) const;
+	std::pair<EBoundaryLocation, double> GetLocationAlongBoundaryInAdjacentDomain(const EBoundaryLocation boundaryInThisDomain, const double positionAlongBoundaryInThisDomain) const;
 
 	Position PositionAlongBoundaryToCoordinate(const EBoundaryLocation boundary, const double positionAlongBoundary, const double depth) const;
 

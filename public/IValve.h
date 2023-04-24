@@ -23,8 +23,10 @@ protected:
 public:
 	// Called to all valves upon being registered by the SimCase
 	virtual void OnRegister();
-	virtual void GetAveragePressure() const;
 	virtual void Update();
+
+	// Gets the mass flow rate going through the valve in its current condition. Positive values ar from the outOfDomain_ into the intoDomain_
+	virtual void GetMassFlowRate() const;
 	virtual void SetInitialConditions();
 
 private:

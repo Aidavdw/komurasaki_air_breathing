@@ -32,6 +32,32 @@ Domain::Domain(const std::string& name, SimCase* simCase, Position position, con
 
 }
 
+std::pair<EBoundaryLocation, double> Domain::GetLocationAlongBoundaryInAdjacentDomain(
+	const EBoundaryLocation boundaryInThisDomain, const double positionAlongBoundaryInThisDomain) const
+{
+	/* As it's the complement boundary, the orientation of the coordinate frame is switched too. Since the lengths of the domains and hence their boundaries are exactly the same, we can just subtract.
+	 *							
+	 *	Domain B				  
+	 *	L	   (L-X) 			   0
+	 *	+---<----+---<----<----<---+
+	 *
+	 *	+--->----+--->---->---->---+
+	 *	0	     X				   L
+	 *	
+	 */
+
+	EBoundaryLocation complement = Opposite(boundaryInThisDomain);
+	double totalLength = (boundaryInThisDomain == TOP || boundaryInThisDomain== BOTTOM) ? size[1] : size[0];
+	double posInOther = totalLength - positionAlongBoundaryInThisDomain;
+
+#ifdef _DEBUG
+	if (posInOther < 0 )
+		throw std::logic_error("Getting the complement of this location on another boundary returned a negative value, which is invalid!");
+#endif
+
+	return std::make_pair(complement, posInOther);
+}
+
 void Domain::SetBoundaryType(const EBoundaryLocation location, const EBoundaryType type)
 {
 	if (type == EBoundaryType::CONNECTED)
