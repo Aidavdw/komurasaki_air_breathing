@@ -105,6 +105,12 @@ void Domain::SetToAmbientConditions(const double TSet, const double pSet, const 
 	H.SetAllToValue(HSet);
 }
 
+double Domain::SpecificHeatRatio() const
+{
+	// todo: Extend this, so that it actually calculated based on the species and temperature in the domain.
+	return 1.4;
+}
+
 void ValidateAxisInput(const int axis)
 {
 	if (axis > 1 || axis < 0)

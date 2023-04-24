@@ -192,11 +192,58 @@ void ReedValve::Update()
 	fem_.UpdatePositions(newDeflection);
 }
 
-void ReedValve::GetMassFlowRate() const
+double ReedValve::GetMassFlowRate() const
 {
-	double averagePressure = GetAverageFieldQuantityAroundValve(intoDomain_->p);
-	double averageDensity = GetAverageFieldQuantityAroundValve(intoDomain_->rho);
+	double tipDeflection = GetTipDeflection();
+	if (IsCloseToZero(tipDeflection) || tipDeflection < 0)
+	{
+		// This setting is a bit artifical, as the tip can also be arching, still leaving some mass flow. It comes close enough to reality though.
+		return 0;
+	}
 
+	
+	double averagePressureIntoDomain = GetAverageFieldQuantityAroundValve(intoDomain_->p, true);
+	double averagePressureOutOfDomain = GetAverageFieldQuantityAroundValve(outOfDomain_->p, true);
+	double averageDensityOutOfDomain = GetAverageFieldQuantityAroundValve(outOfDomain_->rho);
+
+#ifdef _DEBUG
+	if (averagePressureIntoDomain < 0 || averagePressureOutOfDomain < 0 || averageDensityOutOfDomain < 0 )
+		throw std::logic_error("Average pressures or densities cannot be lower than 0.");
+#endif
+
+	const double pressureRatio = fmax(0.0,fmin(averagePressureIntoDomain/averagePressureOutOfDomain,1.0));
+	if (pressureRatio > 1.0)
+	{
+		// This only makes sense if the reed valve is completely closed in this case. There is a very small moment where this pressure gradient may be this way while it is still open, but this is disregarded.
+		return 0;
+	}
+
+	double referenceArea = FukanariReferenceArea();
+	const double gamma = intoDomain_->SpecificHeatRatio();
+	// If the critical pressure ratio is reached, the flow is considered choked, so the mass flow can no longer be increased!
+	double criticalPressureRatio = pow(2.0/(gamma+1.0),gamma/(gamma-1.0));
+	double dischargeCoeffient = DischargeCoefficient();
+
+	// Todo: Isolate a function for IsChoked(), I think that might be useful for logging purposes.
+	
+	if (pressureRatio > criticalPressureRatio) // && pratio <= 1.0)
+	{
+		double x = dischargeCoeffient*referenceArea*averageDensityOutOfDomain*pow(pressureRatio,1.0/gamma)*sqrt(2.0*gamma*averagePressureOutOfDomain/averageDensityOutOfDomain/(gamma-1.0)*(1.0-pow(pressureRatio,(gamma-1.0)/gamma)));
+
+#ifdef _DEBUG
+		assert(!isnan(x));
+#endif
+		return x;
+	}
+	else // pressureRatio > 0.0 && pressureRatio <= criticalPressureRatio
+	{
+		double x = dischargeCoeffient*referenceArea*gamma*averagePressureOutOfDomain/sqrt(gamma*averagePressureOutOfDomain/averageDensityOutOfDomain)*pow(2.0/(gamma+1.0),0.5*(gamma+1.0)/(gamma-1.0));
+
+#ifdef _DEBUG
+		assert(!isnan(x));
+#endif
+		return x;
+	}
 }
 
 void ReedValve::SetInitialConditions()
@@ -221,7 +268,7 @@ double ReedValve::GetTipDeflection() const
 	return fem_.nodePositionsRelativeToRoot.back().y;
 }
 
-double ReedValve::GetAverageFieldQuantityAroundValve(const FieldQuantity& fieldQuantity, const double depth, const bool bInwards) const
+double ReedValve::GetAverageFieldQuantityAroundValve(const FieldQuantity& fieldQuantity, const bool bInwards) const
 {
 #ifdef _DEBUG
 	// First check if the given field quantity is actually on the domain that the valve is at. better safe than sorry!
@@ -236,6 +283,7 @@ double ReedValve::GetAverageFieldQuantityAroundValve(const FieldQuantity& fieldQ
 	if (bInwards)
 	{
 		// The location in the intoDomain is saved, so that can be used directly to extrude. Extend up to the depth of the tip deflection.
+		//TODO: check if normal is not flipped.
 		const auto extrudedPositions = ExtrudeAlongNormal(hingePositionInDomain, holeEndPositionInDomain,GetTipDeflection());
 		boundingBoxCells[0] = intoDomain_->InvertPositionToIndex(extrudedPositions.first);
 		boundingBoxCells[1] = intoDomain_->InvertPositionToIndex(extrudedPositions.second);
@@ -296,4 +344,18 @@ void ReedValve::CalculateAerodynamicDamping(std::vector<double> &forceVectorOut)
 		forceVectorOut[section.leftNodeIndex] += 0.5*dampingForce;
 		forceVectorOut[section.rightNodeIndex] += 0.5*dampingForce;
 	}
+}
+
+double ReedValve::FukanariReferenceArea() const
+{
+	if (beamProfile_ != STRAIGHTDOUBLETAPERED)
+	{
+		throw std::logic_error("Fukanari's reference area is only confirmed for straight double tapered reed valves. Maybe the difference is small, but this is for your information. Ignore this message if you know what you're doing.");
+	}
+	return GetTipDeflection()*(fem_.rootWidth + sqrt(fem_.freeLength * fem_.freeLength + 0.25*pow(fem_.rootWidth - fem_.tipWidth,2)));
+}
+
+double ReedValve::DischargeCoefficient() const
+{
+	return fmax(0.0,fmin(1.0,0.9193*pow(1.0+0.5*GetTipDeflection()*1000.0,-0.596)));
 }

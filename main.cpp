@@ -105,32 +105,12 @@ int main()
 
             for (IValve& valve : simCase.valves)
             {
+                // Update the deflections
                 valve.Update();
-            }
 
-            if (SOLID_ON==1)
-            {
-                // #pragma omp parallel for num_threads(N_VALVE) (bug if activated?)
-                for (int valveIndex = 0; valveIndex < N_VALVE; ++valveIndex)
-                {
-                    // Compute mean pressure on each side and mass-flow rate at valve
-                    mean_p_inf[valveIndex] = mean_at_valve(fem_index_inf[valveIndex],fem_n[valveIndex],NYtot[dom_low]-NGHOST-n_cell_p_fem,n_cell_p_fem,pRK[dom_low]);
-                    mean_p_sup[valveIndex] = mean_at_valve(fem_index_inf[valveIndex],fem_n[valveIndex],NGHOST,n_cell_p_fem,pRK[dom_up]);
-                    mean_rho_sup[valveIndex] = mean_at_valve(fem_index_inf[valveIndex],fem_n[valveIndex],NGHOST,n_cell_p_fem,rhoRK[dom_up]);
-
-                    // Tip deflection and angle
-                    double y_tip = y_FEM[valveIndex][N_FEM-1];
-
-                    if (isnan(mean_p_sup[valveIndex]) || isnan(mean_p_inf[valveIndex]) || isnan(mean_rho_sup[valveIndex]))
-                    {
-                        printf("VALVE %d: PINF=%f, PSUP=%f, RATIO=%f\n",valveIndex,mean_p_inf[valveIndex],mean_p_sup[valveIndex],mean_p_inf[valveIndex]/mean_p_sup[valveIndex]);
-                        printf("Crash at t=%f, ytip=%f\n",timeStepNumber*DT,y_tip);
-                    }
-
-                    // Time-average value of mean fields and mass flow rate
-                    mfr[valveIndex] = compute_mfr(mean_p_inf[valveIndex],mean_p_sup[valveIndex],mean_rho_sup[valveIndex],y_tip,L_T,B0,B1,GAMMA,R);
-                    
-                }
+                // Compute mean pressure on each side and mass-flow rate at valve
+                // todo: value is currently just output. Store in IValve?
+                valve.GetMassFlowRate();
             }
 
             /* GENERATE VALUES IN GHOST CELLS BASED ON PREVIOUS ITERATION */

@@ -62,6 +62,9 @@ struct Domain
 	// Sets all the cells to some given ambient conditions.
 	void SetToAmbientConditions(const double T, const double p, const double u, const double v, const double R_ideal, const double gamma);
 
+	// calculates gamma, the specific heat ratio. Current implementation just returns a fixed value, but in reality it is dependent on species & temperature.
+	double SpecificHeatRatio() const;
+
 private:
 	// Sets the domain dimensions by reference.
 	void PopulateDomainDimensions();

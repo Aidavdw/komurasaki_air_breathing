@@ -52,7 +52,7 @@ double mean_at_valve(const int nx_start, const int nx, const int ny_start, const
 }
 
 /* To compute the value of mass flow rate based on 3D CFD results using fitting functions and average values at the valve. */
-double compute_mfr(double p_inf, double p_sup, double rho_sup, double y_tip, double l, double b0, double b1, double gamma, double r)
+double compute_mfr(const double p_inf, const double p_sup, const double rho_sup, const double y_tip, const double l,const double b0, const double b1, const double gamma, const double r)
 {
     double mfr_out;
     if (y_tip == 0.0)
@@ -62,6 +62,7 @@ double compute_mfr(double p_inf, double p_sup, double rho_sup, double y_tip, dou
     else if (y_tip > 0.0)
     {
         // Reference area by Fukunari, pressure ratio and critical pressure ratio
+        // A: note that Florian made an error here; the correct equation should be y_tip*(b1 + sqrt(l*l + 0.25*pow(b0-b1,2)))
         double a_ref = y_tip*(b1 + sqrt(l*l + 0.5*pow(b0-b1,2)));
         double pratio = fmax(0.0,fmin(p_inf/p_sup,1.0));
         double p_crit = pow(2.0/(gamma+1.0),gamma/(gamma-1.0));

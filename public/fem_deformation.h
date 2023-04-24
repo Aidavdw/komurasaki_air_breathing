@@ -25,19 +25,20 @@ public:
 	
 	std::vector<Position> nodePositionsRelativeToRoot;	// The current positions of the nodes, in a local coordinate space.
 	std::vector<Position> positionsInPreviousTimeStep;
-	
-protected:
-	EBeamProfile beamProfile_;
-	double freeLength;							// Length of the part that can move freely
-	double fixedLength;							// Length of the part that is fixed in place.
 
-	double rayleighDampingAlpha;				 // Alpha coef. for Rayleigh damping (alpha*M + beta*K)
-	double rayleighDampingBeta;				 // Beta coef. for Rayleigh damping (alpha*M + beta*K)
-	
 	double rootWidth;
 	double tipWidth;
 	double rootThickness;
 	double tipThickness;
+	double freeLength;							// Length of the part that can move freely
+	double fixedLength;							// Length of the part that is fixed in place.
+	
+protected:
+	EBeamProfile beamProfile_;
+
+
+	double rayleighDampingAlpha;				 // Alpha coef. for Rayleigh damping (alpha*M + beta*K)
+	double rayleighDampingBeta;				 // Beta coef. for Rayleigh damping (alpha*M + beta*K)
 
 	TwoDimensionalArray globalMassMatrix;		// The global mass matrix for this FEM beam, with the element matrices combined.
 	TwoDimensionalArray globalStiffnessMatrix;	// The global mass stiffness for this FEM beam, with the element matrices combined.

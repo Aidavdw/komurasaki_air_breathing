@@ -48,7 +48,7 @@ public:
 	// Actually sets up the valve inside of the domain.
 	void OnRegister() override;
 	void Update() override;
-	void GetMassFlowRate() const override;
+	double GetMassFlowRate() const override;
 
 	// Reads off the field, and solves the FEM equations a first time to determine the initial deflection for the FEM members.
 	void SetInitialConditions() override;
@@ -60,7 +60,14 @@ protected:
 	void SetSourceCellIndices(std::vector<CellIndex>& sourceCellIndicesOut, const EBoundaryLocation boundary, const double positionAlongBoundary, const  double lengthOfFreeSection, const double lengthOfFixedSections) const;
 
 	// Gets teh average field quantity in the region incscribed between the the start- and end point of the valve on the boundary and a point projected normal form this boundary. If bInwards=true, this extends into the intoDomain, if bInwards=false, this extends into the outOfDomain. 
-	double GetAverageFieldQuantityAroundValve(const FieldQuantity& fieldQuantity, const double depth, const bool bInwards=true) const;
+	double GetAverageFieldQuantityAroundValve(const FieldQuantity& fieldQuantity, const bool bInwards=true) const;
 	
 	void CalculateAerodynamicDamping(std::vector<double>& forceVectorOut);
+
+	// Calculates the approximate area that the air can pass through given a certain opening of the valve, based on Fukanari (2015)
+	double FukanariReferenceArea() const;
+
+	// Gets the discharge coeffient based on Florian (2017).
+	double DischargeCoefficient() const;
+	
 };
