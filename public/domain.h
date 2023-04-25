@@ -75,7 +75,11 @@ private:
 	// Sets the domain dimensions by reference.
 	void PopulateDomainDimensions();
 
-	void ApplyNoSlipGhostCells(const EBoundaryLocation boundary);
+	void PopulateSlipConditionGhostCells(const EBoundaryLocation boundary);
+	void PopulateNoSlipConditionGhostCells(const EBoundaryLocation boundary);
+	void PopulateConnectedGhostCells(const EBoundaryLocation boundary);
+	void PopulateSupersonicInletGhostCells(const EBoundaryLocation boundary);
+	void PopulateSupersonicOutletGhostCells(const EBoundaryLocation boundary);
 
 	bool ValidateCellIndex(const CellIndex cellIndex, const bool bAllowGhostCells) const;
 };

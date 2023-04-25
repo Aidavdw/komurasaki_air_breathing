@@ -125,15 +125,16 @@ void Domain::UpdateGhostCells()
 		case NOT_SET:
 				throw std::logic_error("Cannot update Ghost cell if boundary condition is not set.");
 			case SLIP:
-				ApplyNoSlipGhostCells(location);
+				PopulateSlipConditionGhostCells(location);
 				break;
-			case WALL:
+			case NO_SLIP:
+				PopulateNoSlipConditionGhostCells(location);
 				break;
 			case CONNECTED:
 				break;
-			case SUPERSONICINLET:
+			case SUPERSONIC_INLET:
 				break;
-			case SUPERSONICOUTLET:
+			case SUPERSONIC_OUTLET:
 				break;
 		default:
 				throw std::logic_error("Updating ghost cells is not implemented for this type of boundary.");
@@ -198,7 +199,7 @@ void Domain::PopulateDomainDimensions()
 	}
 }
 
-void Domain::ApplyNoSlipGhostCells(const EBoundaryLocation boundary)
+void Domain::PopulateSlipConditionGhostCells(const EBoundaryLocation boundary)
 {
 	CellIndex ghostOrigin = GetOriginIndexOfBoundary(boundary);
 	auto extent = GetGhostDimensions(boundary);
@@ -221,6 +222,37 @@ void Domain::ApplyNoSlipGhostCells(const EBoundaryLocation boundary)
 			p(xLocalIdx, ghostY, MAIN)		=	p(xLocalIdx, yLocalIdx, MAIN);
 			u(xLocalIdx, ghostY, MAIN)		= - u(xLocalIdx, yLocalIdx, MAIN); // Flipped!
 			v(xLocalIdx, ghostY, MAIN)		=	v(xLocalIdx, yLocalIdx, MAIN);
+			H(xLocalIdx, ghostY, MAIN)		=	H(xLocalIdx, yLocalIdx, MAIN);
+			E(xLocalIdx, ghostY, MAIN)		=	E(xLocalIdx, yLocalIdx, MAIN);
+			T(xLocalIdx, ghostY, MAIN)		=	T(xLocalIdx, yLocalIdx, MAIN);
+		}
+	}
+}
+
+void Domain::PopulateNoSlipConditionGhostCells(const EBoundaryLocation boundary)
+{
+	// This almost entirely a copy-paste from Domain::PopulateSlipConditionGhostCells(), but now v is also flipped!
+	CellIndex ghostOrigin = GetOriginIndexOfBoundary(boundary);
+	auto extent = GetGhostDimensions(boundary);
+
+	// Generally constant in the local x-direction, so y outer loop.
+	for (int yLocalIdx = 0; yLocalIdx < extent.second; yLocalIdx++)
+	{
+		for (int xLocalIdx = 0; xLocalIdx < extent.first; xLocalIdx++)
+		{
+			// Note that for the ghost cells, the relative location in the reference frame relative to the boundary is negative, and needs to be offset by -1 as well, as 0 is the first positive cell, and not the actual zero-line.
+			const int ghostY = -yLocalIdx-1;
+			
+#ifdef _DEBUG
+			const CellIndex posInBoundaryLocalCoordinate = {xLocalIdx, ghostY, Opposite(boundary)};
+			const CellIndex indexInDomainReferenceFrame = TransformToOtherCoordinateSystem(posInBoundaryLocalCoordinate, ghostOrigin, {0,0, TOP} );
+			assert(ValidateCellIndex(indexInDomainReferenceFrame, true));
+#endif
+			
+			rho(xLocalIdx,ghostY , MAIN)	=	rho(xLocalIdx, yLocalIdx, MAIN);
+			p(xLocalIdx, ghostY, MAIN)		=	p(xLocalIdx, yLocalIdx, MAIN);
+			u(xLocalIdx, ghostY, MAIN)		= - u(xLocalIdx, yLocalIdx, MAIN); // Flipped!
+			v(xLocalIdx, ghostY, MAIN)		= -	v(xLocalIdx, yLocalIdx, MAIN);	// Flipped!
 			H(xLocalIdx, ghostY, MAIN)		=	H(xLocalIdx, yLocalIdx, MAIN);
 			E(xLocalIdx, ghostY, MAIN)		=	E(xLocalIdx, yLocalIdx, MAIN);
 			T(xLocalIdx, ghostY, MAIN)		=	T(xLocalIdx, yLocalIdx, MAIN);
