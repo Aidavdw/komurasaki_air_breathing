@@ -16,7 +16,7 @@ struct SimCase;
 // Contains information on a specific domain.
 struct Domain
 {
-	Domain(const std::string& name, SimCase* simCase, const Position position, const double size[2], const int amountOfCells[2], const MeshSpacing meshSpacing[2], const EInitialisationMethod initialisationMethod);
+	Domain(const std::string& name, SimCase* simCase, const Position position, const double size[2], const int amountOfCells[2], const MeshSpacing meshSpacing[2], const EInitialisationMethod initialisationMethod, const int ghostCellDepth);
 
 	std::string name;
 	SimCase* simCase;
@@ -27,6 +27,7 @@ struct Domain
 	int amountOfCells[2] = {0,0};						// total amount of cells in the axis direction. This includes the ghost cells.
 	std::map<EBoundaryLocation, Boundary> boundaries;	// Left, right, bottom, and up boundaries.
 	MeshSpacing meshSpacing[2];							// How the grid spacing looks; first in x-direction, then in y-direction.
+	int nGhost;											// How many ghost cells are generated on each side.
 
 	FieldQuantity rho;							// Density
 	FieldQuantity u;							// velocity x-component
@@ -47,9 +48,12 @@ struct Domain
 	Position PositionAlongBoundaryToCoordinate(const EBoundaryLocation boundary, const double positionAlongBoundary, const double depth) const;
 
 
-	void SetBoundaryType(const EBoundaryLocation location, const EBoundaryType type);
+	void SetBoundaryType(const EBoundaryLocation location, const EBoundaryCondition type);
 
 	int GetTotalAmountOfCells() const;
+	CellIndex GetOriginIndexOfBoundary(const EBoundaryLocation boundary);
+	// Gets the dimensions of the part of the ghost cells as described in the GhostOrigin reference frame.
+	std::pair<int,int> GetGhostDimensions(EBoundaryLocation boundary);
 
 	// Shorthand function to get the cell sizes at a certain position.
 	void GetCellSizes(const CellIndex cellPos, double xSizeOut, double ySizeOut) const;
@@ -65,9 +69,15 @@ struct Domain
 	// calculates gamma, the specific heat ratio. Current implementation just returns a fixed value, but in reality it is dependent on species & temperature.
 	double SpecificHeatRatio() const;
 
+	void UpdateGhostCells();
+
 private:
 	// Sets the domain dimensions by reference.
 	void PopulateDomainDimensions();
+
+	void ApplyNoSlipGhostCells(const EBoundaryLocation boundary);
+
+	bool ValidateCellIndex(const CellIndex cellIndex, const bool bAllowGhostCells) const;
 };
 
 

@@ -20,9 +20,9 @@ void LoadCase(SimCase* simCase) {
 	tube->YLENGTH = R0;
 	tube->GRID_RATIO_X = 1.0;
 	tube->GRID_RATIO_Y = 1.0;
-	tube->SetBoundaryType(EBoundaryLocation::LEFT, EBoundaryType::SLIP);
-	tube->SetBoundaryType(EBoundaryLocation::TOP, EBoundaryType::SLIP);
-	tube->SetBoundaryType(EBoundaryLocation::BOTTOM, EBoundaryType::SLIP);
+	tube->SetBoundaryType(EBoundaryLocation::LEFT, EBoundaryCondition::SLIP);
+	tube->SetBoundaryType(EBoundaryLocation::TOP, EBoundaryCondition::SLIP);
+	tube->SetBoundaryType(EBoundaryLocation::BOTTOM, EBoundaryCondition::SLIP);
 	
 	Domain* ambient = simCase->AddDomain(2, "Ambient");
 	ambient->XSTART = L_TUBE;
@@ -31,9 +31,9 @@ void LoadCase(SimCase* simCase) {
 	ambient->YLENGTH = R0;
 	ambient->GRID_RATIO_X = 1.0;
 	ambient->GRID_RATIO_Y = 1.0;
-	ambient->SetBoundaryType(EBoundaryLocation::RIGHT, EBoundaryType::SLIP);
-	ambient->SetBoundaryType(EBoundaryLocation::TOP, EBoundaryType::SLIP);
-	ambient->SetBoundaryType(EBoundaryLocation::BOTTOM, EBoundaryType::SLIP);
+	ambient->SetBoundaryType(EBoundaryLocation::RIGHT, EBoundaryCondition::SLIP);
+	ambient->SetBoundaryType(EBoundaryLocation::TOP, EBoundaryCondition::SLIP);
+	ambient->SetBoundaryType(EBoundaryLocation::BOTTOM, EBoundaryCondition::SLIP);
 
 	// Alternative way: simCase->ConnectBoundaries(1, EBoundaryLocation::RIGHT, 2, EBoundaryLocation::LEFT);
 	simCase->ConnectBoundaries("Tube", EBoundaryLocation::RIGHT, "Ambient", EBoundaryLocation::LEFT);

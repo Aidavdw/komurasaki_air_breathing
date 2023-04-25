@@ -20,7 +20,7 @@ Position TransformToOtherCoordinateSystem(const Position& positionInOtherCoordin
      int amountOfCounterClockwiseQuarterRotations; // The amount of counterclockwise rotations that the original coordinate system has to do to align with the new one.
 
     // Not the most elegant way to do this, but doesn't make any assumptions on the layout of the struct in its cpp definition.
-    switch (fromOrigin)
+    switch (fromOrigin.upDirection)
     {
     case TOP:
         switch (toOrigin.upDirection)

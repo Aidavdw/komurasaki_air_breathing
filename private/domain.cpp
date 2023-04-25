@@ -2,6 +2,7 @@
 #include "sim_case.h"
 #include <stdexcept>
 #include <algorithm>
+#include <cassert>
 
 
 Domain::Domain(const std::string& name, SimCase* simCase, Position position, const double sizeArg[2], const int amountOfCellsArg[2], const MeshSpacing meshSpacingArg[2], const EInitialisationMethod initialisationMethod) :
@@ -58,9 +59,9 @@ std::pair<EBoundaryLocation, double> Domain::GetLocationAlongBoundaryInAdjacentD
 	return std::make_pair(complement, posInOther);
 }
 
-void Domain::SetBoundaryType(const EBoundaryLocation location, const EBoundaryType type)
+void Domain::SetBoundaryType(const EBoundaryLocation location, const EBoundaryCondition type)
 {
-	if (type == EBoundaryType::CONNECTED)
+	if (type == EBoundaryCondition::CONNECTED)
 	{
 		throw std::invalid_argument("Boundary type cannot be manually set to connected. Use ConnectBoundaries() instead.");
 	}
@@ -109,6 +110,35 @@ double Domain::SpecificHeatRatio() const
 {
 	// todo: Extend this, so that it actually calculated based on the species and temperature in the domain.
 	return 1.4;
+}
+
+void Domain::UpdateGhostCells()
+{
+	for (const auto& it : boundaries)
+	{
+		const EBoundaryLocation location = it.first();
+		const Boundary& boundary = it.second;
+
+		// Note that the below functions all work in relative coordinate frames.
+		// Technically a performance gain could be achieved by not calling a transformation on the frame every time, instead directly accessing those entries directly by looping. However, this is more legible.
+		switch (boundary.boundaryType) {
+		case NOT_SET:
+				throw std::logic_error("Cannot update Ghost cell if boundary condition is not set.");
+			case SLIP:
+				ApplyNoSlipGhostCells(location);
+				break;
+			case WALL:
+				break;
+			case CONNECTED:
+				break;
+			case SUPERSONICINLET:
+				break;
+			case SUPERSONICOUTLET:
+				break;
+		default:
+				throw std::logic_error("Updating ghost cells is not implemented for this type of boundary.");
+		}
+	}
 }
 
 void ValidateAxisInput(const int axis)
@@ -165,6 +195,85 @@ void Domain::PopulateDomainDimensions()
 			localCellCenterPositions[0].main[localCellCenterPositions[0].At(xIdx, yIdx)] = centerPositions[0][xIdx];
 			localCellCenterPositions[1].main[localCellCenterPositions[1].At(xIdx, yIdx)] = centerPositions[1][yIdx];
 		}
+	}
+}
+
+void Domain::ApplyNoSlipGhostCells(const EBoundaryLocation boundary)
+{
+	CellIndex ghostOrigin = GetOriginIndexOfBoundary(boundary);
+	auto extent = GetGhostDimensions(boundary);
+
+	// Generally constant in the local x-direction, so y outer loop.
+	for (int yLocalIdx = 0; yLocalIdx < extent.second; yLocalIdx++)
+	{
+		for (int xLocalIdx = 0; xLocalIdx < extent.first; xLocalIdx++)
+		{
+			// Note that for the ghost cells, the relative location in the reference frame relative to the boundary is negative, and needs to be offset by -1 as well, as 0 is the first positive cell, and not the actual zero-line.
+			const int ghostY = -yLocalIdx-1;
+			
+#ifdef _DEBUG
+			const CellIndex posInBoundaryLocalCoordinate = {xLocalIdx, ghostY, Opposite(boundary)};
+			const CellIndex indexInDomainReferenceFrame = TransformToOtherCoordinateSystem(posInBoundaryLocalCoordinate, ghostOrigin, {0,0, TOP} );
+			assert(ValidateCellIndex(indexInDomainReferenceFrame, true));
+#endif
+			
+			rho(xLocalIdx,ghostY , MAIN)	=	rho(xLocalIdx, yLocalIdx, MAIN);
+			p(xLocalIdx, ghostY, MAIN)		=	p(xLocalIdx, yLocalIdx, MAIN);
+			u(xLocalIdx, ghostY, MAIN)		= - u(xLocalIdx, yLocalIdx, MAIN); // Flipped!
+			v(xLocalIdx, ghostY, MAIN)		=	v(xLocalIdx, yLocalIdx, MAIN);
+			H(xLocalIdx, ghostY, MAIN)		=	H(xLocalIdx, yLocalIdx, MAIN);
+			E(xLocalIdx, ghostY, MAIN)		=	E(xLocalIdx, yLocalIdx, MAIN);
+			T(xLocalIdx, ghostY, MAIN)		=	T(xLocalIdx, yLocalIdx, MAIN);
+		}
+	}
+}
+
+bool Domain::ValidateCellIndex(const CellIndex cellIndex, const bool bAllowGhostCells) const
+{
+	if (cellIndex.x < -nGhost*bAllowGhostCells)
+		return false;
+	if (cellIndex.x > amountOfCells[0] + nGhost*bAllowGhostCells)
+		return false;
+	if (cellIndex.y < -nGhost*bAllowGhostCells)
+		return false;
+	if (cellIndex.y > amountOfCells[1] + nGhost*bAllowGhostCells)
+		return false;
+	
+	return true;
+}
+
+CellIndex Domain::GetOriginIndexOfBoundary(const EBoundaryLocation boundary)
+{
+	switch (boundary)
+	{
+	case BOTTOM:
+		return {amountOfCells[0],0, TOP};
+	case LEFT:
+		return {0,0, RIGHT};
+	case RIGHT:
+		return {amountOfCells[0], amountOfCells[1], LEFT};
+	case TOP:
+		return {0, amountOfCells[1], BOTTOM};
+	default:
+		throw std::logic_error("GetGhostOrigin is not implemented for this boundary location.");
+	}
+}
+
+std::pair<int, int> Domain::GetGhostDimensions(EBoundaryLocation boundary)
+{
+	// Note that these sorta flip the coordinate system!
+	switch (boundary)
+	{
+	case BOTTOM:
+		return {amountOfCells[0],nGhost};
+	case LEFT:
+		return {amountOfCells[1],nGhost};
+	case RIGHT:
+		return {amountOfCells[1],nGhost};
+	case TOP:
+		return {amountOfCells[0],nGhost};
+	default:
+		throw std::logic_error("GetGhostOrigin is not implemented for this boundary location.");
 	}
 }
 

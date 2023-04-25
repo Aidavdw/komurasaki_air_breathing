@@ -30,9 +30,6 @@ struct Position
 	// Returns the distance between {0,0} and this position (when considering it as a vector).
 	inline double Distance() const;
 
-	// Adds two numbers in different coordinate frames. Returns the answer in the coordinate frame of the object that this is called from.
-	Position PlusPositionInOtherCoordinateFrame(const Position& other) const;
-
 	inline double& operator [] (int axis)
 	{
 		if (axis == 0)

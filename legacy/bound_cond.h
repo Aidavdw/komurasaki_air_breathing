@@ -113,10 +113,11 @@ void slip_wall_condition(int nx,int ny,double **rho,double **p,double **u,double
             #pragma omp parallel for schedule(static)
             for (int j = nghost; j < ny-nghost; ++j)
             {
+                // set them 
                 // First ghost-cell column ("0"-1)
                 rho[1][j]=rho[2][j];
                 p[1][j]=p[2][j];
-                u[1][j]=-u[2][j];
+                u[1][j]=-u[2][j]; // Flipped!
                 v[1][j]=v[2][j];
                 H[1][j]=H[2][j];
                 E[1][j]=E[2][j];
@@ -124,7 +125,7 @@ void slip_wall_condition(int nx,int ny,double **rho,double **p,double **u,double
                 // Second ghost-cell column ("0"-2)
                 rho[0][j]=rho[3][j];
                 p[0][j]=p[3][j];
-                u[0][j]=-u[3][j];
+                u[0][j]=-u[3][j];   // Flipped!
                 v[0][j]=v[3][j];
                 H[0][j]=H[3][j];
                 E[0][j]=E[3][j];
@@ -222,16 +223,16 @@ void noslip_wall_condition(int nx,int ny,double **rho,double **p,double **u,doub
                 // First ghost-cell column ("0"-1)
                 rho[1][j]=rho[2][j];
                 p[1][j]=p[2][j];
-                u[1][j]=-u[2][j];
-                v[1][j]=-v[2][j];
+                u[1][j]=-u[2][j]; // Flipped!
+                v[1][j]=-v[2][j]; // Flipped!
                 H[1][j]=H[2][j];
                 E[1][j]=E[2][j];
                 T[1][j]=T[2][j];
                 // Second ghost-cell column ("0"-2)
                 rho[0][j]=rho[3][j];
                 p[0][j]=p[3][j];
-                u[0][j]=-u[3][j];
-                v[0][j]=-v[3][j];
+                u[0][j]=-u[3][j];   // Flipped!
+                v[0][j]=-v[3][j];   // Flipped!
                 H[0][j]=H[3][j];
                 E[0][j]=E[3][j];
                 T[0][j]=T[3][j];
@@ -385,13 +386,17 @@ void supersonic_outlet_condition(int nx,int ny,double **rho,double **p,double **
 }
 
 
-/* General function to update ghost cells between two time steps depending on the boundary condition that is specified there. If the user defines new boundary conditions, the latter should be mentionned also in this function so that the latter can be recognized. */
-void update_ghost_cells(int Ndom,int *Nx,int *Ny,double ***x,double ***y,double ***xold,double ***yold,double ***rho,double ***u,double ***v,double***p,double ***H,double ***E,double ***T,char *b_loc,char ***b_type,double R_closed,int nghost,double gamma,double r,double Pref,double Tref,double Mref)
+/* General function to update ghost cells between two time steps depending on the boundary condition that is specified there. If the user defines new boundary conditions, the latter should be mentionned also in this function so that the latter can be recognized.
+ * Sets: rho, u, v, p, H, E, T
+ * Parameters that are actually used: Ndom, Nx, Ny, b_loc, b_type, nghost, Pref, Tref, Mref
+ */
+void update_ghost_cells(const int Ndom, const int *Nx, const int *Ny,double ***x,double ***y,double ***xold,double ***yold,double ***rho,double ***u,double ***v,double***p,double ***H,double ***E,double ***T, const char *b_loc,const char ***b_type,double R_closed, const int nghost,double gamma,double r, const double Pref, const double Tref, const double Mref)
 {
     #pragma omp parallel for
     for (int k = 0; k < Ndom; ++k)
     {
         #pragma omp parallel for num_threads(2)
+        // Iterate over all the boundaries. 
         for (int jboundary = 0; jboundary < 4; ++jboundary)
         {
             // Slip-wall condition.
@@ -408,7 +413,7 @@ void update_ghost_cells(int Ndom,int *Nx,int *Ny,double ***x,double ***y,double 
             else if (strncmp(b_type[k][jboundary],"con",3)==0)
             {
                 int lengthString = strlen(b_type[k][jboundary]);
-                char *lastChar = &b_type[k][jboundary][lengthString-1];
+                const char *lastChar = &b_type[k][jboundary][lengthString-1];
                 int boundIndex = *lastChar - '0';
                 connected_condition(Nx[k],Nx[boundIndex],Ny[k],Ny[boundIndex],rho[k],rho[boundIndex],p[k],p[boundIndex],u[k],u[boundIndex],v[k],v[boundIndex],H[k],H[boundIndex],E[k],E[boundIndex],T[k],T[boundIndex],b_loc[jboundary],nghost);
             }

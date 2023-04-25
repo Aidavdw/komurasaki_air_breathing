@@ -53,8 +53,8 @@ struct FieldQuantity
 	inline int At(const int xIdx, const int yIdx) const; // Helper function for getting the flattened index in the internal arrays for a certain index. Use like buffer_name[At(x,y)].
 	inline int At(const CellIndex& cellIndex) const;
 
-	inline int AtGhostCell(const EBoundaryLocation location, const int ghostX, const int ghostY) const; // Helper function for getting the flattened index of a ghost cell in the internal arrays for a certain index. Use like buffer_name[At(x,y)].
-
+	// Helper function for getting the flattened index of a ghost cell in the internal arrays for a certain index. ghostX and ghostY are in boundary-relative coordinate frame.Use like buffer_name[AtGhostCell(x,y)].
+	inline Position AtGhostCell(const EBoundaryLocation location, Position& posInBoundaryReferenceFrame) const; 
 	double GetGradientInDirectionAndPosition(const CellIndex posIdx, const double directionAngle) const;
 
 	double GetAverageValue(const bool bExpectUniformField) const;

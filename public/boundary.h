@@ -7,18 +7,18 @@ struct Domain;
 struct Boundary
 {
     Boundary() :
-        boundaryType(EBoundaryType::NOT_SET),
+        boundaryType(EBoundaryCondition::NOT_SET),
         connectedBoundary(nullptr)
     {}
 
-    explicit Boundary(const EBoundaryType boundaryType) :
+    explicit Boundary(const EBoundaryCondition boundaryType) :
         boundaryType(boundaryType),
         connectedBoundary(nullptr)
     {}
 
     // This boundary itself:
     //Domain* domain; // The domain that this boundary is a part of
-    EBoundaryType boundaryType;
+    EBoundaryCondition boundaryType;
 
     // If it's connected to another boundary too:
     Boundary* connectedBoundary;

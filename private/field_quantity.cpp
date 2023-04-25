@@ -72,14 +72,31 @@ int FieldQuantity::At(const CellIndex &cellIndex) const
 	return (cellIndex.x + nGhostCells) + ((cellIndex.y + nGhostCells)*nX);
 }
 
-inline int FieldQuantity::AtGhostCell(const EBoundaryLocation location, const int ghostX, const int ghostY) const
+Position FieldQuantity::AtGhostCell(const EBoundaryLocation location, Position& posInBoundaryReferenceFrame) const
 {
+	/*	Note about the definition of coordinate systems along the boundaries!
+	 *	Positive axes are defined to ensure that a right-handed coordinate system is maintained and that the normals of the boundary-local coordinate systems always point inwards.
+	 * Ghost cells are defined as outward positive; so negative = positive!
+	 *
+	 *				    TOP
+	 *		 + -- > --- > --- > --- +
+	 *	L	 |			|			|	R
+	 *	E	/\			\/			\/	I
+	 *	F	 | ->				 <- |	G
+	 *	T	/\          /\			\/	H
+	 *		 |          |			|	T
+	 *		 + -- < --- < --- < --- +
+	 *				  BOTTOM
+	 *		 
+	 */
+	
 	int xOffset;
 	int yOffset;
 
 	switch (location)
 	{
 	case EBoundaryLocation::LEFT:
+		
 		xOffset = 0;
 		yOffset = nGhostCells;
 		break;

@@ -11,7 +11,7 @@ enum EInitialisationMethod
 };
 
 // Determines how the flow will interact with the boundary of the domain.
-enum EBoundaryType
+enum EBoundaryCondition
 {
 	NOT_SET,
 	SLIP, // slip-wall boundary condition (impermeable but not imposing zero velocity at the wall).

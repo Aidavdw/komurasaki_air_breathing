@@ -58,8 +58,8 @@ void SimCase::ConnectBoundaries(const int domainOneIdx, const EBoundaryLocation 
 		throw std::invalid_argument("Cannot connect two boundaries that do not have the same amount of cells.");
 	}
 
-	b1->boundaryType = EBoundaryType::CONNECTED;
-	b2->boundaryType = EBoundaryType::CONNECTED;
+	b1->boundaryType = EBoundaryCondition::CONNECTED;
+	b2->boundaryType = EBoundaryCondition::CONNECTED;
 	b1->connectedBoundary = b2;
 	b2->connectedBoundary = b1;
 }
