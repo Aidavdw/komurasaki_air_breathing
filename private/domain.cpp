@@ -100,6 +100,23 @@ int Domain::GetTotalAmountOfCells() const
 	return amountOfCells[0] * amountOfCells[1];
 }
 
+CellIndex Domain::GetOriginIndexOfBoundary(const EBoundaryLocation boundary) const
+{
+	switch (boundary)
+	{
+	case BOTTOM:
+		return {amountOfCells[0],0, TOP};
+	case LEFT:
+		return {0,0, RIGHT};
+	case RIGHT:
+		return {amountOfCells[0], amountOfCells[1], LEFT};
+	case TOP:
+		return {0, amountOfCells[1], BOTTOM};
+	default:
+		throw std::logic_error("GetGhostOrigin is not implemented for this boundary location.");
+	}
+}
+
 void Domain::GetCellSizes(const CellIndex cellPos, double xSizeOut, double ySizeOut) const
 {
 	xSizeOut = meshSpacing[0].GetCellWidth(cellPos.x);
@@ -237,22 +254,22 @@ void Domain::PopulateSlipConditionGhostCells(const EBoundaryLocation boundary)
 		{
 			// Note that for the ghost cells, the relative location in the reference frame relative to the boundary is negative, and needs to be offset by -1 as well, as 0 is the first positive cell, and not the actual zero-line.
 			const int ghostY = -yLocalIdx-1;
-			const CellIndex ghostInBoundaryLocal = {xLocalIdx, ghostY, boundary};
-			const CellIndex ghostInDomainReferenceFrame = TransformToOtherCoordinateSystem(ghostInBoundaryLocal, ghostOrigin, {0,0, TOP} );
-			const CellIndex sourceInDomainReferenceFrame = TransformToOtherCoordinateSystem({xLocalIdx, yLocalIdx, boundary}, ghostOrigin, {0,0, TOP});
+			const CellIndex ghostInBoundaryLocalReferenceFrame = {xLocalIdx, ghostY, boundary};
+			const CellIndex ghostIndex = TransformToOtherCoordinateSystem(ghostInBoundaryLocalReferenceFrame, ghostOrigin, {0,0, TOP} );
+			const CellIndex sourceIndex = TransformToOtherCoordinateSystem({xLocalIdx, yLocalIdx, boundary}, ghostOrigin, {0,0, TOP});
 			
 #ifdef _DEBUG
-			assert(ValidateCellIndex(ghostInDomainReferenceFrame, true));
-			assert(ValidateCellIndex(sourceInDomainReferenceFrame, false));
+			assert(ValidateCellIndex(ghostIndex, true));
+			assert(ValidateCellIndex(sourceIndex, false));
 #endif
 			
-			rho(ghostInDomainReferenceFrame)	=	rho(sourceInDomainReferenceFrame);
-			p(ghostInDomainReferenceFrame)		=	p(sourceInDomainReferenceFrame);
-			u(ghostInDomainReferenceFrame)		= - u(sourceInDomainReferenceFrame); // Flipped!
-			v(ghostInDomainReferenceFrame)		=   v(sourceInDomainReferenceFrame);
-			H(ghostInDomainReferenceFrame)		=	H(sourceInDomainReferenceFrame);
-			E(ghostInDomainReferenceFrame)		=	E(sourceInDomainReferenceFrame);
-			T(ghostInDomainReferenceFrame)		=	T(sourceInDomainReferenceFrame);
+			rho(ghostIndex)		=	rho(sourceIndex);
+			p(ghostIndex)		=	p(sourceIndex);
+			u(ghostIndex)		= - u(sourceIndex); // Flipped!
+			v(ghostIndex)		=   v(sourceIndex);
+			H(ghostIndex)		=	H(sourceIndex);
+			E(ghostIndex)		=	E(sourceIndex);
+			T(ghostIndex)		=	T(sourceIndex);
 		}
 	}
 }
@@ -270,22 +287,22 @@ void Domain::PopulateNoSlipConditionGhostCells(const EBoundaryLocation boundary)
 		{
 			// Note that for the ghost cells, the relative location in the reference frame relative to the boundary is negative, and needs to be offset by -1 as well, as 0 is the first positive cell, and not the actual zero-line.
 			const int ghostY = -yLocalIdx-1;
-			const CellIndex ghostInBoundaryLocal = {xLocalIdx, ghostY, boundary};
-			const CellIndex ghostInDomainReferenceFrame = TransformToOtherCoordinateSystem(ghostInBoundaryLocal, ghostOrigin, {0,0, TOP} );
-			const CellIndex sourceInDomainReferenceFrame = TransformToOtherCoordinateSystem({xLocalIdx, yLocalIdx, boundary}, ghostOrigin, {0,0, TOP});
+			const CellIndex ghostInBoundaryLocalReferenceFrame = {xLocalIdx, ghostY, boundary};
+			const CellIndex ghostIndex = TransformToOtherCoordinateSystem(ghostInBoundaryLocalReferenceFrame, ghostOrigin, {0,0, TOP} );
+			const CellIndex sourceIndex = TransformToOtherCoordinateSystem({xLocalIdx, yLocalIdx, boundary}, ghostOrigin, {0,0, TOP});
 			
 #ifdef _DEBUG
-			assert(ValidateCellIndex(ghostInDomainReferenceFrame, true));
-			assert(ValidateCellIndex(sourceInDomainReferenceFrame, false));
+			assert(ValidateCellIndex(ghostIndex, true));
+			assert(ValidateCellIndex(sourceIndex, false));
 #endif
 
-			rho(ghostInDomainReferenceFrame)	=	rho(sourceInDomainReferenceFrame);
-			p(ghostInDomainReferenceFrame)		=	p(sourceInDomainReferenceFrame);
-			u(ghostInDomainReferenceFrame)		= - u(sourceInDomainReferenceFrame);	// Flipped!
-			v(ghostInDomainReferenceFrame)		= -	v(sourceInDomainReferenceFrame);	// Flipped!
-			H(ghostInDomainReferenceFrame)		=	H(sourceInDomainReferenceFrame);
-			E(ghostInDomainReferenceFrame)		=	E(sourceInDomainReferenceFrame);
-			T(ghostInDomainReferenceFrame)		=	T(sourceInDomainReferenceFrame);
+			rho(ghostIndex)		=	rho(sourceIndex);
+			p(ghostIndex)		=	p(sourceIndex);
+			u(ghostIndex)		= - u(sourceIndex);	// Flipped!
+			v(ghostIndex)		= -	v(sourceIndex);	// Flipped!
+			H(ghostIndex)		=	H(sourceIndex);
+			E(ghostIndex)		=	E(sourceIndex);
+			T(ghostIndex)		=	T(sourceIndex);
 		}
 	}
 }
@@ -328,10 +345,10 @@ void Domain::PopulateConnectedGhostCells(const EBoundaryLocation boundary)
 #endif
 
 	const Domain* otherDomain = boundaries.at(boundary).connectedBoundary->domain;
+	const bool bVertical = (boundary == LEFT || boundary == RIGHT);
 
 #ifdef _DEBUG
 	// Check if they have the same amount of cells.
-	const bool bVertical = (boundary == LEFT || boundary == RIGHT);
 	assert(amountOfCells[bVertical] != otherDomain->amountOfCells[bVertical]);
 #endif
 
@@ -350,7 +367,7 @@ void Domain::PopulateConnectedGhostCells(const EBoundaryLocation boundary)
 	 */
 
 	CellIndex ghostOrigin = GetOriginIndexOfBoundary(boundary);
-	CellIndex otherGhostOrigin = GetOriginIndexOfBoundary(Opposite(boundary));
+	CellIndex complementOrigin = otherDomain->GetOriginIndexOfBoundary(Opposite(boundary));
 	auto extent = GetGhostDimensions(boundary);
 
 	// Generally constant in the local x-direction, so y outer loop.
@@ -358,8 +375,28 @@ void Domain::PopulateConnectedGhostCells(const EBoundaryLocation boundary)
 	{
 		for (int xLocalIdx = 0; xLocalIdx < extent.first; xLocalIdx++)
 		{
-			// Note that for the ghost cells, the relative location in the reference frame relative to the boundary is negative, and needs to be offset by -1 as well, as 0 is the first positive cell, and not the actual zero-line.
-			const int ghostY = -yLocalIdx-1;
+			// Getting index for the ghost cell to write to
+			const CellIndex ghostInBoundaryLocalReferenceFrame = {xLocalIdx, -yLocalIdx-1, boundary};
+			const CellIndex ghostIndex = TransformToOtherCoordinateSystem(ghostInBoundaryLocalReferenceFrame, ghostOrigin, {0,0, TOP} );
+	
+			// Getting index for the cell to read from. See above ASCII sketch, as the origin is on the opposite side, subtract total amount of cells from current index to get the complement.
+			int complementXIndex = otherDomain->amountOfCells[bVertical] - xLocalIdx;
+			const CellIndex sourceIndexInOppositeBoundaryRelative = {complementXIndex, yLocalIdx, Opposite(boundary)};
+			const CellIndex sourceIndex = TransformToOtherCoordinateSystem(sourceIndexInOppositeBoundaryRelative, complementOrigin, {0,0, TOP});
+			
+#ifdef _DEBUG
+			assert(ValidateCellIndex(ghostIndex, true));
+			assert(otherDomain->ValidateCellIndex(sourceIndex, false));
+#endif
+
+			rho(ghostIndex)		=	otherDomain->rho.GetAt(sourceIndex);
+			p(ghostIndex)		=	otherDomain->p.GetAt(sourceIndex);
+			u(ghostIndex)		=   otherDomain->u.GetAt(sourceIndex);	
+			v(ghostIndex)		=  	otherDomain->v.GetAt(sourceIndex);	
+			H(ghostIndex)		=	otherDomain->H.GetAt(sourceIndex);
+			E(ghostIndex)		=	otherDomain->E.GetAt(sourceIndex);
+			T(ghostIndex)		=	otherDomain->T.GetAt(sourceIndex);
+			
 		}
 	}
 }
@@ -376,23 +413,6 @@ bool Domain::ValidateCellIndex(const CellIndex cellIndex, const bool bAllowGhost
 		return false;
 	
 	return true;
-}
-
-CellIndex Domain::GetOriginIndexOfBoundary(const EBoundaryLocation boundary)
-{
-	switch (boundary)
-	{
-	case BOTTOM:
-		return {amountOfCells[0],0, TOP};
-	case LEFT:
-		return {0,0, RIGHT};
-	case RIGHT:
-		return {amountOfCells[0], amountOfCells[1], LEFT};
-	case TOP:
-		return {0, amountOfCells[1], BOTTOM};
-	default:
-		throw std::logic_error("GetGhostOrigin is not implemented for this boundary location.");
-	}
 }
 
 std::pair<int, int> Domain::GetGhostDimensions(EBoundaryLocation boundary)

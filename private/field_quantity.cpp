@@ -63,6 +63,11 @@ double FieldQuantity::GetInterpolatedValueAtPosition(const Position atPosition) 
 	return interpolatedValue;
 }
 
+double FieldQuantity::GetAt(const CellIndex& cellIndex) const
+{
+	return main.GetAt(cellIndex.x, cellIndex.y);
+}
+
 inline int FieldQuantity::At(const int xIdx, const int yIdx) const
 {
 	return (xIdx + nGhostCells) + ((yIdx + nGhostCells)*nX);

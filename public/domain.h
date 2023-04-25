@@ -52,7 +52,7 @@ struct Domain
 	void ConnectBoundary(const EBoundaryLocation location, Domain* otherDomain);
 
 	int GetTotalAmountOfCells() const;
-	CellIndex GetOriginIndexOfBoundary(const EBoundaryLocation boundary);
+	CellIndex GetOriginIndexOfBoundary(const EBoundaryLocation boundary) const;
 	// Gets the dimensions of the part of the ghost cells as described in the GhostOrigin reference frame.
 	std::pair<int,int> GetGhostDimensions(EBoundaryLocation boundary);
 

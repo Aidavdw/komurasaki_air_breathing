@@ -69,6 +69,8 @@ struct FieldQuantity
 		return main[At(cellIndex.x, cellIndex.y)];
 	}
 
+	inline double GetAt(const CellIndex& cellIndex) const;
+
 	inline int At(const int xIdx, const int yIdx) const; // Helper function for getting the flattened index in the internal arrays for a certain index. Use like buffer_name[At(x,y)].
 	inline int At(const CellIndex& cellIndex) const;
 
