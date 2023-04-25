@@ -166,6 +166,7 @@ double Domain::SpecificHeatRatio() const
 
 void Domain::UpdateGhostCells()
 {
+	// These can all be parallelised!
 	for (const auto& it : boundaries)
 	{
 		const EBoundaryLocation location = it.first();

@@ -96,11 +96,20 @@ int main()
                             // Second, third, etc. iterations...
                             domain.CopyFieldQuantitiesToBuffer(EFieldQuantityBuffer::NEXT_ITER, EFieldQuantityBuffer::RUNGE_KUTTA);
                         }
+                        
+                        // A: Unsure how these are used. For now commented out, might have to re-add later.
                         // In addition, reset "sonicPoints" arrays
-                        sonic_x[domainNumber][xIndex][yIndex]=0;
-                        sonic_y[domainNumber][xIndex][yIndex]=0;
+                        //sonic_x[domainNumber][xIndex][yIndex]=0;
+                        //sonic_y[domainNumber][xIndex][yIndex]=0;
                     }
                 }
+            }
+
+            // Set the ghost cells values. Note that this is deliberately done in a separate loop so that the runge-kutta operation is sure to be finished before reading into ghost cells.
+            for (auto& domainIter : simCase.domains)
+            {
+                Domain& domain = domainIter.second;
+                domain.UpdateGhostCells();
             }
 
             for (IValve& valve : simCase.valves)
@@ -113,9 +122,7 @@ int main()
                 valve.GetMassFlowRate();
             }
 
-            /* GENERATE VALUES IN GHOST CELLS BASED ON PREVIOUS ITERATION */
-            update_ghost_cells(NDOMAIN,NXtot,NYtot,x,y,xold,yold,rhoRK,uRK,vRK,pRK,HRK,ERK,TRK,B_LOC,B_TYPE,R0,NGHOST,GAMMA,R,P0,T0,M0);
-            
+            // LEFT OFF
             /* IDENTIFY SHOCK FRONTS IN EACH DIRECTION BEFORE PERFORMING AUSM-DV FLUX SPLITTING */
             for (int domainIndex = 0; domainIndex < NDOMAIN; ++domainIndex)
             {
