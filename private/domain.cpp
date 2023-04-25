@@ -125,10 +125,11 @@ CellIndex Domain::GetOriginIndexOfBoundary(const EBoundaryLocation boundary) con
 	}
 }
 
-void Domain::GetCellSizes(const CellIndex cellPos, double xSizeOut, double ySizeOut) const
+std::pair<double, double> Domain::GetCellSizes(const CellIndex cellPos) const
 {
-	xSizeOut = meshSpacing[0].GetCellWidth(cellPos.x);
-	ySizeOut = meshSpacing[1].GetCellWidth(cellPos.y);
+	double xSizeOut = meshSpacing[0].GetCellWidth(cellPos.x);
+	double ySizeOut = meshSpacing[1].GetCellWidth(cellPos.y);
+	return std::make_pair(xSizeOut, ySizeOut);
 }
 
 void Domain::CopyFieldQuantitiesToBuffer(const EFieldQuantityBuffer from, const EFieldQuantityBuffer to)

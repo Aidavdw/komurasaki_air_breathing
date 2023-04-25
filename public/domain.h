@@ -57,7 +57,7 @@ struct Domain
 	std::pair<int,int> GetGhostDimensions(EBoundaryLocation boundary);
 
 	// Shorthand function to get the cell sizes at a certain position.
-	void GetCellSizes(const CellIndex cellPos, double xSizeOut, double ySizeOut) const;
+	std::pair<double, double> GetCellSizes(const CellIndex cellPos) const;
 
 	void CopyFieldQuantitiesToBuffer(const EFieldQuantityBuffer from, const EFieldQuantityBuffer to);
 

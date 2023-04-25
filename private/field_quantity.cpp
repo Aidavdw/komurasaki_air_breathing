@@ -42,14 +42,14 @@ double FieldQuantity::GetInterpolatedValueAtPosition(const Position atPosition) 
 	const CellIndex horizontalInterpolateTarget = (distanceFromCellCenter.x < 0) ? cellIndex + CellIndex{1,0} : cellIndex + CellIndex{-1, 0} ;
 	const CellIndex verticalInterpolateTarget = (distanceFromCellCenter.y < 0) ? cellIndex + CellIndex{0,1} : cellIndex + CellIndex{0, -1} ;
 
-	double sizeX, sizeXInterpolateTarget, sizeY, sizeYInterpolateTarget;
-	double discard;
-	domain->GetCellSizes(cellIndex, sizeX, sizeY);
-	domain->GetCellSizes(horizontalInterpolateTarget, sizeXInterpolateTarget, discard);
-	domain->GetCellSizes(verticalInterpolateTarget, discard, sizeYInterpolateTarget);
+	//double sizeX, sizeXInterpolateTarget, sizeY, sizeYInterpolateTarget;
+	//double discard;
+	std::pair<double, double> cellSize = domain->GetCellSizes(cellIndex);
+	std::pair<double, double> xInterpolateSize = domain->GetCellSizes(horizontalInterpolateTarget);
+	std::pair<double, double> yInterpolateSize = domain->GetCellSizes(verticalInterpolateTarget);
 
-	double deltaHorizontal = At(horizontalInterpolateTarget) + At(cellIndex) / (0.5*(sizeX + sizeXInterpolateTarget)) - At(cellIndex);
-	double deltaVertical = At(verticalInterpolateTarget) + At(cellIndex) / (0.5*(sizeY + sizeYInterpolateTarget)) - At(cellIndex);
+	double deltaHorizontal = At(horizontalInterpolateTarget) + At(cellIndex) / (0.5*(cellSize.first + xInterpolateSize.first)) - At(cellIndex);
+	double deltaVertical = At(verticalInterpolateTarget) + At(cellIndex) / (0.5*(cellSize.second + yInterpolateSize.second)) - At(cellIndex);
 	double interpolatedValue = At(cellIndex) + deltaHorizontal + deltaVertical;
 		
 	#ifdef _DEBUG
