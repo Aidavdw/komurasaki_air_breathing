@@ -348,7 +348,7 @@ void ReedValve::CalculateAerodynamicDamping(std::vector<double> &forceVectorOut)
 
 double ReedValve::FukanariReferenceArea() const
 {
-	if (beamProfile_ != STRAIGHTDOUBLETAPERED)
+	if (beamProfile_ != STRAIGHT_DOUBLE_TAPERED)
 	{
 		throw std::logic_error("Fukanari's reference area is only confirmed for straight double tapered reed valves. Maybe the difference is small, but this is for your information. Ignore this message if you know what you're doing.");
 	}

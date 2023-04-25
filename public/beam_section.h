@@ -3,7 +3,7 @@
 // Describes what the beam looks like; is it straight? is it double tapered?
 enum EBeamProfile
 {
-	STRAIGHTDOUBLETAPERED // Has variable width (b) and variable thickness/height (h). Is exactly straight.
+	STRAIGHT_DOUBLE_TAPERED // Has variable width (b) and variable thickness/height (h). Is exactly straight.
 };
 
 // Represents the properties of a beam section in a fem simulation. Note that it does not say anything about its deformation state- these are all just constant properties.

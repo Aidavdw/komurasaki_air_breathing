@@ -10,8 +10,8 @@ enum EMeshSpacingType
 {
 	CONSTANT, // Ignores everything, just assumes that all the cells are equally sized and distributed over the domain.
 	LINEAR, // Scales the cells linearly from the left to the right. Ignores the centre parameter.
-	PARABOLIC, // Sets cell sizes at the edges and at the center, and fits a parabolic function between them.
-	EXPONENTIAL // Exponentially scales between the sides. Ignores the centre parameter.
+	PARABOLIC, // CURRENTLY UNIMPLEMENTED. Sets cell sizes at the edges and at the center, and fits a parabolic function between them.
+	EXPONENTIAL // CURRENTLY UNIMPLEMENTED. Exponentially scales between the sides. Ignores the centre parameter.
 
 };
 

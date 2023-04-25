@@ -27,7 +27,7 @@ BeamSection::BeamSection(const double length, const double width[2], const doubl
 	// Calculating the other properties; Right now, only the top surface area.
 	switch (beamProfile)
 	{
-	case EBeamProfile::STRAIGHTDOUBLETAPERED:
+	case EBeamProfile::STRAIGHT_DOUBLE_TAPERED:
 		topOrBottomSurfaceArea = 0.5 * (b[1] + b[0]) * length;
 		break;
 	default:

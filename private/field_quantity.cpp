@@ -19,8 +19,8 @@ FieldQuantity::FieldQuantity(Domain* domain, const int sizeX, const int sizeY, c
 	TBuffer = TwoDimensionalArray(sizeX + nGhostCells, sizeY + nGhostCells, initialValue);
 
 	bufferMap.insert({ EFieldQuantityBuffer::MAIN, main });
-	bufferMap.insert({ EFieldQuantityBuffer::RUNGEKUTTA, rungeKuttaBuffer });
-	bufferMap.insert({ EFieldQuantityBuffer::NEXTITER, TBuffer });
+	bufferMap.insert({ EFieldQuantityBuffer::RUNGE_KUTTA, rungeKuttaBuffer });
+	bufferMap.insert({ EFieldQuantityBuffer::NEXT_ITER, TBuffer });
 }
 
 void FieldQuantity::SetAllToValue(const double value, const EFieldQuantityBuffer bufferToWriteTo)

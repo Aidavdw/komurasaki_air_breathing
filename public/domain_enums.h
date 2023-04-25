@@ -5,9 +5,9 @@
 enum EInitialisationMethod
 {
 	ZERO,						// Every value will be set to 0
-	AMBIENTCONDITIONS,			// Propogate the values set in SimCase, and make this domain fit those.
-	FROMINPUTDATA,				// Read from input data (file or interface)
-	FROMCHAPMANJOUGETSOLUTION	// Solve the Chapman Jouget solution for this domain, considering it the engine tube.
+	AMBIENT_CONDITIONS,			// Propagate the values set in SimCase, and make this domain fit those.
+	FROM_INPUT_DATA,				// Read from input data (file or interface)
+	FROM_CHAPMAN_JOUGET_SOLUTION	// Solve the Chapman Jouget solution for this domain, considering it the engine tube.
 };
 
 // Determines how the flow will interact with the boundary of the domain.
@@ -17,8 +17,8 @@ enum EBoundaryCondition
 	SLIP, // slip-wall boundary condition (impermeable but not imposing zero velocity at the wall).
 	NO_SLIP, // no-slip-wall boundary condition setting 0 velocity at the wall (viscous condition).
 	CONNECTED, // Denotes a connection to another domain
-	SUPERSONIC_INLET, // Supersonic inlet condition (not able to deal with backflow). Formerly supI
-	SUPERSONIC_OUTLET //  supersonic outlet condition (not able to deal with backflow). Formerly supO
+	SUPERSONIC_INLET, // CURRENTLY UNIMPLEMENTED. Supersonic inlet condition (not able to deal with backflow). Formerly supI
+	SUPERSONIC_OUTLET // CURRENT UNIMPLEMENTED. supersonic outlet condition (not able to deal with backflow). Formerly supO
 };
 
 

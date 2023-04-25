@@ -79,10 +79,10 @@ void SimCase::ApplyInitialConditions()
 		Domain& domain = domainIter.second;
 		switch (domain.initialisationMethod)
 		{
-		case EInitialisationMethod::AMBIENTCONDITIONS:
+		case EInitialisationMethod::AMBIENT_CONDITIONS:
 			domain.SetToAmbientConditions(ambientTemperature, ambientStaticPressure, 0, 0, R, GAMMA);
 			break;
-		case EInitialisationMethod::FROMCHAPMANJOUGETSOLUTION:
+		case EInitialisationMethod::FROM_CHAPMAN_JOUGET_SOLUTION:
 			// TODO: Move logic for determining tube length and radius to this level to allow for standing-up rockets too.
 			const double tubeLength = domain.size[0];
 			auto detonationConditions = SolveChapmanJougetDetonationProblem(ambientTemperature, ambientStaticPressure, ETA, S0, R, GAMMA, tubeLength, domain.size[1]);

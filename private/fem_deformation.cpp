@@ -43,7 +43,7 @@ FemDeformation::FemDeformation():
 	amountOfNodes(0),
 	N_DOF(0),
 	dt(0),
-	beamProfile_(EBeamProfile::STRAIGHTDOUBLETAPERED),
+	beamProfile_(EBeamProfile::STRAIGHT_DOUBLE_TAPERED),
 	freeLength(0),
 	fixedLength(0),
 	rayleighDampingAlpha(0),
@@ -125,7 +125,7 @@ void FemDeformation::CreateBeamSections()
 			// Handling how the free element is created based on the selected profile.
 			switch (beamProfile_)
 			{
-			case STRAIGHTDOUBLETAPERED:
+			case STRAIGHT_DOUBLE_TAPERED:
 				rightWidth = rootWidth + (tipWidth - rootWidth)*ratioCovered;
 				rightThickness = rootThickness + (tipThickness - rootThickness)*ratioCovered;
 				break;

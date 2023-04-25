@@ -89,12 +89,12 @@ int main()
                         if(rungeKuttaIterationNumber==0)
                         {
                             // First Runge-Kutta iteration
-                            domain.CopyFieldQuantitiesToBuffer(EFieldQuantityBuffer::MAIN, EFieldQuantityBuffer::RUNGEKUTTA);
+                            domain.CopyFieldQuantitiesToBuffer(EFieldQuantityBuffer::MAIN, EFieldQuantityBuffer::RUNGE_KUTTA);
                         }
                         else
                         {
                             // Second, third, etc. iterations...
-                            domain.CopyFieldQuantitiesToBuffer(EFieldQuantityBuffer::NEXTITER, EFieldQuantityBuffer::RUNGEKUTTA);
+                            domain.CopyFieldQuantitiesToBuffer(EFieldQuantityBuffer::NEXT_ITER, EFieldQuantityBuffer::RUNGE_KUTTA);
                         }
                         // In addition, reset "sonicPoints" arrays
                         sonic_x[domainNumber][xIndex][yIndex]=0;

@@ -183,10 +183,7 @@ void Domain::UpdateGhostCells()
 				PopulateNoSlipConditionGhostCells(location);
 				break;
 			case CONNECTED:
-				break;
-			case SUPERSONIC_INLET:
-				break;
-			case SUPERSONIC_OUTLET:
+				PopulateConnectedGhostCells(location);
 				break;
 		default:
 				throw std::logic_error("Updating ghost cells is not implemented for this type of boundary.");
