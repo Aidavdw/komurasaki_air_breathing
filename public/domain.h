@@ -49,6 +49,7 @@ struct Domain
 
 
 	void SetBoundaryType(const EBoundaryLocation location, const EBoundaryCondition type);
+	void ConnectBoundary(const EBoundaryLocation location, Domain* otherDomain);
 
 	int GetTotalAmountOfCells() const;
 	CellIndex GetOriginIndexOfBoundary(const EBoundaryLocation boundary);

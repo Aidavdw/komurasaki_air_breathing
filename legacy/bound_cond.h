@@ -14,6 +14,7 @@ void connected_condition(int nx1,int nx2,int ny1,int ny2,double **rho1,double **
             #pragma omp parallel for schedule(static)
             for (int i = nghost; i < ny1-nghost; ++i)
             {
+                // Literally just lines them up.
                 rho1[0][i]=rho2[nx2-nghost-2][i];
                 u1[0][i]=u2[nx2-nghost-2][i];
                 v1[0][i]=v2[nx2-nghost-2][i];

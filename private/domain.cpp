@@ -69,6 +69,32 @@ void Domain::SetBoundaryType(const EBoundaryLocation location, const EBoundaryCo
 	boundaries[location] = Boundary(type);
 }
 
+void Domain::ConnectBoundary(const EBoundaryLocation location, Domain* otherDomain)
+{
+	Boundary& thisBoundary = boundaries.at(location);
+	// Validate the boundary on this domain 
+	if (thisBoundary.boundaryType != NOT_SET)
+		throw std::logic_error("This boundary has already been assigned another value");
+	if (thisBoundary.connectedBoundary != nullptr)
+		throw std::logic_error("This boundary has already been connected with another one!");
+
+	// Get the boundary on the other domain.
+	// Since we're only working with rectangular domains, a boundary will always connect to its opposite.
+	Boundary& otherBoundary = otherDomain->boundaries.at(Opposite(location));
+
+	// Validate the boundary on the other domain
+	if (otherBoundary.boundaryType != NOT_SET)
+		throw std::logic_error("This boundary has already been assigned another value");
+	if (otherBoundary.connectedBoundary != nullptr)
+		throw std::logic_error("This boundary has already been connected with another one!");
+
+	// All good, connect both of them.
+	thisBoundary.boundaryType = CONNECTED;
+	thisBoundary.connectedBoundary = &otherBoundary;
+	otherBoundary.boundaryType = CONNECTED;
+	otherBoundary.connectedBoundary = &thisBoundary;
+}
+
 int Domain::GetTotalAmountOfCells() const
 {
 	return amountOfCells[0] * amountOfCells[1];
@@ -211,20 +237,22 @@ void Domain::PopulateSlipConditionGhostCells(const EBoundaryLocation boundary)
 		{
 			// Note that for the ghost cells, the relative location in the reference frame relative to the boundary is negative, and needs to be offset by -1 as well, as 0 is the first positive cell, and not the actual zero-line.
 			const int ghostY = -yLocalIdx-1;
+			const CellIndex ghostInBoundaryLocal = {xLocalIdx, ghostY, boundary};
+			const CellIndex ghostInDomainReferenceFrame = TransformToOtherCoordinateSystem(ghostInBoundaryLocal, ghostOrigin, {0,0, TOP} );
+			const CellIndex sourceInDomainReferenceFrame = TransformToOtherCoordinateSystem({xLocalIdx, yLocalIdx, boundary}, ghostOrigin, {0,0, TOP});
 			
 #ifdef _DEBUG
-			const CellIndex posInBoundaryLocalCoordinate = {xLocalIdx, ghostY, Opposite(boundary)};
-			const CellIndex indexInDomainReferenceFrame = TransformToOtherCoordinateSystem(posInBoundaryLocalCoordinate, ghostOrigin, {0,0, TOP} );
-			assert(ValidateCellIndex(indexInDomainReferenceFrame, true));
+			assert(ValidateCellIndex(ghostInDomainReferenceFrame, true));
+			assert(ValidateCellIndex(sourceInDomainReferenceFrame, false));
 #endif
 			
-			rho(xLocalIdx,ghostY , MAIN)	=	rho(xLocalIdx, yLocalIdx, MAIN);
-			p(xLocalIdx, ghostY, MAIN)		=	p(xLocalIdx, yLocalIdx, MAIN);
-			u(xLocalIdx, ghostY, MAIN)		= - u(xLocalIdx, yLocalIdx, MAIN); // Flipped!
-			v(xLocalIdx, ghostY, MAIN)		=	v(xLocalIdx, yLocalIdx, MAIN);
-			H(xLocalIdx, ghostY, MAIN)		=	H(xLocalIdx, yLocalIdx, MAIN);
-			E(xLocalIdx, ghostY, MAIN)		=	E(xLocalIdx, yLocalIdx, MAIN);
-			T(xLocalIdx, ghostY, MAIN)		=	T(xLocalIdx, yLocalIdx, MAIN);
+			rho(ghostInDomainReferenceFrame)	=	rho(sourceInDomainReferenceFrame);
+			p(ghostInDomainReferenceFrame)		=	p(sourceInDomainReferenceFrame);
+			u(ghostInDomainReferenceFrame)		= - u(sourceInDomainReferenceFrame); // Flipped!
+			v(ghostInDomainReferenceFrame)		=   v(sourceInDomainReferenceFrame);
+			H(ghostInDomainReferenceFrame)		=	H(sourceInDomainReferenceFrame);
+			E(ghostInDomainReferenceFrame)		=	E(sourceInDomainReferenceFrame);
+			T(ghostInDomainReferenceFrame)		=	T(sourceInDomainReferenceFrame);
 		}
 	}
 }
@@ -242,20 +270,96 @@ void Domain::PopulateNoSlipConditionGhostCells(const EBoundaryLocation boundary)
 		{
 			// Note that for the ghost cells, the relative location in the reference frame relative to the boundary is negative, and needs to be offset by -1 as well, as 0 is the first positive cell, and not the actual zero-line.
 			const int ghostY = -yLocalIdx-1;
+			const CellIndex ghostInBoundaryLocal = {xLocalIdx, ghostY, boundary};
+			const CellIndex ghostInDomainReferenceFrame = TransformToOtherCoordinateSystem(ghostInBoundaryLocal, ghostOrigin, {0,0, TOP} );
+			const CellIndex sourceInDomainReferenceFrame = TransformToOtherCoordinateSystem({xLocalIdx, yLocalIdx, boundary}, ghostOrigin, {0,0, TOP});
 			
 #ifdef _DEBUG
-			const CellIndex posInBoundaryLocalCoordinate = {xLocalIdx, ghostY, Opposite(boundary)};
-			const CellIndex indexInDomainReferenceFrame = TransformToOtherCoordinateSystem(posInBoundaryLocalCoordinate, ghostOrigin, {0,0, TOP} );
-			assert(ValidateCellIndex(indexInDomainReferenceFrame, true));
+			assert(ValidateCellIndex(ghostInDomainReferenceFrame, true));
+			assert(ValidateCellIndex(sourceInDomainReferenceFrame, false));
 #endif
-			
-			rho(xLocalIdx,ghostY , MAIN)	=	rho(xLocalIdx, yLocalIdx, MAIN);
-			p(xLocalIdx, ghostY, MAIN)		=	p(xLocalIdx, yLocalIdx, MAIN);
-			u(xLocalIdx, ghostY, MAIN)		= - u(xLocalIdx, yLocalIdx, MAIN); // Flipped!
-			v(xLocalIdx, ghostY, MAIN)		= -	v(xLocalIdx, yLocalIdx, MAIN);	// Flipped!
-			H(xLocalIdx, ghostY, MAIN)		=	H(xLocalIdx, yLocalIdx, MAIN);
-			E(xLocalIdx, ghostY, MAIN)		=	E(xLocalIdx, yLocalIdx, MAIN);
-			T(xLocalIdx, ghostY, MAIN)		=	T(xLocalIdx, yLocalIdx, MAIN);
+
+			rho(ghostInDomainReferenceFrame)	=	rho(sourceInDomainReferenceFrame);
+			p(ghostInDomainReferenceFrame)		=	p(sourceInDomainReferenceFrame);
+			u(ghostInDomainReferenceFrame)		= - u(sourceInDomainReferenceFrame);	// Flipped!
+			v(ghostInDomainReferenceFrame)		= -	v(sourceInDomainReferenceFrame);	// Flipped!
+			H(ghostInDomainReferenceFrame)		=	H(sourceInDomainReferenceFrame);
+			E(ghostInDomainReferenceFrame)		=	E(sourceInDomainReferenceFrame);
+			T(ghostInDomainReferenceFrame)		=	T(sourceInDomainReferenceFrame);
+		}
+	}
+}
+
+void Domain::PopulateConnectedGhostCells(const EBoundaryLocation boundary)
+{
+	/*
+	 * Consider this slice for two connected domains. In this example, there are 2 ghost cells, and the domain is 1 cell thick in the axis that it is not connected to.
+	 * The LEFT side of domain 1 is connected to the RIGHT side of domain 2
+	 * Note that in reality, these two slices are physically in the same location, but for this drawing they have been put on top of eachother (to visualise better).
+	 * Populating the ghost cells is done by taking the values from the connected domain's actual values, and putting them in the ghost cells of this domain.
+	 * this means that, for domain 1: (n-2) -> G1; (n-1) -> G0
+	 * conversely, for domain 2: 1 -> G1; 0 -> G2
+	 * 
+	 * 
+	 *			Domain 2
+	 * -----------------------------------------+
+	 *		n-3	|	n-2	|	n-1	||	G0	|	G1	|
+	 *			|		|		||		|		|
+	 * ---------+-------+-------+-------+-------+-------------------
+	 *			|	G1	|	G0	||	0	|	1	|	2
+	 *			|		|		||		|		|
+	 *			+-------+-------+-------+-------+-------------------
+	 *									Domain 1
+	 *
+	 *					 		y	(y-datum coincides at the bottom left of cell 0).
+	 *					 		|	domain reference frame
+	 *					 		+ -- x
+	 */
+
+	// Validate that this is in fact a connected boundary
+	if (boundaries.at(boundary).boundaryType != CONNECTED || boundaries.at(boundary).connectedBoundary == nullptr)
+		throw std::logic_error("This boundary has not been connected properly.");
+
+#ifdef _DEBUG
+	// Also check the opposite boundary
+	Boundary* otherBoundary = boundaries.at(boundary).connectedBoundary;
+	if (otherBoundary->boundaryType != CONNECTED || otherBoundary->connectedBoundary != &boundaries.at(boundary))
+		throw std::logic_error("The boundary is only properly connected one way!");
+#endif
+
+	const Domain* otherDomain = boundaries.at(boundary).connectedBoundary->domain;
+
+#ifdef _DEBUG
+	// Check if they have the same amount of cells.
+	const bool bVertical = (boundary == LEFT || boundary == RIGHT);
+	assert(amountOfCells[bVertical] != otherDomain->amountOfCells[bVertical]);
+#endif
+
+	/* Note that the coordinate systems' origins and positive axis directions are in opposite directions.
+	 * This is both for the x coordinate and the y coordinate, as both are right-handed
+	 * 
+	 *	Domain 2		Domain 1
+	 *
+	 *  --- n - +		+ - 0 ---
+	 *			|		|
+	 *		2 	+		+   1
+	 *			|		|
+	 *		1	+		+   2
+	 *			|		|
+	 *	---	0 -	+		+ - n ---
+	 */
+
+	CellIndex ghostOrigin = GetOriginIndexOfBoundary(boundary);
+	CellIndex otherGhostOrigin = GetOriginIndexOfBoundary(Opposite(boundary));
+	auto extent = GetGhostDimensions(boundary);
+
+	// Generally constant in the local x-direction, so y outer loop.
+	for (int yLocalIdx = 0; yLocalIdx < extent.second; yLocalIdx++)
+	{
+		for (int xLocalIdx = 0; xLocalIdx < extent.first; xLocalIdx++)
+		{
+			// Note that for the ghost cells, the relative location in the reference frame relative to the boundary is negative, and needs to be offset by -1 as well, as 0 is the first positive cell, and not the actual zero-line.
+			const int ghostY = -yLocalIdx-1;
 		}
 	}
 }

@@ -8,12 +8,14 @@ struct Boundary
 {
     Boundary() :
         boundaryType(EBoundaryCondition::NOT_SET),
-        connectedBoundary(nullptr)
+        connectedBoundary(nullptr),
+        domain(nullptr)
     {}
 
     explicit Boundary(const EBoundaryCondition boundaryType) :
         boundaryType(boundaryType),
-        connectedBoundary(nullptr)
+        connectedBoundary(nullptr),
+        domain(nullptr)
     {}
 
     // This boundary itself:
@@ -22,4 +24,5 @@ struct Boundary
 
     // If it's connected to another boundary too:
     Boundary* connectedBoundary;
+    Domain* domain;
 };

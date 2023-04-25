@@ -50,6 +50,25 @@ struct FieldQuantity
 		return buf[At(xIdx, yIdx)];
 	}
 
+	// Shorthand overloaded accessor for main buffer.
+	inline double& operator () (const int xIdx, const int yIdx)
+	{
+		return main[At(xIdx, yIdx)];
+	}
+
+	// operator overloaded accessor. Note that this is not the fastest way to set, so if possible do that directly on the 2d arrays level.
+	inline double& operator () (const CellIndex& cellIndex, const EFieldQuantityBuffer buffer)
+	{
+		auto& buf = bufferMap.at(buffer);
+		return buf[At(cellIndex.x, cellIndex.y)];
+	}
+
+	// Shorthand overloaded accessor for main buffer.
+	inline double& operator () (const CellIndex& cellIndex)
+	{
+		return main[At(cellIndex.x, cellIndex.y)];
+	}
+
 	inline int At(const int xIdx, const int yIdx) const; // Helper function for getting the flattened index in the internal arrays for a certain index. Use like buffer_name[At(x,y)].
 	inline int At(const CellIndex& cellIndex) const;
 
