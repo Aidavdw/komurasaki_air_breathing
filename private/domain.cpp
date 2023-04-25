@@ -1,7 +1,6 @@
 #include "domain.h"
 #include "sim_case.h"
 #include <stdexcept>
-#include <algorithm>
 #include <cassert>
 
 
@@ -88,6 +87,15 @@ void Domain::ConnectBoundary(const EBoundaryLocation location, Domain* otherDoma
 	if (otherBoundary.connectedBoundary != nullptr)
 		throw std::logic_error("This boundary has already been connected with another one!");
 
+	// Make sure they're the same size and have the same amount of cells. Although the size is not a numerical necessity, it's still a physical one.
+	const bool bVertical = (location == LEFT || location == RIGHT);
+	if (amountOfCells[bVertical] != otherDomain->amountOfCells[bVertical])
+		throw std::logic_error("Cannot connect two boundaries that have a different number of cells");
+	if (!IsCloseToZero(size[bVertical] - otherDomain->size[bVertical]))
+		throw std::logic_error("Cannot connect two boundaries that have a different physical size. Though numerically admissable, physically impossible.");
+	if (!(meshSpacing[bVertical] == otherDomain->meshSpacing[bVertical]))
+		throw std::logic_error("Cannot connect two boundaries that have a different spacing.");
+	
 	// All good, connect both of them.
 	thisBoundary.boundaryType = CONNECTED;
 	thisBoundary.connectedBoundary = &otherBoundary;

@@ -1,6 +1,8 @@
 #pragma once
 #include <limits>
 #include <vector>
+
+#include "AuxFunctions.h"
 struct Domain;
 
 
@@ -33,6 +35,11 @@ struct MeshSpacing
 	int amountOfElements;
 
 	double GetCellWidth(const int i) const;
+
+	bool operator== (const MeshSpacing& other) const
+	{
+		return (IsCloseToZero(left - other.left) && IsCloseToZero(right - other.right) && IsCloseToZero(length - other.length) && amountOfElements == other.amountOfElements);
+	}
 
 private:
 	void FitSpacingToParameters();
