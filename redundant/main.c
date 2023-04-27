@@ -20,15 +20,15 @@
 #include <sys/stat.h>   // To create directories
 
 #include "colors.h"      // Colors for use in terminal
-#include "parameters.h"  // List of parameters specified by user
-#include "functions.h"   // General functions
+#include "legacy/parameters.h"  // List of parameters specified by user
+#include "legacy/functions.h"   // General functions
 #include "initial.h"     // Initial conditions suitable for each case
-#include "muscl.h"       // MUSCL interpolation
-#include "ausm.h"        // AUSM scheme
+#include "legacy/muscl.h"       // MUSCL interpolation
+#include "legacy/ausm.h"        // AUSM scheme
 #include "microwave.h"   // Microwave heating and MSD theory
-#include "export.h"      // Export functions
-#include "bound_cond.h"  // Boundary conditions
-#include "fem_model.h"   // FEM model of the reed valve
+#include "legacy/export.h"      // Export functions
+#include "legacy/bound_cond.h"  // Boundary conditions
+#include "legacy/fem_model.h"   // FEM model of the reed valve
 
 #include "sim_case.h"
 #include "case_det_tube.cpp" // Temporary hard-code of specific case implementation

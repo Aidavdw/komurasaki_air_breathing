@@ -19,13 +19,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="legacy\ausm.h" />
-    <ClInclude Include="legacy\bound_cond.h" />
-    <ClInclude Include="legacy\export.h" />
-    <ClInclude Include="legacy\fem_model.h" />
-    <ClInclude Include="legacy\functions.h" />
-    <ClInclude Include="legacy\muscl.h" />
-    <ClInclude Include="legacy\parameters.h" />
     <ClInclude Include="public\2dArray.h" />
     <ClInclude Include="public\AuxFunctions.h" />
     <ClInclude Include="public\beam_section.h" />
@@ -37,6 +30,13 @@
     <ClInclude Include="public\field_quantity.h" />
     <ClInclude Include="public\gradient_descent.h" />
     <ClInclude Include="public\index2d.h" />
+    <ClInclude Include="public\legacy\ausm.h" />
+    <ClInclude Include="public\legacy\bound_cond.h" />
+    <ClInclude Include="public\legacy\export.h" />
+    <ClInclude Include="public\legacy\fem_model.h" />
+    <ClInclude Include="public\legacy\functions.h" />
+    <ClInclude Include="public\legacy\muscl.h" />
+    <ClInclude Include="public\legacy\parameters.h" />
     <ClInclude Include="public\mesh_spacing.h" />
     <ClInclude Include="public\microwave.h" />
     <ClInclude Include="public\pos2d.h" />
@@ -129,7 +129,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);public;legacy;redundant</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);public;redundant</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
