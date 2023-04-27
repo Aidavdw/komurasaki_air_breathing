@@ -75,34 +75,21 @@ int main()
         /* 4TH ORDER RUNGE-KUTTA PREDICTOR-CORRECTOR LOOP (iterate 4 times)*/
         for (int rungeKuttaIterationNumber = 0; rungeKuttaIterationNumber < RK_ORDER; ++rungeKuttaIterationNumber)
         {
-            /* FOR FIRST ITERATION, TAKE PARAMETERS OF PREVIOUS SOLUTION */
+            // Move data to working runge-kutta buffer, depending on the iteration number
             for (auto& domainIter : simCase.domains)
             {
                 Domain& domain = domainIter.second;
-
-                //#pragma omp parallel for // START PARALLEL LOOP
-                for (int xIndex = 0; xIndex < domain.size[0]; ++xIndex)
-                {
-                    for (int yIndex = 0; yIndex < domain.size[1]; ++yIndex)
-                    {
-                        // Take solution from previous iteration for this new iteration
-                        if(rungeKuttaIterationNumber==0)
-                        {
-                            // First Runge-Kutta iteration
-                            domain.CopyFieldQuantitiesToBuffer(EFieldQuantityBuffer::MAIN, EFieldQuantityBuffer::RUNGE_KUTTA);
-                        }
-                        else
-                        {
-                            // Second, third, etc. iterations...
-                            domain.CopyFieldQuantitiesToBuffer(EFieldQuantityBuffer::NEXT_ITER, EFieldQuantityBuffer::RUNGE_KUTTA);
-                        }
-                        
-                        // A: Unsure how these are used. For now commented out, might have to re-add later.
-                        // In addition, reset "sonicPoints" arrays
-                        //sonic_x[domainNumber][xIndex][yIndex]=0;
-                        //sonic_y[domainNumber][xIndex][yIndex]=0;
-                    }
-                }
+                if(rungeKuttaIterationNumber==0)
+                    // First Runge-Kutta iteration
+                    domain.CopyFieldQuantitiesToBuffer(EFieldQuantityBuffer::MAIN, EFieldQuantityBuffer::RUNGE_KUTTA);
+                else
+                    // Second, third, etc. iterations...
+                    domain.CopyFieldQuantitiesToBuffer(EFieldQuantityBuffer::NEXT_ITER, EFieldQuantityBuffer::RUNGE_KUTTA);
+                
+                // A: Unsure how these are used. For now commented out, might have to re-add later.
+                // In addition, reset "sonicPoints" arrays
+                //sonic_x[domainNumber][xIndex][yIndex]=0;
+                //sonic_y[domainNumber][xIndex][yIndex]=0;
             }
 
             // Set the ghost cells values. Note that this is deliberately done in a separate loop so that the runge-kutta operation is sure to be finished before reading into ghost cells.
