@@ -128,8 +128,8 @@ int main()
 	double  *** ERK;	// runge kutta field buffer.
 	double  *** TRK;	// runge kutta field buffer.
 	double  *** HRK;	// runge kutta field buffer.
-	double  *** sonic_x;
-	double  *** sonic_y;
+	double  *** sonic_x;	// mask corresponding to every cell. If 1, MUSCL has identified that the flow goes supersonic in the x-direction. if 0, it's subsonic.
+	double  *** sonic_y;	// mask corresponding to every cell. If 1, MUSCL has identified that the flow goes supersonic in the y-direction. if 0, it's subsonic.
     init_domain(NDOMAIN,NXtot,NYtot,&rho,&u,&v,&p,&E,&T,&H);
     init_domain(NDOMAIN,NXtot,NYtot,&rhot,&ut,&vt,&pt,&Et,&Tt,&Ht);
     init_domain(NDOMAIN,NXtot,NYtot,&rhoRK,&uRK,&vRK,&pRK,&ERK,&TRK,&HRK);
@@ -471,10 +471,11 @@ int main()
                 {
                     for (int j = 0; j < NYtot[k]; ++j)
                     {
+                    	
                         // Take solution from previous iteration for this new iteration
                         if(trk==0)
                         {
-                            // First Runge-Kutta iteration
+                            // First Runge-Kutta iteration: Copy previous time step into Runge-kutta buffer.
                             rhoRK[k][i][j]=rho[k][i][j];
                             uRK[k][i][j]=u[k][i][j];
                             vRK[k][i][j]=v[k][i][j];
@@ -486,6 +487,7 @@ int main()
                         else
                         {
                             // Second, third, etc. iterations...
+                        	// Copy 'new solution buffer' into runge kutta buffer.
                             rhoRK[k][i][j]=rhot[k][i][j];
                             uRK[k][i][j]=ut[k][i][j];
                             vRK[k][i][j]=vt[k][i][j];
@@ -563,7 +565,7 @@ int main()
             }
 
             /* GENERATE VALUES IN GHOST CELLS BASED ON PREVIOUS ITERATION */
-            update_ghost_cells(NDOMAIN,NXtot,NYtot,x,y,xold,yold,rhoRK,uRK,vRK,pRK,HRK,ERK,TRK,B_LOC,B_TYPE,R0,NGHOST,GAMMA,R,P0,T0,M0);
+            update_ghost_cells(NDOMAIN,NXtot,NYtot,x,y,xold,yold,rhoRK,uRK,vRK,pRK,HRK,ERK,TRK,B_LOC,B_TYPE,R0,NGHOST,GAMMA,R,P0,T0,M0); // As the runge-kutta buffer is apparently the one we're storing all the information in, this is the one we're populating.
             
             /* IDENTIFY SHOCK FRONTS IN EACH DIRECTION BEFORE PERFORMING AUSM-DV FLUX SPLITTING */
             for (int k = 0; k < NDOMAIN; ++k)
@@ -576,7 +578,7 @@ int main()
                     for (int j = NGHOST; j < NYtot[k]-NGHOST; ++j)
                     {
                         rhoL=0.0;uL=0.0;vL=0.0;pL=0.0;rhoR=0.0;uR=0.0;vR=0.0;pR=0.0;cL=0.0;cR=0.0;
-
+                    	
                         // MUSCL ON RIGHT FACE -> Right face flux
                         rhoL = MUSCL(rhoRK[k][i-1][j],rhoRK[k][i][j],rhoRK[k][i+1][j],rhoRK[k][i+2][j],'L',MUSCL_BIAS,LIMITERNAME);
                         uL = MUSCL(uRK[k][i-1][j],uRK[k][i][j],uRK[k][i+1][j],uRK[k][i+2][j],'L',MUSCL_BIAS,LIMITERNAME);
@@ -692,6 +694,8 @@ int main()
                         theta_tip=0.0;
                         m=0;
 
+                    	// Calculation procedure MUSCL fluxes is identical to the one above, but now it gets vL as well as uL. so in 2D.
+
                         // MUSCL ON RIGHT FACE -> Right face flux
                         rhoL = MUSCL(rhoRK[k][i-1][j],rhoRK[k][i][j],rhoRK[k][i+1][j],rhoRK[k][i+2][j],'L',MUSCL_BIAS,LIMITERNAME);
                         uL = MUSCL(uRK[k][i-1][j],uRK[k][i][j],uRK[k][i+1][j],uRK[k][i+2][j],'L',MUSCL_BIAS,LIMITERNAME);
@@ -709,7 +713,7 @@ int main()
                         HR = (ER + pR)/rhoR;
 
                         // FLUX SPLITTING ON RIGHT FACE based on sonic points in Y-direction
-                        if (sonic_y[k][i][j]+sonic_y[k][i+1][j]>=0)
+                        if (sonic_y[k][i][j]+sonic_y[k][i+1][j]>=0) // If either is 1, since it's a bitmask.
                         {
                             HANEL(flux_r,'H',rhoL,rhoR,uL,uR,vL,vR,pL,pR,HL,HR,R,GAMMA,ENTRO_FIX_C);
                         }
@@ -722,6 +726,7 @@ int main()
                         rhoL=0,uL=0,vL=0,pL=0,HL=0;
                         rhoR=0,uR=0,vR=0,pR=0,HR=0;
 
+                    	// These are all offset 1 cell to the left.
                         // MUSCL ON LEFT FACE -> Left face flux
                         rhoL = MUSCL(rhoRK[k][i-2][j],rhoRK[k][i-1][j],rhoRK[k][i][j],rhoRK[k][i+1][j],'L',MUSCL_BIAS,LIMITERNAME);
                         uL = MUSCL(uRK[k][i-2][j],uRK[k][i-1][j],uRK[k][i][j],uRK[k][i+1][j],'L',MUSCL_BIAS,LIMITERNAME);

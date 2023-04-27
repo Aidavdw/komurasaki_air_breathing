@@ -41,7 +41,7 @@ double fluxLimiter(double r, int limiterName)
 }
 
 /* Calculate MUSCL interpolation based on points (-1,0,+1,+2) */
-double MUSCL(double m1, double centre, double p1, double p2, char RorL,double bias,int limiterName)
+double MUSCL(const double m1, const double centre, const double p1, const double p2, const char RorL, const double bias, const int limiterName)
 {
     double var=0;
     double deltaplus,deltamin;

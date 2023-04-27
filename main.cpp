@@ -133,6 +133,10 @@ int main()
 
                     for (int yIndex = NGHOST; yIndex < NYtot[domainIndex]-NGHOST; ++yIndex)
                     {
+
+                        // Iterate over all the ghost cells in all domains
+
+                        
                         rhoL=0.0;uL=0.0;vL=0.0;pL=0.0;rhoR=0.0;uR=0.0;vR=0.0;pR=0.0;cL=0.0;cR=0.0;
 
                         // MUSCL ON RIGHT FACE -> Right face flux
