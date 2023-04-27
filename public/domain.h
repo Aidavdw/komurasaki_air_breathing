@@ -72,6 +72,9 @@ struct Domain
 
 	void UpdateGhostCells();
 
+	// Actually do a time step. Solve fluxes, etc
+	void TimeStep();
+
 private:
 	// Sets the domain dimensions by reference.
 	void PopulateDomainDimensions();

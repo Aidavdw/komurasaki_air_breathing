@@ -3,6 +3,7 @@
 #include "domain_enums.h"
 #include "2dArray.h"
 #include "index2d.h"
+#include "muscl.h"
 
 struct Position;
 struct Domain;
@@ -24,7 +25,8 @@ struct FieldQuantity
 
 	FieldQuantity(Domain* domain, const int sizeX, const int sizeY, const double initialValue = 0., const int nGhostCells=2);
 
-	std::map<EFieldQuantityBuffer, TwoDimensionalArray> bufferMap;
+	// TODO: check if this actually references the desired buffermaps, and does not make a new copy inline!
+	std::map<EFieldQuantityBuffer, TwoDimensionalArray&> bufferMap;
 	Domain* domain;
 
 	int nGhostCells;
@@ -33,6 +35,12 @@ struct FieldQuantity
 	TwoDimensionalArray rungeKuttaBuffer;	// The Runge Kutta buffer of this field quantity. Access using At(), don't manually index!
 	TwoDimensionalArray TBuffer;			// The T buffer of this field quantity. Access using At(), don't manually index!
 
+	// MUSCL buffers
+	TwoDimensionalArray leftFaceMUSCLBuffer;
+	TwoDimensionalArray rightFaceMUSCLBuffer;
+	TwoDimensionalArray topFaceMUSCLBuffer;
+	TwoDimensionalArray bottomFaceMUSCLBuffer;
+
 	// Sets all the values in the field to this value.
 	void SetAllToValue(const double value, const EFieldQuantityBuffer bufferToWriteTo=EFieldQuantityBuffer::MAIN);
 
@@ -40,6 +48,9 @@ struct FieldQuantity
 
 	// Instead of taking considering that the entire volume has one value (lumped parameter estimation), consider that the cell center has the value, and anything outside of that will be linearly interpolated between those cells.
 	double GetInterpolatedValueAtPosition(const Position atPosition) const;
+
+	// Fills left/right/top/bottomFaceMUSCLBuffer variables from the given source buffer
+	void PopulateMUSCLBuffers(const EFieldQuantityBuffer sourceBuffer, const double MUSCLBias, const EFluxLimiterType fluxLimiterType);
 
 
 

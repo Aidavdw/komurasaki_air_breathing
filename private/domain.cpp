@@ -192,6 +192,32 @@ void Domain::UpdateGhostCells()
 	}
 }
 
+void Domain::TimeStep()
+{
+	// Depending on whether or not there are shock fronts, the integration scheme changes. Determining whether or not there are shock fronts is done by looking at the MUSCL interpolated values of the field quantities. So, first calculate & cache the MUSCL vales.
+	
+	const double bias = simCase->MUSCLBias;
+	const EFluxLimiterType fluxLimiter = simCase->fluxLimiterType;
+
+	rho.PopulateMUSCLBuffers(RUNGE_KUTTA, bias, fluxLimiter);
+	u.PopulateMUSCLBuffers(RUNGE_KUTTA, bias, fluxLimiter);
+	v.PopulateMUSCLBuffers(RUNGE_KUTTA, bias, fluxLimiter);
+	p.PopulateMUSCLBuffers(RUNGE_KUTTA, bias, fluxLimiter);
+
+	for (int xIdx = 0; xIdx < amountOfCells[0]; xIdx++)
+	{
+		for (int yIdx = 0; yIdx < amountOfCells[1]; yIdx++)
+		{
+			// Is it (super)sonic in the x-direction?
+			double gamma = SpecificHeatRatio();
+			double cLeft = sqrt(gamma * p.leftFaceMUSCLBuffer.GetAt(xIdx, yIdx));
+			double cRight = sqrt(gamma * p.rightFaceMUSCLBuffer.GetAt(xIdx, yIdx));
+			double cTop = sqrt(gamma * p.topFaceMUSCLBuffer.GetAt(xIdx, yIdx));
+			double cBottom = sqrt(gamma * p.bottomFaceMUSCLBuffer.GetAt(xIdx, yIdx));
+		}
+	}
+}
+
 void ValidateAxisInput(const int axis)
 {
 	if (axis > 1 || axis < 0)

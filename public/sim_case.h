@@ -23,6 +23,9 @@ struct SimCase {
 	double dt;
 	int totalSimulationTimeStepCount;			// The total amount of time steps that are in this simulation.
 
+	double MUSCLBias;
+	EFluxLimiterType fluxLimiterType;
+
 	// Reed valve setup
 	int numberOfReedValves = 0;
 	double reed_valve_total_length = 0.; // Total length of the reed valve, with the fixed part and the flexible part combined.

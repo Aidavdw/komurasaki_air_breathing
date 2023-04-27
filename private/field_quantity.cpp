@@ -8,6 +8,8 @@
 #include <stdexcept>
 #include <cmath>
 
+#include "muscl.h"
+
 FieldQuantity::FieldQuantity(Domain* domain, const int sizeX, const int sizeY, const double initialValue, const int nGhostCells) :
 	domain(domain),
 	nGhostCells(nGhostCells),
@@ -61,6 +63,40 @@ double FieldQuantity::GetInterpolatedValueAtPosition(const Position atPosition) 
 	#endif
 	
 	return interpolatedValue;
+}
+
+void FieldQuantity::PopulateMUSCLBuffers(const EFieldQuantityBuffer sourceBuffer, double MUSCLBias, const EFluxLimiterType fluxLimiterType)
+{
+	if (nGhostCells < 2)
+		throw std::logic_error("Cannot populate MUSCL buffers, as the amount of ghost cells is smaller than two. Because of how MUSCL has been implemented, given that c is at the edge, the sampling at p2 will be done on the ghost cells! This means that there is a soft lower limit of 2 on the amount of ghost cells.");
+	
+	const TwoDimensionalArray& source = bufferMap.at(sourceBuffer);
+	for (int xIdx = 0; xIdx < nX; ++xIdx)
+	{
+		for (int yIdx = 0; yIdx < nY; yIdx++)
+		{
+			
+#ifdef _DEBUG
+			// Check if the cells are not zero; that would probably be an error.
+			if (IsCloseToZero(source.GetAt(xIdx-1, yIdx)))
+				throw std::logic_error("MUSCL m cell is zero. Are you sure you're doing this right?");
+			if (IsCloseToZero(source.GetAt(xIdx, yIdx)))
+				throw std::logic_error("MUSCL centre cell is zero. Are you sure you're doing this right?");
+			if (IsCloseToZero(source.GetAt(xIdx+1, yIdx)))
+				throw std::logic_error("MUSCL p1 cell is zero. Are you sure you're doing this right?");
+			if (IsCloseToZero(source.GetAt(xIdx, yIdx+2)))
+				throw std::logic_error("MUSCL p2 cell is zero. Are you sure you're doing this right?");
+#endif
+			// Left/right is straightforward.
+			rightFaceMUSCLBuffer(xIdx, yIdx) = MUSCLInterpolate(source.GetAt(xIdx-1, yIdx), source.GetAt(xIdx, yIdx), source.GetAt(xIdx+1, yIdx), source.GetAt(xIdx+2, yIdx), EMUSCLSide::LEFT, MUSCLBias, fluxLimiterType);
+			leftFaceMUSCLBuffer(xIdx, yIdx) = MUSCLInterpolate(source.GetAt(xIdx-1, yIdx), source.GetAt(xIdx, yIdx), source.GetAt(xIdx+1, yIdx), source.GetAt(xIdx+2, yIdx), EMUSCLSide::RIGHT, MUSCLBias, fluxLimiterType);
+
+			// MUSCL ON TOP FACE -> Top face flux (Left = Down and Right = Up)
+			bottomFaceMUSCLBuffer(xIdx, yIdx) = MUSCLInterpolate(source.GetAt(xIdx, yIdx-1), source.GetAt(xIdx, yIdx), source.GetAt(xIdx, yIdx+1), source.GetAt(xIdx, yIdx+2), EMUSCLSide::LEFT, MUSCLBias, fluxLimiterType);
+			topFaceMUSCLBuffer(xIdx, yIdx) = MUSCLInterpolate(source.GetAt(xIdx, yIdx-1), source.GetAt(xIdx, yIdx), source.GetAt(xIdx, yIdx+1), source.GetAt(xIdx, yIdx+2), EMUSCLSide::RIGHT, MUSCLBias, fluxLimiterType);
+		}
+	}
+	
 }
 
 double FieldQuantity::GetAt(const CellIndex& cellIndex) const
