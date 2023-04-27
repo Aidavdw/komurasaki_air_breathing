@@ -759,6 +759,7 @@ int main()
                         theta = 0.0;
 
                         // VERTICAL FLUX-VECTOR SPLITTING: G(1/2) and G(-1/2)
+                    	// A: Literally same, but now the last index, aka y.
                         
                         // MUSCL ON TOP FACE -> Top face flux (Left = Down and Right = Up)
                         rhoL = MUSCL(rhoRK[k][i][j-1],rhoRK[k][i][j],rhoRK[k][i][j+1],rhoRK[k][i][j+2],'L',MUSCL_BIAS,LIMITERNAME);
@@ -803,6 +804,7 @@ int main()
                         rhoR=0,uR=0,vR=0,pR=0,HR=0;
                         theta = 0.0;
 
+                    	// Again, literally offset by -1
                         // MUSCL ON DOWN FACE -> Down face flux (Left = Down and Right = Up)
                         rhoL = MUSCL(rhoRK[k][i][j-2],rhoRK[k][i][j-1],rhoRK[k][i][j],rhoRK[k][i][j+1],'L',MUSCL_BIAS,LIMITERNAME);
                         uL = MUSCL(uRK[k][i][j-2],uRK[k][i][j-1],uRK[k][i][j],uRK[k][i][j+1],'L',MUSCL_BIAS,LIMITERNAME);

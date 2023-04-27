@@ -39,6 +39,7 @@
     <ClInclude Include="public\legacy\parameters.h" />
     <ClInclude Include="public\mesh_spacing.h" />
     <ClInclude Include="public\microwave.h" />
+    <ClInclude Include="public\muscl.h" />
     <ClInclude Include="public\pos2d.h" />
     <ClInclude Include="public\reed_valve.h" />
     <ClInclude Include="public\runtime_parameters.h" />
@@ -62,6 +63,7 @@
     <ClCompile Include="private\index2d.cpp" />
     <ClCompile Include="private\mesh_spacing.cpp" />
     <ClCompile Include="private\microwave.cpp" />
+    <ClCompile Include="private\muscl.cpp" />
     <ClCompile Include="private\pos2d.cpp" />
     <ClCompile Include="private\reed_valve.cpp" />
     <ClCompile Include="private\runtime_parameters.cpp" />
