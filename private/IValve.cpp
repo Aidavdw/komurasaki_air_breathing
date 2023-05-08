@@ -31,3 +31,8 @@ void IValve::SetInitialConditions()
     throw std::logic_error("SetInitialConditions() is not overridden for this type of valve!");
 }
 
+void IValve::ApplySourceToDomain()
+{
+    throw std::logic_error("ApplySourceToDomain() is not overridden for this type of valve!");
+}
+

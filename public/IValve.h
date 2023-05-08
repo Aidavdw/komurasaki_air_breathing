@@ -28,6 +28,7 @@ public:
 	// Gets the mass flow rate going through the valve in its current condition. Positive values ar from the outOfDomain_ into the intoDomain_
 	virtual double GetMassFlowRate() const;
 	virtual void SetInitialConditions();
+	virtual void ApplySourceToDomain();
 
 private:
 

@@ -109,6 +109,21 @@ int main()
                 valve.GetMassFlowRate();
             }
 
+            // Update the next iteration buffer based on the flow (and hence flux) of variables.
+            for (auto& domainIter : simCase.domains)
+            {
+                Domain& domain = domainIter.second;
+                domain.PropogateFluxes(simCase.dt);
+            }
+
+            // Set source terms for the variables based on how far the valves are open
+            for (IValve& valve : simCase.valves)
+            {
+                // Compute mean pressure on each side and mass-flow rate at valve
+                valve.ApplySourceToDomain();
+            }
+            
+
 
             /* SOLVING ALL DOMAINS WITH AUSM-DV OR HANEL'S SCHEME DEPENDING ON THE POSITION OF SHOCK FRONTS */
             for (int domainIdx = 0; domainIdx < NDOMAIN; ++domainIdx)

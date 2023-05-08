@@ -244,6 +244,12 @@ double ReedValve::GetMassFlowRate() const
 	}
 }
 
+void ReedValve::ApplySourceToDomain()
+{
+	// UNIMPLEMENTED
+	// todo: implement!!
+}
+
 void ReedValve::SetInitialConditions()
 {
 	#ifdef _DEBUG

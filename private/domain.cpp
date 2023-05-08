@@ -3,6 +3,8 @@
 #include <stdexcept>
 #include <cassert>
 
+#include "euler_container.h"
+
 
 Domain::Domain(const std::string& name, SimCase* simCase, Position position, const double sizeArg[2], const int amountOfCellsArg[2], const MeshSpacing meshSpacingArg[2], const EInitialisationMethod initialisationMethod) :
 	name(name),
@@ -192,7 +194,7 @@ void Domain::UpdateGhostCells()
 	}
 }
 
-void Domain::TimeStep()
+void Domain::PropogateFluxes(const double dt)
 {
 	// Depending on whether or not there are shock fronts, the integration scheme changes. Determining whether or not there are shock fronts is done by looking at the MUSCL interpolated values of the field quantities. So, first calculate & cache the MUSCL vales.
 	
@@ -204,20 +206,55 @@ void Domain::TimeStep()
 	v.PopulateMUSCLBuffers(RUNGE_KUTTA, bias, fluxLimiter);
 	p.PopulateMUSCLBuffers(RUNGE_KUTTA, bias, fluxLimiter);
 
+	// Do flux splitting on all the faces. Use hanel if flow is sonic in either cell, ausm_dv if not.
 	for (int xIdx = 0; xIdx < amountOfCells[0]; xIdx++)
 	{
 		for (int yIdx = 0; yIdx < amountOfCells[1]; yIdx++)
 		{
+			// These here contain 4 terms for the euler equations. They all represent the flux of those variables at each side of the cell.
+			EulerContinuity leftFlux, rightFlux, upFlux, downFlux;
+
 			// Is it (super)sonic in the x-direction?
 			double gamma = SpecificHeatRatio();
 			double cLeft = sqrt(gamma * p.leftFaceMUSCLBuffer.GetAt(xIdx, yIdx));
 			double cRight = sqrt(gamma * p.rightFaceMUSCLBuffer.GetAt(xIdx, yIdx));
 			double cTop = sqrt(gamma * p.topFaceMUSCLBuffer.GetAt(xIdx, yIdx));
 			double cBottom = sqrt(gamma * p.bottomFaceMUSCLBuffer.GetAt(xIdx, yIdx));
-		}
-	}
+			
+			// for each direction
+				// if flow is sonic
+					//directionFlux = GetHanel(direction)
+				// else
+					// directionFlux = GetAUSMDV(direction)
 
-	// Do flux splitting on all the faces. Use hanel if flow is sonic in either cell, ausm_dv if not.
+			// Total accumulation is what goes in - what goes out
+			const CellIndex currentCell(xIndex, yIndex);
+			auto cellSizes = GetCellSizes(currentCell);
+			EulerContinuity accumulation = ((rightFlux - leftFlux)/cellSizes.first + (upFlux - downFlux)/cellSizes.second)*dt; // dy = dr in this case, if you compensate for the squashification.
+			// Should be same as below, todo: check if they are the same value, and im not messing up operator overloads.
+			//accumulation.density = ((rightFlux.density - leftFlux.density)/dx + (upFlux.density - downFlux.density)/dr)*dt;
+			//accumulation.v = ((rightFlux.v - leftFlux.v)/dx + (upFlux.v - downFlux.v)/dr)*dt;
+			//accumulation.u = ((rightFlux.u - leftFlux.u)/dx + (upFlux.u - downFlux.u)/dr)*dt;
+			//accumulation.e = ((rightFlux.e - leftFlux.e)/dx + (upFlux.e - downFlux.e)/dr)*dt;
+
+			// Extra term to compensate for the fact that the cell sizes are not uniform because we are in a cylindrical coordinate system. In Florian (2017), this is the term *** Hr ***.
+			EulerContinuity hr;
+			const double density = rho.GetAt(currentCell);
+			const double xVel = u.GetAt(currentCell);
+			const double yVel = v.GetAt(currentCell);
+			const double yc = localCellCenterPositions[1].At(currentCell);
+			const double enthalpy = H.GetAt(currentCell);
+			
+			hr.density = density * yVel / yc * dt;
+			hr.u = density * yVel * xVel / yc * dt;
+			hr.v =  density * yVel * yVel / yc * dt;
+			hr.v =  density * yVel * enthalpy / yc * dt;
+
+			accumulation = accumulation + hr;
+
+			// Add the accumulation to the buffer for next iteration: tBuffer
+		}
+	}	
 }
 
 void ValidateAxisInput(const int axis)

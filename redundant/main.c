@@ -901,7 +901,7 @@ int main()
                         // }
 
                         /* SOURCE TERM CORRESPONDING TO CYLINDRICAL SYSTEM OF COORDINATES */
-                    	// A: This is the Q term, but all are multiplied by v * dt/yc
+                    	// A: This is the Hr
                         flux[0] += rho[k][i][j]*v[k][i][j]/yc[k][i][j]*DT;
                         flux[1] += rho[k][i][j]*v[k][i][j]*u[k][i][j]/yc[k][i][j]*DT;
                         flux[2] += rho[k][i][j]*v[k][i][j]*v[k][i][j]/yc[k][i][j]*DT;
