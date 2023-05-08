@@ -18,11 +18,13 @@ FieldQuantity::FieldQuantity(Domain* domain, const int sizeX, const int sizeY, c
 {
 	main = TwoDimensionalArray(sizeX + nGhostCells, sizeY + nGhostCells, initialValue);
 	rungeKuttaBuffer = TwoDimensionalArray(sizeX + nGhostCells, sizeY + nGhostCells, initialValue);
-	TBuffer = TwoDimensionalArray(sizeX + nGhostCells, sizeY + nGhostCells, initialValue);
+	deltaDueToFlow = TwoDimensionalArray(sizeX + nGhostCells, sizeY + nGhostCells, initialValue);
+	deltaDueToValve = TwoDimensionalArray(sizeX + nGhostCells, sizeY + nGhostCells, initialValue);
 
 	bufferMap.insert({ EFieldQuantityBuffer::MAIN, main });
 	bufferMap.insert({ EFieldQuantityBuffer::RUNGE_KUTTA, rungeKuttaBuffer });
-	bufferMap.insert({ EFieldQuantityBuffer::NEXT_ITER, TBuffer });
+	bufferMap.insert({ DELTA_FLOW, deltaDueToFlow });
+	bufferMap.insert({ DELTA_VALVE, deltaDueToValve });
 }
 
 void FieldQuantity::SetAllToValue(const double value, const EFieldQuantityBuffer bufferToWriteTo)

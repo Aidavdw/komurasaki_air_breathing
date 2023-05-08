@@ -21,7 +21,7 @@ void IValve::Update()
     throw std::logic_error("Update() is not overridden for this type of valve!");
 }
 
-void IValve::GetMassFlowRate() const
+double IValve::GetMassFlowRate() const
 {
     throw std::logic_error("GetMassFlowRate() is not overridden for this type of valve!");
 }
@@ -31,7 +31,7 @@ void IValve::SetInitialConditions()
     throw std::logic_error("SetInitialConditions() is not overridden for this type of valve!");
 }
 
-void IValve::ApplySourceToDomain()
+void IValve::PopulateValveDeltaBuffer()
 {
     throw std::logic_error("ApplySourceToDomain() is not overridden for this type of valve!");
 }

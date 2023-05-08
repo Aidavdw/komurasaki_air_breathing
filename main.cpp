@@ -72,31 +72,22 @@ int main()
     /* START TIME LOOP */
     for (int timeStepNumber = 1; timeStepNumber < simCase.totalSimulationTimeStepCount; ++timeStepNumber)
     {
+        // Set the starting runge-kutta conditions to be that of the solution of the previous time step.
+        for (auto& domainIter : simCase.domains)
+        {
+            Domain& domain = domainIter.second;
+            domain.CopyFieldQuantitiesToBuffer(EFieldQuantityBuffer::MAIN, EFieldQuantityBuffer::RUNGE_KUTTA);
+        }
+        
         /* 4TH ORDER RUNGE-KUTTA PREDICTOR-CORRECTOR LOOP (iterate 4 times)*/
         for (int rungeKuttaIterationNumber = 0; rungeKuttaIterationNumber < RK_ORDER; ++rungeKuttaIterationNumber)
         {
-            // Move data to working runge-kutta buffer, depending on the iteration number
-            for (auto& domainIter : simCase.domains)
-            {
-                Domain& domain = domainIter.second;
-                if(rungeKuttaIterationNumber==0)
-                    // First Runge-Kutta iteration
-                    domain.CopyFieldQuantitiesToBuffer(EFieldQuantityBuffer::MAIN, EFieldQuantityBuffer::RUNGE_KUTTA);
-                else
-                    // Second, third, etc. iterations...
-                    domain.CopyFieldQuantitiesToBuffer(EFieldQuantityBuffer::NEXT_ITER, EFieldQuantityBuffer::RUNGE_KUTTA);
-                
-                // A: Unsure how these are used. For now commented out, might have to re-add later.
-                // In addition, reset "sonicPoints" arrays
-                //sonic_x[domainNumber][xIndex][yIndex]=0;
-                //sonic_y[domainNumber][xIndex][yIndex]=0;
-            }
-
             // Set the ghost cells values. Note that this is deliberately done in a separate loop so that the runge-kutta operation is sure to be finished before reading into ghost cells.
             for (auto& domainIter : simCase.domains)
             {
                 Domain& domain = domainIter.second;
                 domain.UpdateGhostCells();
+                domain.PopulateFlowDeltaBuffer(simCase.dt);
             }
 
             for (IValve& valve : simCase.valves)
@@ -107,279 +98,25 @@ int main()
                 // Compute mean pressure on each side and mass-flow rate at valve
                 // todo: value is currently just output. Store in IValve?
                 valve.GetMassFlowRate();
+                valve.PopulateValveDeltaBuffer();
             }
 
-            // Update the next iteration buffer based on the flow (and hence flux) of variables.
-            for (auto& domainIter : simCase.domains)
-            {
-                Domain& domain = domainIter.second;
-                domain.PropogateFluxes(simCase.dt);
-            }
+            // Async await until both the buffers have been set for all the FieldQuantities in a domain. Easiest way to do this; wait until they're all finished.
 
-            // Set source terms for the variables based on how far the valves are open
-            for (IValve& valve : simCase.valves)
-            {
-                // Compute mean pressure on each side and mass-flow rate at valve
-                valve.ApplySourceToDomain();
-            }
+            // For each FieldQuantity, combine the FlowDelta and the ValveDelta buffers, and add them to the runge kutta buffer for the next iteration.
+            /* SOMETHING LIKE THIS
+            RK_k = 1./(RK_ORDER-currentRungeKuttaIter);
+            rhot[k][i][j] = rho[k][i][j] - RK_k*flux[0];
+            ut[k][i][j] = (rho[k][i][j]*u[k][i][j] - RK_k*flux[1])/rhot[k][i][j];
+            vt[k][i][j] = (rho[k][i][j]*v[k][i][j] - RK_k*flux[2])/rhot[k][i][j];
+            Et[k][i][j] = E[k][i][j] - RK_k*flux[3];
+
+            // Vars that can be determined from state variables.
+            pt[k][i][j] = (GAMMA-1)*(Et[k][i][j] - 0.5*rhot[k][i][j]*(pow(ut[k][i][j],2)+pow(vt[k][i][j],2)));
+            Tt[k][i][j] = pt[k][i][j]/(R*rhot[k][i][j]);
+            Ht[k][i][j] = (Et[k][i][j]+pt[k][i][j])/rhot[k][i][j];
+            */
             
-
-
-            /* SOLVING ALL DOMAINS WITH AUSM-DV OR HANEL'S SCHEME DEPENDING ON THE POSITION OF SHOCK FRONTS */
-            for (int domainIdx = 0; domainIdx < NDOMAIN; ++domainIdx)
-            {
-                #pragma omp parallel for
-                for (int xIdx = NGHOST; xIdx < NXtot[domainIdx]-NGHOST; ++xIdx)
-                {
-                    double RK_k;
-                    double rhoL,uL,vL,pL,rhoR,uR,vR,pR,EL,ER,HL,HR, theta;
-                    double flux_l[4],flux_r[4],flux_u[4],flux_d[4],flux[4];
-                    double dx,dr;
-                    double y_tip, theta_tip, source[4], dx_source, dy_source;
-                    int m;
-
-                    for (int yIndex = NGHOST; yIndex < NYtot[domainIdx]-NGHOST; ++yIndex)
-                    {   
-                        RK_k=0.0;
-                        rhoL=0.0;uL=0.0;vL=0.0;pL=0.0;rhoR=0.0;uR=0.0;vR=0.0;pR=0.0;EL=0.0;ER=0.0;HL=0.0;HR=0.0, theta=0.0;
-                        for (int p = 0; p < 4; ++p)
-                        {
-                            flux_l[p]=0;
-                            flux_r[p]=0;
-                            flux_u[p]=0;
-                            flux_d[p]=0;
-                            source[p]=0;
-                            flux[p]=0;
-                        }
-                        dx=0.0;dr=0.0;
-                        y_tip=0.0;
-                        theta_tip=0.0;
-                        m=0;
-
-                        // MUSCL ON RIGHT FACE -> Right face flux
-                        rhoL = MUSCL(rhoRK[domainIdx][xIdx-1][yIndex],rhoRK[domainIdx][xIdx][yIndex],rhoRK[domainIdx][xIdx+1][yIndex],rhoRK[domainIdx][xIdx+2][yIndex],'L',MUSCL_BIAS,LIMITERNAME);
-                        uL = MUSCL(uRK[domainIdx][xIdx-1][yIndex],uRK[domainIdx][xIdx][yIndex],uRK[domainIdx][xIdx+1][yIndex],uRK[domainIdx][xIdx+2][yIndex],'L',MUSCL_BIAS,LIMITERNAME);
-                        vL = MUSCL(vRK[domainIdx][xIdx-1][yIndex],vRK[domainIdx][xIdx][yIndex],vRK[domainIdx][xIdx+1][yIndex],vRK[domainIdx][xIdx+2][yIndex],'L',MUSCL_BIAS,LIMITERNAME);
-                        pL = MUSCL(pRK[domainIdx][xIdx-1][yIndex],pRK[domainIdx][xIdx][yIndex],pRK[domainIdx][xIdx+1][yIndex],pRK[domainIdx][xIdx+2][yIndex],'L',MUSCL_BIAS,LIMITERNAME);
-
-                        rhoR = MUSCL(rhoRK[domainIdx][xIdx-1][yIndex],rhoRK[domainIdx][xIdx][yIndex],rhoRK[domainIdx][xIdx+1][yIndex],rhoRK[domainIdx][xIdx+2][yIndex],'R',MUSCL_BIAS,LIMITERNAME);
-                        uR = MUSCL(uRK[domainIdx][xIdx-1][yIndex],uRK[domainIdx][xIdx][yIndex],uRK[domainIdx][xIdx+1][yIndex],uRK[domainIdx][xIdx+2][yIndex],'R',MUSCL_BIAS,LIMITERNAME);
-                        vR = MUSCL(vRK[domainIdx][xIdx-1][yIndex],vRK[domainIdx][xIdx][yIndex],vRK[domainIdx][xIdx+1][yIndex],vRK[domainIdx][xIdx+2][yIndex],'R',MUSCL_BIAS,LIMITERNAME);
-                        pR = MUSCL(pRK[domainIdx][xIdx-1][yIndex],pRK[domainIdx][xIdx][yIndex],pRK[domainIdx][xIdx+1][yIndex],pRK[domainIdx][xIdx+2][yIndex],'R',MUSCL_BIAS,LIMITERNAME);
-
-                        EL = pL/(GAMMA-1) + 0.5*rhoL*(pow(uL,2) + pow(vL,2));
-                        ER = pR/(GAMMA-1) + 0.5*rhoR*(pow(uR,2) + pow(vR,2));
-                        HL = (EL + pL)/rhoL;
-                        HR = (ER + pR)/rhoR;
-
-                        // FLUX SPLITTING ON RIGHT FACE based on sonic points in Y-direction
-                        if (sonic_y[domainIdx][xIdx][yIndex]+sonic_y[domainIdx][xIdx+1][yIndex]>=0)
-                        {
-                            HANEL(flux_r,'H',rhoL,rhoR,uL,uR,vL,vR,pL,pR,HL,HR,R,GAMMA,ENTRO_FIX_C);
-                        }
-                        else
-                        {
-                            // AUSM-DV SCHEME FOR RIGHT FACE
-                            AUSM_DV(flux_r,'H',rhoL,rhoR,uL,uR,vL,vR,pL,pR,HL,HR,R,GAMMA,AUSM_K,ENTRO_FIX_C);
-                        }
-
-                        rhoL=0,uL=0,vL=0,pL=0,HL=0;
-                        rhoR=0,uR=0,vR=0,pR=0,HR=0;
-
-                        // MUSCL ON LEFT FACE -> Left face flux
-                        rhoL = MUSCL(rhoRK[domainIdx][xIdx-2][yIndex],rhoRK[domainIdx][xIdx-1][yIndex],rhoRK[domainIdx][xIdx][yIndex],rhoRK[domainIdx][xIdx+1][yIndex],'L',MUSCL_BIAS,LIMITERNAME);
-                        uL = MUSCL(uRK[domainIdx][xIdx-2][yIndex],uRK[domainIdx][xIdx-1][yIndex],uRK[domainIdx][xIdx][yIndex],uRK[domainIdx][xIdx+1][yIndex],'L',MUSCL_BIAS,LIMITERNAME);
-                        vL = MUSCL(vRK[domainIdx][xIdx-2][yIndex],vRK[domainIdx][xIdx-1][yIndex],vRK[domainIdx][xIdx][yIndex],vRK[domainIdx][xIdx+1][yIndex],'L',MUSCL_BIAS,LIMITERNAME);
-                        pL = MUSCL(pRK[domainIdx][xIdx-2][yIndex],pRK[domainIdx][xIdx-1][yIndex],pRK[domainIdx][xIdx][yIndex],pRK[domainIdx][xIdx+1][yIndex],'L',MUSCL_BIAS,LIMITERNAME);
-
-                        rhoR = MUSCL(rhoRK[domainIdx][xIdx-2][yIndex],rhoRK[domainIdx][xIdx-1][yIndex],rhoRK[domainIdx][xIdx][yIndex],rhoRK[domainIdx][xIdx+1][yIndex],'R',MUSCL_BIAS,LIMITERNAME);
-                        uR = MUSCL(uRK[domainIdx][xIdx-2][yIndex],uRK[domainIdx][xIdx-1][yIndex],uRK[domainIdx][xIdx][yIndex],uRK[domainIdx][xIdx+1][yIndex],'R',MUSCL_BIAS,LIMITERNAME);
-                        vR = MUSCL(vRK[domainIdx][xIdx-2][yIndex],vRK[domainIdx][xIdx-1][yIndex],vRK[domainIdx][xIdx][yIndex],vRK[domainIdx][xIdx+1][yIndex],'R',MUSCL_BIAS,LIMITERNAME);
-                        pR = MUSCL(pRK[domainIdx][xIdx-2][yIndex],pRK[domainIdx][xIdx-1][yIndex],pRK[domainIdx][xIdx][yIndex],pRK[domainIdx][xIdx+1][yIndex],'R',MUSCL_BIAS,LIMITERNAME);
-
-                        EL = pL/(GAMMA-1) + 0.5*rhoL*(pow(uL,2) + pow(vL,2));
-                        ER = pR/(GAMMA-1) + 0.5*rhoR*(pow(uR,2) + pow(vR,2));
-                        HL = (EL + pL)/rhoL;
-                        HR = (ER + pR)/rhoR;
-
-                        // FLUX SPLITTING ON LEFT FACE based on sonic points in Y-direction
-                        if (sonic_y[domainIdx][xIdx][yIndex]+sonic_y[domainIdx][xIdx-1][yIndex]>=0)
-                        {
-                            HANEL(flux_l,'H',rhoL,rhoR,uL,uR,vL,vR,pL,pR,HL,HR,R,GAMMA,ENTRO_FIX_C);
-                        }
-                        else
-                        {
-                            // AUSM-DV SCHEME FOR LEFT FACE
-                            AUSM_DV(flux_l,'H',rhoL,rhoR,uL,uR,vL,vR,pL,pR,HL,HR,R,GAMMA,AUSM_K,ENTRO_FIX_C);
-                        }
-
-                        rhoL=0,uL=0,vL=0,pL=0,HL=0;
-                        rhoR=0,uR=0,vR=0,pR=0,HR=0;
-                        theta = 0.0;
-
-                        // VERTICAL FLUX-VECTOR SPLITTING: G(1/2) and G(-1/2)
-                        
-                        // MUSCL ON TOP FACE -> Top face flux (Left = Down and Right = Up)
-                        rhoL = MUSCL(rhoRK[domainIdx][xIdx][yIndex-1],rhoRK[domainIdx][xIdx][yIndex],rhoRK[domainIdx][xIdx][yIndex+1],rhoRK[domainIdx][xIdx][yIndex+2],'L',MUSCL_BIAS,LIMITERNAME);
-                        uL = MUSCL(uRK[domainIdx][xIdx][yIndex-1],uRK[domainIdx][xIdx][yIndex],uRK[domainIdx][xIdx][yIndex+1],uRK[domainIdx][xIdx][yIndex+2],'L',MUSCL_BIAS,LIMITERNAME);
-                        vL = MUSCL(vRK[domainIdx][xIdx][yIndex-1],vRK[domainIdx][xIdx][yIndex],vRK[domainIdx][xIdx][yIndex+1],vRK[domainIdx][xIdx][yIndex+2],'L',MUSCL_BIAS,LIMITERNAME);
-                        pL = MUSCL(pRK[domainIdx][xIdx][yIndex-1],pRK[domainIdx][xIdx][yIndex],pRK[domainIdx][xIdx][yIndex+1],pRK[domainIdx][xIdx][yIndex+2],'L',MUSCL_BIAS,LIMITERNAME);
-
-                        rhoR = MUSCL(rhoRK[domainIdx][xIdx][yIndex-1],rhoRK[domainIdx][xIdx][yIndex],rhoRK[domainIdx][xIdx][yIndex+1],rhoRK[domainIdx][xIdx][yIndex+2],'R',MUSCL_BIAS,LIMITERNAME);
-                        uR = MUSCL(uRK[domainIdx][xIdx][yIndex-1],uRK[domainIdx][xIdx][yIndex],uRK[domainIdx][xIdx][yIndex+1],uRK[domainIdx][xIdx][yIndex+2],'R',MUSCL_BIAS,LIMITERNAME);
-                        vR = MUSCL(vRK[domainIdx][xIdx][yIndex-1],vRK[domainIdx][xIdx][yIndex],vRK[domainIdx][xIdx][yIndex+1],vRK[domainIdx][xIdx][yIndex+2],'R',MUSCL_BIAS,LIMITERNAME);
-                        pR = MUSCL(pRK[domainIdx][xIdx][yIndex-1],pRK[domainIdx][xIdx][yIndex],pRK[domainIdx][xIdx][yIndex+1],pRK[domainIdx][xIdx][yIndex+2],'R',MUSCL_BIAS,LIMITERNAME);
-
-                        EL = pL/(GAMMA-1) + 0.5*rhoL*(pow(uL,2) + pow(vL,2));
-                        ER = pR/(GAMMA-1) + 0.5*rhoR*(pow(uR,2) + pow(vR,2));
-                        HL = (EL + pL)/rhoL;
-                        HR = (ER + pR)/rhoR;
-
-                        // PROJECT VELOCITIES IN THE FRAME OF THE UPPER FACE
-                        // if (strcmp(SIM_CASE,"sup_plen_rocket")==0 || strcmp(SIM_CASE,"sup_plenum")==0)
-                        // {
-                        //     if (domainNumber==cone_index && xIndex==NGHOST)
-                        //     {
-                        //         theta = atan((y[domainNumber][xIndex][yIndex]-y[domainNumber][xIndex-1][yIndex])/(x[domainNumber][xIndex][yIndex]-x[domainNumber][xIndex-1][yIndex]));
-                        //         theta_frame_velocity(uL,vL,theta);
-                        //         theta_frame_velocity(uR,vR,theta);
-                        //     }
-                        // }
-
-                        // FLUX SPLITTING ON TOP FACE based on sonic points in X-direction
-                        if (sonic_x[domainIdx][xIdx][yIndex]+sonic_x[domainIdx][xIdx][yIndex+1]>=0)
-                        {
-                            // HANEL SCHEME FOR TOP FACE
-                            HANEL(flux_u,'V',rhoL,rhoR,vL,vR,uL,uR,pL,pR,HL,HR,R,GAMMA,ENTRO_FIX_C);
-                        }
-                        else
-                        {
-                            // AUSM-DV SCHEME FOR TOP FACE
-                            AUSM_DV(flux_u,'V',rhoL,rhoR,vL,vR,uL,uR,pL,pR,HL,HR,R,GAMMA,AUSM_K,ENTRO_FIX_C);
-                        }
-
-                        rhoL=0,uL=0,vL=0,pL=0,HL=0;
-                        rhoR=0,uR=0,vR=0,pR=0,HR=0;
-                        theta = 0.0;
-
-                        // MUSCL ON DOWN FACE -> Down face flux (Left = Down and Right = Up)
-                        rhoL = MUSCL(rhoRK[domainIdx][xIdx][yIndex-2],rhoRK[domainIdx][xIdx][yIndex-1],rhoRK[domainIdx][xIdx][yIndex],rhoRK[domainIdx][xIdx][yIndex+1],'L',MUSCL_BIAS,LIMITERNAME);
-                        uL = MUSCL(uRK[domainIdx][xIdx][yIndex-2],uRK[domainIdx][xIdx][yIndex-1],uRK[domainIdx][xIdx][yIndex],uRK[domainIdx][xIdx][yIndex+1],'L',MUSCL_BIAS,LIMITERNAME);
-                        vL = MUSCL(vRK[domainIdx][xIdx][yIndex-2],vRK[domainIdx][xIdx][yIndex-1],vRK[domainIdx][xIdx][yIndex],vRK[domainIdx][xIdx][yIndex+1],'L',MUSCL_BIAS,LIMITERNAME);
-                        pL = MUSCL(pRK[domainIdx][xIdx][yIndex-2],pRK[domainIdx][xIdx][yIndex-1],pRK[domainIdx][xIdx][yIndex],pRK[domainIdx][xIdx][yIndex+1],'L',MUSCL_BIAS,LIMITERNAME);
-
-                        rhoR = MUSCL(rhoRK[domainIdx][xIdx][yIndex-2],rhoRK[domainIdx][xIdx][yIndex-1],rhoRK[domainIdx][xIdx][yIndex],rhoRK[domainIdx][xIdx][yIndex+1],'R',MUSCL_BIAS,LIMITERNAME);
-                        uR = MUSCL(uRK[domainIdx][xIdx][yIndex-2],uRK[domainIdx][xIdx][yIndex-1],uRK[domainIdx][xIdx][yIndex],uRK[domainIdx][xIdx][yIndex+1],'R',MUSCL_BIAS,LIMITERNAME);
-                        vR = MUSCL(vRK[domainIdx][xIdx][yIndex-2],vRK[domainIdx][xIdx][yIndex-1],vRK[domainIdx][xIdx][yIndex],vRK[domainIdx][xIdx][yIndex+1],'R',MUSCL_BIAS,LIMITERNAME);
-                        pR = MUSCL(pRK[domainIdx][xIdx][yIndex-2],pRK[domainIdx][xIdx][yIndex-1],pRK[domainIdx][xIdx][yIndex],pRK[domainIdx][xIdx][yIndex+1],'R',MUSCL_BIAS,LIMITERNAME);
-
-                        EL = pL/(GAMMA-1) + 0.5*rhoL*(pow(uL,2) + pow(vL,2));
-                        ER = pR/(GAMMA-1) + 0.5*rhoR*(pow(uR,2) + pow(vR,2));
-                        HL = (EL + pL)/rhoL;
-                        HR = (ER + pR)/rhoR;
-
-                        // PROJECT VELOCITIES IN THE FRAME OF THE CURRENT FACE
-                        // if (strcmp(SIM_CASE,"sup_plen_rocket")==0 || strcmp(SIM_CASE,"sup_plenum")==0)
-                        // {
-                        //     if (domainNumber==cone_index && xIndex==NGHOST)
-                        //     {
-                        //         theta = atan((y[domainNumber][xIndex][yIndex-1]-y[domainNumber][xIndex-1][yIndex-1])/(x[domainNumber][xIndex][yIndex-1]-x[domainNumber][xIndex-1][yIndex-1]));
-                        //         theta_frame_velocity(uL,vL,theta);
-                        //         theta_frame_velocity(uR,vR,theta);
-                        //     }
-                        // }
-
-                        // FLUX SPLITTING ON DOWN FACE based on sonic points in X-direction
-                        if (sonic_y[domainIdx][xIdx][yIndex]+sonic_y[domainIdx][xIdx][yIndex-1]>=0)
-                        {
-                            // HANEL SCHEME FOR DOWN FACE
-                            HANEL(flux_d,'V',rhoL,rhoR,vL,vR,uL,uR,pL,pR,HL,HR,R,GAMMA,ENTRO_FIX_C);
-                        }
-                        else
-                        {
-                            // AUSM-DV SCHEME FOR DOWN FACE
-                            AUSM_DV(flux_d,'V',rhoL,rhoR,vL,vR,uL,uR,pL,pR,HL,HR,R,GAMMA,AUSM_K,ENTRO_FIX_C);
-                        }
-
-                        rhoL=0,uL=0,vL=0,pL=0,HL=0;
-                        rhoR=0,uR=0,vR=0,pR=0,HR=0;
-
-                        
-                        /* COMPUTATION OF TOTAL FLUX - FINITE VOLUME FORMULATION */
-                        // if (strcmp(SIM_CASE,"sup_plen_rocket")==0 || strcmp(SIM_CASE,"sup_plenum")==0)
-                        // {
-                        //     if (domainNumber==cone_index && xIndex==NGHOST)
-                        //     {
-                        //         theta = atan((y[domainNumber][xIndex][yIndex]-y[domainNumber][xIndex-1][yIndex])/(x[domainNumber][xIndex][yIndex]-x[domainNumber][xIndex-1][yIndex]));
-                        //         theta_frame_velocity(uL,vL,theta);
-                        //         theta_frame_velocity(uR,vR,theta);
-                        //     }
-                        // }
-                        // else
-                        // {
-                            dx = x[domainIdx][xIdx+1][yIndex] - x[domainIdx][xIdx][yIndex];
-                            dr = y[domainIdx][xIdx][yIndex+1] - y[domainIdx][xIdx][yIndex];
-
-                            flux[0] = ((flux_r[0] - flux_l[0])/dx + (flux_u[0] - flux_d[0])/dr)*DT;
-                            flux[1] = ((flux_r[1] - flux_l[1])/dx + (flux_u[1] - flux_d[1])/dr)*DT;
-                            flux[2] = ((flux_r[2] - flux_l[2])/dx + (flux_u[2] - flux_d[2])/dr)*DT;
-                            flux[3] = ((flux_r[3] - flux_l[3])/dx + (flux_u[3] - flux_d[3])/dr)*DT;
-                        // }
-
-                        /* SOURCE TERM CORRESPONDING TO CYLINDRICAL SYSTEM OF COORDINATES */ 
-                        flux[0] += rho[domainIdx][xIdx][yIndex]*v[domainIdx][xIdx][yIndex]/yc[domainIdx][xIdx][yIndex]*DT;
-                        flux[1] += rho[domainIdx][xIdx][yIndex]*v[domainIdx][xIdx][yIndex]*u[domainIdx][xIdx][yIndex]/yc[domainIdx][xIdx][yIndex]*DT;
-                        flux[2] += rho[domainIdx][xIdx][yIndex]*v[domainIdx][xIdx][yIndex]*v[domainIdx][xIdx][yIndex]/yc[domainIdx][xIdx][yIndex]*DT;
-                        flux[3] += rho[domainIdx][xIdx][yIndex]*v[domainIdx][xIdx][yIndex]*(H[domainIdx][xIdx][yIndex])/yc[domainIdx][xIdx][yIndex]*DT;
-
-                        /* IF NECESSARY, ADD/REMOVE FLUX AT INTERFACES */
-                        if (SOLID_ON==1 && ((domainIdx==dom_low && yIndex==NYtot[dom_low]-NGHOST-1) || (domainIdx==dom_up && yIndex==NGHOST)))
-                        {
-                            // Locate associated valve and source term value
-                            m = 0;
-                            while( !(xIdx>= mfr_index_inf[m] && xIdx<=mfr_index_sup[m]) && m<N_VALVE)
-                            {
-                                m++;
-                            }
-
-                            // Add or remove according to domain (inverse convention because eventually substracted)
-                            if (m<N_VALVE)
-                            {
-                                dx_source = x[domainIdx][xIdx+1][yIndex]-x[domainIdx][xIdx][yIndex];
-                                dy_source = y[domainIdx][xIdx][yIndex+1]-y[domainIdx][xIdx][yIndex];
-                                y_tip = U2_DOF[m][N_DOF_PER_NODE*(N_NODE-1)];
-                                theta_tip = U2_DOF_K[m][N_DOF_PER_NODE*(N_NODE-1)+1];
-                                compute_cell_source(domainIdx,dom_low,dom_up,r_low,r_up,mfr[m],y_tip,theta_tip,dy_source, N_V_PER_STAGE,GAMMA,R0,L_HOLE,HOLE_FACTOR,dx_source,B_HOLE,mfr_n[m],mean_rho_sup[m],mean_p_sup[m],mean_p_inf[m],rhoRK[dom_up][xIdx][yIndex],uRK[dom_up][xIdx][yIndex],vRK[dom_up][xIdx][yIndex],pRK[dom_up][xIdx][yIndex],B0,B1,L_T,source);
-
-                                flux[0] -= source[0]*DT;
-                                flux[1] -= source[1]*DT;
-                                flux[2] -= source[2]*DT;
-                                flux[3] -= source[3]*DT;
-                                // printf("%f %f %f %f \n",source[0],source[1],source[2],source[3]);
-
-                                if (isnan(source[0]) || isnan(source[1]) || isnan(source[2]) || isnan(source[3]))
-                                {
-                                    printf("DOM UP IS %d\n", dom_up);
-                                    fprintf(stderr,"\nERROR:SOURCE IS NaN FOR VALVE %d at time %d and at domain %d %d %d: %f %f %f %f (ytip is %f)!\n",m,timeStepNumber,domainIdx,xIdx,yIndex,source[0],source[1],source[2],source[3],y_tip);
-                                    exit(0);
-                                }
-                            }
-                        }
-
-                        /* INCREMENT RUNGE-KUTTA VARIABLES WITH CORRESPONDING FLUX */
-                        RK_k = 1./(RK_ORDER-rungeKuttaIterationNumber);
-                        rhot[domainIdx][xIdx][yIndex] = rho[domainIdx][xIdx][yIndex] - RK_k*flux[0];
-                        ut[domainIdx][xIdx][yIndex] = (rho[domainIdx][xIdx][yIndex]*u[domainIdx][xIdx][yIndex] - RK_k*flux[1])/rhot[domainIdx][xIdx][yIndex];
-                        vt[domainIdx][xIdx][yIndex] = (rho[domainIdx][xIdx][yIndex]*v[domainIdx][xIdx][yIndex] - RK_k*flux[2])/rhot[domainIdx][xIdx][yIndex];
-                        Et[domainIdx][xIdx][yIndex] = E[domainIdx][xIdx][yIndex] - RK_k*flux[3];
-
-                        /* DEDUCE REDUNDANT VARIABLES */
-                        pt[domainIdx][xIdx][yIndex] = (GAMMA-1)*(Et[domainIdx][xIdx][yIndex] - 0.5*rhot[domainIdx][xIdx][yIndex]*(pow(ut[domainIdx][xIdx][yIndex],2)+pow(vt[domainIdx][xIdx][yIndex],2)));
-                        Tt[domainIdx][xIdx][yIndex] = pt[domainIdx][xIdx][yIndex]/(R*rhot[domainIdx][xIdx][yIndex]);
-                        Ht[domainIdx][xIdx][yIndex] = (Et[domainIdx][xIdx][yIndex]+pt[domainIdx][xIdx][yIndex])/rhot[domainIdx][xIdx][yIndex];
-                    }
-                }
-            }
         } 
         /* END OF THE RUNGE-KUTTA LOOP */
 
