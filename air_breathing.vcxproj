@@ -26,6 +26,7 @@
     <ClInclude Include="public\cell_values_container.h" />
     <ClInclude Include="public\domain.h" />
     <ClInclude Include="public\domain_enums.h" />
+    <ClInclude Include="public\euler_container.h" />
     <ClInclude Include="public\fem_deformation.h" />
     <ClInclude Include="public\field_quantity.h" />
     <ClInclude Include="public\gradient_descent.h" />

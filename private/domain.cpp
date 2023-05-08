@@ -216,6 +216,8 @@ void Domain::TimeStep()
 			double cBottom = sqrt(gamma * p.bottomFaceMUSCLBuffer.GetAt(xIdx, yIdx));
 		}
 	}
+
+	// Do flux splitting on all the faces. Use hanel if flow is sonic in either cell, ausm_dv if not.
 }
 
 void ValidateAxisInput(const int axis)

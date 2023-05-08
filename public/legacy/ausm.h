@@ -84,14 +84,20 @@ void AUSM_DV(double flux[4],char horOrVer, double rhoL,double rhoR,double uL,dou
 }
 
 /* Hanel's dissipative scheme. To be used orthogonally to directions where shocks have been detected */
-void HANEL(double flux[4],char horOrVer, double rhoL,double rhoR,double uL,double uR,double vL,double vR,double pL,double pR,double HL,double HR,double R,double gamma,double ENTRO_FIX_C)
+void HANEL(double flux[4], const char horOrVer, const double rhoL, const double rhoR, const double uL, const double uR, const double vL, const double vR, const double pL, const double pR, const double HL, const double HR, const double r, const double gamma, const double ENTRO_FIX_C)
 {
     double phalf;
-    double uLplus=0,uRminus=0,pLplus=0,pRminus=0;
+    double uLplus;
+    double uRminus;
+    double pLplus;
+    double pRminus;
 
-    double cL=sqrt(gamma*pL/rhoL),cR=sqrt(gamma*pR/rhoR);
-    double alphaL=pL/rhoL,alphaR=pR/rhoR;
-    double ALPHA_L=2*alphaL/(alphaL+alphaR), ALPHA_R=2*alphaR/(alphaR+alphaL);
+    double cL=sqrt(gamma*pL/rhoL); // Speed of sound on the left face.
+    double cR=sqrt(gamma*pR/rhoR); // Speed of sound on the right face.
+    double alphaL=pL/rhoL;
+    double alphaR=pR/rhoR;
+    double ALPHA_L=2*alphaL/(alphaL+alphaR);
+    double ALPHA_R=2*alphaR/(alphaR+alphaL);
     double cM=fmax(cL,cR);
 
     // Definition of UL(plus), PL(plus), UR(minus) and PR(minus)
@@ -143,7 +149,7 @@ void HANEL(double flux[4],char horOrVer, double rhoL,double rhoR,double uL,doubl
     if (horOrVer=='V')
     {
         // Inverse flux components in case of vertical flux
-        double tempVar=0;
+        double tempVar;
         tempVar = flux[2];
         flux[2] = flux[1]; // U -> V, V -> -U by 90° rotation
         flux[1] = tempVar;

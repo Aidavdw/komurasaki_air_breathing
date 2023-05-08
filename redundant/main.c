@@ -458,10 +458,10 @@ int main()
 
     printf("Starting main time loop...\n");
     /* START TIME LOOP */
-    for (int t = 1; t < Ntstep; ++t)
+    for (int currentTimeStep = 1; currentTimeStep < Ntstep; ++currentTimeStep)
     {
         /* 4TH ORDER RUNGE-KUTTA PREDICTOR-CORRECTOR LOOP */
-        for (int trk = 0; trk < RK_ORDER; ++trk)
+        for (int currentRungeKuttaIter = 0; currentRungeKuttaIter < RK_ORDER; ++currentRungeKuttaIter)
         {
             /* FOR FIRST ITERATION, TAKE PARAMETERS OF PREVIOUS SOLUTION */
             for (int k = 0; k < NDOMAIN; ++k)
@@ -473,7 +473,7 @@ int main()
                     {
                     	
                         // Take solution from previous iteration for this new iteration
-                        if(trk==0)
+                        if(currentRungeKuttaIter==0)
                         {
                             // First Runge-Kutta iteration: Copy previous time step into Runge-kutta buffer.
                             rhoRK[k][i][j]=rho[k][i][j];
@@ -555,7 +555,7 @@ int main()
                     if (isnan(mean_p_sup[k]) || isnan(mean_p_inf[k]) || isnan(mean_rho_sup[k]))
                     {
                         printf("VALVE %d: PINF=%f, PSUP=%f, RATIO=%f\n",k,mean_p_inf[k],mean_p_sup[k],mean_p_inf[k]/mean_p_sup[k]);
-                        printf("Crash at t=%f, ytip=%f\n",t*DT,y_tip);
+                        printf("Crash at t=%f, ytip=%f\n",currentTimeStep*DT,y_tip);
                     }
 
                     // Time-average value of mean fields and mass flow rate
@@ -670,10 +670,39 @@ int main()
                 for (int i = NGHOST; i < NXtot[k]-NGHOST; ++i)
                 {
                     double RK_k;
-                    double rhoL,uL,vL,pL,rhoR,uR,vR,pR,EL,ER,HL,HR, theta;
-                    double flux_l[4],flux_r[4],flux_u[4],flux_d[4],flux[4];
-                    double dx,dr;
-                    double y_tip, theta_tip, source[4], dx_source, dy_source;
+                    
+                	
+					double uL; // MUSCL of u-velocity, left face.
+					double vL; // MUSCL of v-velocity, left face.
+					double pL; // MUSCL of pressure, left face.
+                	double rhoL; // MUSCL of density, left face.
+                	double EL; // MUSCL of energy, left face.
+                	double HL; // MUSCL of enthalpy(?), left face.
+					
+					double uR; // MUSCL of u-velocity, right face.
+					double vR; // MUSCL of v-velocity, right face.
+					double pR; // MUSCL of pressure, right face.
+                	double rhoR; // MUSCL of density, right face.
+                	double ER; // MUSCL of energy, right face.
+                	double HR; // MUSCL of enthalpy(?), right face.
+					
+					double  theta;
+                	
+                    double flux_l[4]; // flux terms of over the left face in the current cell index. Index corresponds to euler equation: [0 : density term, 1: x-axis velocity, 2: y/r-axis velocity, 3: specific internal energy]
+					double flux_r[4]; // flux terms of over the right face in the current cell index. Index corresponds to euler equation: [0 : density term, 1: x-axis velocity, 2: y/r-axis velocity, 3: specific internal energy]
+					double flux_u[4]; // flux terms of over the up face in the current cell index. Index corresponds to euler equation: [0 : density term, 1: x-axis velocity, 2: y/r-axis velocity, 3: specific internal energy]
+					double flux_d[4]; // flux terms of over the down face in the current cell index. Index corresponds to euler equation: [0 : density term, 1: x-axis velocity, 2: y/r-axis velocity, 3: specific internal energy]
+					double flux[4];
+                	
+                    double dx; // The distance between this cell center and the one at index x+1
+					double dr; // The distance between this cell center and the one at index x+1
+                	
+                    double y_tip; // deflection of the tip of the reed valve
+					double  theta_tip; // angle that the tip makes to its x-axis.
+					double  source[4];
+					double  dx_source;
+					double  dy_source;
+                	
                     int m;
 
                     for (int j = NGHOST; j < NYtot[k]-NGHOST; ++j)
@@ -712,8 +741,8 @@ int main()
                         HL = (EL + pL)/rhoL;
                         HR = (ER + pR)/rhoR;
 
-                        // FLUX SPLITTING ON RIGHT FACE based on sonic points in Y-direction
                     	// A: This looks unphysical, as the value can be set by a flux in a different direction, but still cause hanel to be used.
+                        // FLUX SPLITTING ON RIGHT FACE based on sonic points in Y-direction
                         if (sonic_y[k][i][j]+sonic_y[k][i+1][j]>=0) // If either of the two sampled points has the 'sonic' flag set.
                         {
                             HANEL(flux_r,'H',rhoL,rhoR,uL,uR,vL,vR,pL,pR,HL,HR,R,GAMMA,ENTRO_FIX_C);
@@ -864,13 +893,15 @@ int main()
                             dx = x[k][i+1][j] - x[k][i][j];
                             dr = y[k][i][j+1] - y[k][i][j];
 
+                    		// Accumulation because of what goes in/out
                             flux[0] = ((flux_r[0] - flux_l[0])/dx + (flux_u[0] - flux_d[0])/dr)*DT;
                             flux[1] = ((flux_r[1] - flux_l[1])/dx + (flux_u[1] - flux_d[1])/dr)*DT;
                             flux[2] = ((flux_r[2] - flux_l[2])/dx + (flux_u[2] - flux_d[2])/dr)*DT;
                             flux[3] = ((flux_r[3] - flux_l[3])/dx + (flux_u[3] - flux_d[3])/dr)*DT;
                         // }
 
-                        /* SOURCE TERM CORRESPONDING TO CYLINDRICAL SYSTEM OF COORDINATES */ 
+                        /* SOURCE TERM CORRESPONDING TO CYLINDRICAL SYSTEM OF COORDINATES */
+                    	// A: This is the Q term, but all are multiplied by v * dt/yc
                         flux[0] += rho[k][i][j]*v[k][i][j]/yc[k][i][j]*DT;
                         flux[1] += rho[k][i][j]*v[k][i][j]*u[k][i][j]/yc[k][i][j]*DT;
                         flux[2] += rho[k][i][j]*v[k][i][j]*v[k][i][j]/yc[k][i][j]*DT;
@@ -895,6 +926,7 @@ int main()
                                 theta_tip = U2_DOF_K[m][N_DOF_PER_NODE*(N_NODE-1)+1];
                                 compute_cell_source(k,dom_low,dom_up,r_low,r_up,mfr[m],y_tip,theta_tip,dy_source, N_V_PER_STAGE,GAMMA,R0,L_HOLE,HOLE_FACTOR,dx_source,B_HOLE,mfr_n[m],mean_rho_sup[m],mean_p_sup[m],mean_p_inf[m],rhoRK[dom_up][i][j],uRK[dom_up][i][j],vRK[dom_up][i][j],pRK[dom_up][i][j],B0,B1,L_T,source);
 
+                            	// Extra source due to valve opening.
                                 flux[0] -= source[0]*DT;
                                 flux[1] -= source[1]*DT;
                                 flux[2] -= source[2]*DT;
@@ -904,14 +936,14 @@ int main()
                                 if (isnan(source[0]) || isnan(source[1]) || isnan(source[2]) || isnan(source[3]))
                                 {
                                     printf("DOM UP IS %d\n", dom_up);
-                                    fprintf(stderr,"\nERROR:SOURCE IS NaN FOR VALVE %d at time %d and at domain %d %d %d: %f %f %f %f (ytip is %f)!\n",m,t,k,i,j,source[0],source[1],source[2],source[3],y_tip);
+                                    fprintf(stderr,"\nERROR:SOURCE IS NaN FOR VALVE %d at time %d and at domain %d %d %d: %f %f %f %f (ytip is %f)!\n",m,currentTimeStep,k,i,j,source[0],source[1],source[2],source[3],y_tip);
                                     exit(0);
                                 }
                             }
                         }
 
                         /* INCREMENT RUNGE-KUTTA VARIABLES WITH CORRESPONDING FLUX */
-                        RK_k = 1./(RK_ORDER-trk);
+                        RK_k = 1./(RK_ORDER-currentRungeKuttaIter);
                         rhot[k][i][j] = rho[k][i][j] - RK_k*flux[0];
                         ut[k][i][j] = (rho[k][i][j]*u[k][i][j] - RK_k*flux[1])/rhot[k][i][j];
                         vt[k][i][j] = (rho[k][i][j]*v[k][i][j] - RK_k*flux[2])/rhot[k][i][j];
@@ -980,10 +1012,10 @@ int main()
         p_tube = domain_average(NXtot[dom_low],NYtot[dom_low],x[dom_low],y[dom_low],p[dom_low],NGHOST);
         rho_tube = domain_average(NXtot[dom_low],NYtot[dom_low],x[dom_low],y[dom_low],rho[dom_low],NGHOST);
 
-        append_data_to_file(p_wall,DT*t,P_MEAN_WALL_FILENAME,EXP_EXTENSION);
-        append_data_to_file(mfr_intake,DT*t,INTAKE_MFR_FILENAME,EXP_EXTENSION);
-        append_data_to_file(p_tube,DT*t,P_TUBE_FILENAME,EXP_EXTENSION);
-        append_data_to_file(rho_tube,DT*t,RHO_TUBE_FILENAME,EXP_EXTENSION);
+        append_data_to_file(p_wall,DT*currentTimeStep,P_MEAN_WALL_FILENAME,EXP_EXTENSION);
+        append_data_to_file(mfr_intake,DT*currentTimeStep,INTAKE_MFR_FILENAME,EXP_EXTENSION);
+        append_data_to_file(p_tube,DT*currentTimeStep,P_TUBE_FILENAME,EXP_EXTENSION);
+        append_data_to_file(rho_tube,DT*currentTimeStep,RHO_TUBE_FILENAME,EXP_EXTENSION);
 
         if (PLENUM_ON==1)
         {
@@ -994,10 +1026,10 @@ int main()
             rho_plenum = domain_average(NXtot[dom_up],NYtot[dom_up],x[dom_up],y[dom_up],rho[dom_up],NGHOST);
             p_drag = average_face(NXtot[dom_up],NYtot[dom_up],x[dom_up],y[dom_up],p[dom_up],NXtot[dom_up]-NGHOST-1,NGHOST);
 
-            append_data_to_file(p_plenum,DT*t,PLEN_P_FILENAME,EXP_EXTENSION);
-            append_data_to_file(rho_plenum,DT*t,PLEN_RHO_FILENAME,EXP_EXTENSION);
-            append_data_to_file(mfr_plenum,DT*t,PLENUM_MFR_FILENAME,EXP_EXTENSION);
-            append_data_to_file(p_drag,DT*t,PLENUM_DRAG_PRESSURE_FILENAME,EXP_EXTENSION);
+            append_data_to_file(p_plenum,DT*currentTimeStep,PLEN_P_FILENAME,EXP_EXTENSION);
+            append_data_to_file(rho_plenum,DT*currentTimeStep,PLEN_RHO_FILENAME,EXP_EXTENSION);
+            append_data_to_file(mfr_plenum,DT*currentTimeStep,PLENUM_MFR_FILENAME,EXP_EXTENSION);
+            append_data_to_file(p_drag,DT*currentTimeStep,PLENUM_DRAG_PRESSURE_FILENAME,EXP_EXTENSION);
         }
 
 
@@ -1026,32 +1058,32 @@ int main()
             }
 
             // PFR, stage mass flow rate and total mass flow rate export
-            append_data_to_file(total_mfr,DT*t,MFR_TOT_FILENAME,EXP_EXTENSION);
-            append_data_to_file(total_pfr,DT*t,PFR_FILENAME,EXP_EXTENSION);
-            append_multidata_to_file(N_VALVE,stage_mfr,DT*t,MFR_FILENAME,EXP_EXTENSION);
+            append_data_to_file(total_mfr,DT*currentTimeStep,MFR_TOT_FILENAME,EXP_EXTENSION);
+            append_data_to_file(total_pfr,DT*currentTimeStep,PFR_FILENAME,EXP_EXTENSION);
+            append_multidata_to_file(N_VALVE,stage_mfr,DT*currentTimeStep,MFR_FILENAME,EXP_EXTENSION);
 
             // Valve displacement and pressure ratio export
-            append_multidata_to_file(N_VALVE,ytip,DT*t,Y_TIP_FILENAME,EXP_EXTENSION);
-            append_multidata_to_file(N_VALVE,pratio,DT*t,P_RATIO_FILENAME,EXP_EXTENSION);
+            append_multidata_to_file(N_VALVE,ytip,DT*currentTimeStep,Y_TIP_FILENAME,EXP_EXTENSION);
+            append_multidata_to_file(N_VALVE,pratio,DT*currentTimeStep,P_RATIO_FILENAME,EXP_EXTENSION);
         }
 
         /* EXPORT ALL FLUID AND SOLID DATA EVERY N STEPS */
-        if(t%N_EXPORT==0)
+        if(currentTimeStep%N_EXPORT==0)
         {
             // Fluid data export
-            export_fluid_data(NDOMAIN,NXtot,NYtot,x,y,xc,yc,rho,u,v,p,E,T,H,DT*t,OUT_FOLDERNAME,EXP_EXTENSION,W_FORMAT);
+            export_fluid_data(NDOMAIN,NXtot,NYtot,x,y,xc,yc,rho,u,v,p,E,T,H,DT*currentTimeStep,OUT_FOLDERNAME,EXP_EXTENSION,W_FORMAT);
 
             // Valve data export
             if (SOLID_ON==1)
             {
                 // Valve displacement
-            	export_valve_data(N_VALVE,N_FEM+1,x_FEM,y_FEM,R0,DT*t,OUT_FOLDERNAME,EXP_EXTENSION,W_FORMAT,NGHOST);
+            	export_valve_data(N_VALVE,N_FEM+1,x_FEM,y_FEM,R0,DT*currentTimeStep,OUT_FOLDERNAME,EXP_EXTENSION,W_FORMAT,NGHOST);
             }
         }
 
 
         /* DISPLAY CFL */
-        if(t%N_CFL==0)
+        if(currentTimeStep%N_CFL==0)
         {
             // COMPUTE CFL (BASED ON TOTAL VELOCITY)
             CFL = get_cfl(x,y,u,v,T,R,GAMMA,NDOMAIN,NXtot,NYtot,DT);
@@ -1059,7 +1091,7 @@ int main()
             // COUNTING TIME BETWEEN ITERATIONS
             clock_gettime(CLOCK_REALTIME,&end_time_loop);
             SIM_TIME_LOOP = (end_time_loop.tv_sec - start_time_loop.tv_sec)+(end_time_loop.tv_nsec - start_time_loop.tv_nsec)/1E9;
-            printf("Iteration %d (%.1f %%)... Max. CFL at t=%.5f sec is: %f. \n[completed in %f sec]\n",t,(double)(t)/Ntstep*100.0,DT*t,CFL,SIM_TIME_LOOP);
+            printf("Iteration %d (%.1f %%)... Max. CFL at t=%.5f sec is: %f. \n[completed in %f sec]\n",currentTimeStep,(double)(currentTimeStep)/Ntstep*100.0,DT*currentTimeStep,CFL,SIM_TIME_LOOP);
             clock_gettime(CLOCK_REALTIME,&start_time_loop);
 
             // RESET BEFORE NEXT LOOP
