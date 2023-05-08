@@ -1,12 +1,12 @@
 #include "fem_deformation.h"
 
-#include <assert.h>
+#include <cassert>
 #include <stdexcept>
 #include <vector>
 
 #include "AuxFunctions.h"
 
-#define N_DOF_PER_NODE 2		// The total amount of degrees of freedom for a 2d beam element.
+
 
 FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const EBeamProfile beamProfile, const double freeLength, const double fixedLength, const double dt) :
 	fixedNodes(amountOfFixedNodes),

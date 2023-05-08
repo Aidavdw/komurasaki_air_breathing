@@ -4,7 +4,7 @@
 #include "beam_section.h"
 #include "pos2d.h"
 
-
+#define N_DOF_PER_NODE 2		// The total amount of degrees of freedom for a 2d beam element.
 
 // A simple beam in bending, modeled as an FEM system.
 class FemDeformation

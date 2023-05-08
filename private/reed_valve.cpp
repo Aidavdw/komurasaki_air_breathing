@@ -36,29 +36,6 @@ ReedValve::ReedValve(Domain* intoDomain, Domain* outOfDomain, const EBoundaryLoc
 	fem_ = FemDeformation(amountOfFreeSections, amountOfFixedNodes, beamProfile, lengthOfFreeSection, lengthOfFixedSections, intoDomain->simCase->dt, boundary);
 }
 
-void ReedValve::CalculatePressuresOnFemSections()
-{
-	throw std::logic_error("This function is not implemented yet.");
-	for (int beamIdx = 0; beamIdx < beamSections.size(); beamIdx++)
-	{
-		// the 'left' position
-		const double& pos1X = nodePositionsRelativeToRoot[beamIdx][0];
-		const double& pos1Y = nodePositionsRelativeToRoot[beamIdx][1];
-
-		// the 'right' position
-		const double& pos2X = nodePositionsRelativeToRoot[beamIdx][0];
-		const double& pos2Y = nodePositionsRelativeToRoot[beamIdx][1];
-
-		// Hence, the centre, and the angle this section is at
-		Position centerPos = { (pos1X + pos2X) * 0.5, (pos1Y + pos2Y) * 0.5 };
-
-		double angle = atan2(pos2Y - pos1Y, pos2X - pos1X);
-
-		auto cellThisSectionIsIn = intoDomain_->InvertPositionToIndex(centerPos);
-		double pressureGradientNormalToBeamSection = intoDomain_->p.GetGradientInDirectionAndPosition(cellThisSectionIsIn,  angle);
-
-	}
-}
 void ReedValve::CalculateForceOnNodes(std::vector<double>& forceVectorOut) const
 {
 	// Only do this for the nodes that are considered 'free'.
@@ -133,9 +110,9 @@ void ReedValve::SetSourceCellIndices(std::vector<CellIndex>& sourceCellIndicesOu
 {
 	// calculate the 'starting position' based on the position along the boundary as provided, offsetting with the hole size etc.
 	double posAlongBoundaryStart = positionAlongBoundary + lengthOfFixedSections + lengthOfFreeSection * (1 - HOLE_FACTOR);
-	auto posStart = intoDomain_->PositionAlongBoundaryToCoordinate(boundary, posAlongBoundaryStart);
+	auto posStart = intoDomain_->PositionAlongBoundaryToCoordinate(boundary, posAlongBoundaryStart, 0);
 	double posAlongBoundaryEnd = positionAlongBoundary + lengthOfFixedSections + lengthOfFreeSection;
-	auto posEnd = intoDomain_->PositionAlongBoundaryToCoordinate(boundary, posAlongBoundaryEnd);
+	auto posEnd = intoDomain_->PositionAlongBoundaryToCoordinate(boundary, posAlongBoundaryEnd, 0);
 
 	CellIndex sourceStartIndexOnBoundary = intoDomain_->InvertPositionToIndex(posStart);		// The index (location) on the boundary where the valve starts creating a source term.
 	CellIndex sourceEndIndexOnBoundary = intoDomain_->InvertPositionToIndex(posEnd);		// The index (location) on the boundary where the valve stops creating a source term.
