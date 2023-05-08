@@ -16,13 +16,14 @@ FieldQuantity::FieldQuantity(Domain* domain, const int sizeX, const int sizeY, c
 	nX(sizeX),
 	nY(sizeY)
 {
-	main = TwoDimensionalArray(sizeX + nGhostCells, sizeY + nGhostCells, initialValue);
+	currentTimeStep = TwoDimensionalArray(sizeX + nGhostCells, sizeY + nGhostCells, initialValue);
 	rungeKuttaBuffer = TwoDimensionalArray(sizeX + nGhostCells, sizeY + nGhostCells, initialValue);
 	deltaDueToFlow = TwoDimensionalArray(sizeX + nGhostCells, sizeY + nGhostCells, initialValue);
 	deltaDueToValve = TwoDimensionalArray(sizeX + nGhostCells, sizeY + nGhostCells, initialValue);
 
-	bufferMap.insert({ EFieldQuantityBuffer::MAIN, main });
-	bufferMap.insert({ EFieldQuantityBuffer::RUNGE_KUTTA, rungeKuttaBuffer });
+	bufferMap.insert({ CURRENT_TIME_STEP, currentTimeStep });
+	bufferMap.insert({ RUNGE_KUTTA, rungeKuttaBuffer });
+	bufferMap.insert({ NEXT_TIME_STEP, nextTimeStepBuffer });
 	bufferMap.insert({ DELTA_FLOW, deltaDueToFlow });
 	bufferMap.insert({ DELTA_VALVE, deltaDueToValve });
 }
@@ -103,7 +104,7 @@ void FieldQuantity::PopulateMUSCLBuffers(const EFieldQuantityBuffer sourceBuffer
 
 double FieldQuantity::GetAt(const CellIndex& cellIndex) const
 {
-	return main.GetAt(cellIndex.x, cellIndex.y);
+	return currentTimeStep.GetAt(cellIndex.x, cellIndex.y);
 }
 
 inline int FieldQuantity::At(const int xIdx, const int yIdx) const
@@ -190,8 +191,8 @@ double FieldQuantity::GetGradientInDirectionAndPosition(const CellIndex posIdx, 
 	// Calculating the partial derivatives in the x-y directions.
 	double dx = (domain->meshSpacing[0].GetCellWidth(dxPos.x) + domain->meshSpacing[0].GetCellWidth(rootPos.x)) * 0.5;
 	double dy = (domain->meshSpacing[1].GetCellWidth(dyPos.y) + domain->meshSpacing[1].GetCellWidth(rootPos.y)) * 0.5;
-	double partialDerivativeX = (main.GetAt(rootPos.x, rootPos.y) - main.GetAt(dxPos.x, dxPos.y)) / dx;
-	double partialDerivativeY = (main.GetAt(rootPos.x, rootPos.y) - main.GetAt(dyPos.x, dyPos.y)) / dy;
+	double partialDerivativeX = (currentTimeStep.GetAt(rootPos.x, rootPos.y) - currentTimeStep.GetAt(dxPos.x, dxPos.y)) / dx;
+	double partialDerivativeY = (currentTimeStep.GetAt(rootPos.x, rootPos.y) - currentTimeStep.GetAt(dyPos.x, dyPos.y)) / dy;
 
 	// Turning the direction given into a unit vector, u = < cos(theta), sin(theta) >. Since this has unit length, decomposing the partial derivatives calculated above is really straightforward.
 	return cos(directionAngle) * partialDerivativeX + sin(directionAngle) * partialDerivativeY;
@@ -203,8 +204,8 @@ double FieldQuantity::GetAverageValue(const bool bExpectUniformField) const
 	if (bExpectUniformField)
 	{
 		// Even if it's a uniform field, just do a littttttle check to make sure it actually is
-		double checkval1 = main.GetAt(main.nX/4, main.nY/2);
-		double checkval2 = main.GetAt(3*main.nX/4, main.nY/2);
+		double checkval1 = currentTimeStep.GetAt(currentTimeStep.nX/4, currentTimeStep.nY/2);
+		double checkval2 = currentTimeStep.GetAt(3*currentTimeStep.nX/4, currentTimeStep.nY/2);
 		if (checkval1 - checkval2 > 0.005)
 			throw std::logic_error("Expected uniform field, but it was not!");
 	}
@@ -212,14 +213,14 @@ double FieldQuantity::GetAverageValue(const bool bExpectUniformField) const
 
 	// sort of arbitrary where it reads from.
 	if (bExpectUniformField)
-		return main.GetAt(main.nX/4, main.nY/2);
+		return currentTimeStep.GetAt(currentTimeStep.nX/4, currentTimeStep.nY/2);
 
 	double totalSum = 0;
 	for (int xIdx = 0; xIdx < nX; xIdx++)
 	{
 		for (int yIdx = 0; yIdx < nY; yIdx++)
 		{
-			totalSum += main.GetAt(xIdx,yIdx);
+			totalSum += currentTimeStep.GetAt(xIdx,yIdx);
 		}
 	}
 	

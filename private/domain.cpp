@@ -306,10 +306,10 @@ void Domain::PopulateDomainDimensions()
 	{
 		for (int yIdx = 0; yIdx < size[1]; yIdx++)
 		{
-			cellLengths[0].main[cellLengths[0].At(xIdx, yIdx)] = lengths[0][xIdx];
-			cellLengths[1].main[cellLengths[1].At(xIdx, yIdx)] = lengths[1][yIdx];
-			localCellCenterPositions[0].main[localCellCenterPositions[0].At(xIdx, yIdx)] = centerPositions[0][xIdx];
-			localCellCenterPositions[1].main[localCellCenterPositions[1].At(xIdx, yIdx)] = centerPositions[1][yIdx];
+			cellLengths[0].currentTimeStep[cellLengths[0].At(xIdx, yIdx)] = lengths[0][xIdx];
+			cellLengths[1].currentTimeStep[cellLengths[1].At(xIdx, yIdx)] = lengths[1][yIdx];
+			localCellCenterPositions[0].currentTimeStep[localCellCenterPositions[0].At(xIdx, yIdx)] = centerPositions[0][xIdx];
+			localCellCenterPositions[1].currentTimeStep[localCellCenterPositions[1].At(xIdx, yIdx)] = centerPositions[1][yIdx];
 		}
 	}
 }

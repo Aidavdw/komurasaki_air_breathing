@@ -76,7 +76,7 @@ int main()
         for (auto& domainIter : simCase.domains)
         {
             Domain& domain = domainIter.second;
-            domain.CopyFieldQuantitiesToBuffer(EFieldQuantityBuffer::MAIN, EFieldQuantityBuffer::RUNGE_KUTTA);
+            domain.CopyFieldQuantitiesToBuffer(EFieldQuantityBuffer::CURRENT_TIME_STEP, EFieldQuantityBuffer::RUNGE_KUTTA);
         }
         
         /* 4TH ORDER RUNGE-KUTTA PREDICTOR-CORRECTOR LOOP (iterate 4 times)*/
@@ -120,31 +120,12 @@ int main()
         } 
         /* END OF THE RUNGE-KUTTA LOOP */
 
-        /* UPDATE SOLUTION BEFORE NEXT ITERATION */
-        for (int k = 0; k < NDOMAIN; ++k)
+        // Take the 'next time step' solution of the last runge-kutta iteration as the solution for the new time step.
+        for (auto& domainIter : simCase.domains)
         {
-            #pragma omp parallel for num_threads(4) schedule(static)
-            for (int i = 0; i < NXtot[k]; ++i)
-            {
-                #pragma omp parallel for num_threads(3) schedule(static)
-                for (int j = 0; j < NYtot[k]; ++j)
-                {
-                    rho[k][i][j]=rhot[k][i][j];
-                    u[k][i][j]=ut[k][i][j];
-                    v[k][i][j]=vt[k][i][j];
-                    E[k][i][j]=Et[k][i][j];
-                    p[k][i][j]=pt[k][i][j];
-                    T[k][i][j]=Tt[k][i][j];
-                    H[k][i][j]=Ht[k][i][j];
-
-                    if (isnan(p[k][i][j]))
-                    {
-                        fprintf(stderr,"SOLVED PRESSURE IS NaN at (%d,%d,%d)\n",k,i,j);
-                    }
-                }
-            }
+            Domain& domain = domainIter.second;
+            domain.CopyFieldQuantitiesToBuffer(NEXT_TIME_STEP, CURRENT_TIME_STEP);
         }
-
 
         /* UPDATE SOLID NODES WITH LAST RUNGE-KUTTA SOLUTION */
         if (SOLID_ON==1)
