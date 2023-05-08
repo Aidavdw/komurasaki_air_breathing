@@ -228,7 +228,7 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 					// directionFlux = GetAUSMDV(direction)
 
 			// Total accumulation is what goes in - what goes out
-			const CellIndex currentCell(xIndex, yIndex);
+			const CellIndex currentCell(xIdx, yIdx);
 			auto cellSizes = GetCellSizes(currentCell);
 			EulerContinuity accumulation = ((rightFlux - leftFlux)/cellSizes.first + (upFlux - downFlux)/cellSizes.second)*dt; // dy = dr in this case, if you compensate for the squashification.
 			// Should be same as below, todo: check if they are the same value, and im not messing up operator overloads.

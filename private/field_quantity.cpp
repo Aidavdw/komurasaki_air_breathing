@@ -13,8 +13,8 @@
 FieldQuantity::FieldQuantity(Domain* domain, const int sizeX, const int sizeY, const double initialValue, const int nGhostCells) :
 	domain(domain),
 	nGhostCells(nGhostCells),
-	nX(sizeX),
-	nY(sizeY)
+	nX_(sizeX),
+	nY_(sizeY)
 {
 	currentTimeStep = TwoDimensionalArray(sizeX + nGhostCells, sizeY + nGhostCells, initialValue);
 	rungeKuttaBuffer = TwoDimensionalArray(sizeX + nGhostCells, sizeY + nGhostCells, initialValue);
@@ -38,7 +38,7 @@ void FieldQuantity::CopyToBuffer(const EFieldQuantityBuffer from, const EFieldQu
 {
 	TwoDimensionalArray::ElementWiseCopy(bufferMap.at(from), bufferMap.at(to));
 }
-double FieldQuantity::GetInterpolatedValueAtPosition(const Position atPosition) const
+double FieldQuantity::GetInterpolatedValueAtPosition(const Position& atPosition) const
 {
 	Position distanceFromCellCenter;
 	const CellIndex cellIndex = domain->InvertPositionToIndex(atPosition, distanceFromCellCenter);
@@ -74,9 +74,9 @@ void FieldQuantity::PopulateMUSCLBuffers(const EFieldQuantityBuffer sourceBuffer
 		throw std::logic_error("Cannot populate MUSCL buffers, as the amount of ghost cells is smaller than two. Because of how MUSCL has been implemented, given that c is at the edge, the sampling at p2 will be done on the ghost cells! This means that there is a soft lower limit of 2 on the amount of ghost cells.");
 	
 	const TwoDimensionalArray& source = bufferMap.at(sourceBuffer);
-	for (int xIdx = 0; xIdx < nX; ++xIdx)
+	for (int xIdx = 0; xIdx < nX_; ++xIdx)
 	{
-		for (int yIdx = 0; yIdx < nY; yIdx++)
+		for (int yIdx = 0; yIdx < nY_; yIdx++)
 		{
 			
 #ifdef _DEBUG
@@ -102,65 +102,13 @@ void FieldQuantity::PopulateMUSCLBuffers(const EFieldQuantityBuffer sourceBuffer
 	
 }
 
-double FieldQuantity::GetAt(const CellIndex& cellIndex) const
-{
-	return currentTimeStep.GetAt(cellIndex.x, cellIndex.y);
-}
-
 inline int FieldQuantity::At(const int xIdx, const int yIdx) const
 {
-	return (xIdx + nGhostCells) + ((yIdx + nGhostCells)*nX);
+	return (xIdx + nGhostCells) + ((yIdx + nGhostCells)*nX_);
 }
 int FieldQuantity::At(const CellIndex &cellIndex) const
 {
-	return (cellIndex.x + nGhostCells) + ((cellIndex.y + nGhostCells)*nX);
-}
-
-Position FieldQuantity::AtGhostCell(const EBoundaryLocation location, Position& posInBoundaryReferenceFrame) const
-{
-	/*	Note about the definition of coordinate systems along the boundaries!
-	 *	Positive axes are defined to ensure that a right-handed coordinate system is maintained and that the normals of the boundary-local coordinate systems always point inwards.
-	 * Ghost cells are defined as outward positive; so negative = positive!
-	 *
-	 *				    TOP
-	 *		 + -- > --- > --- > --- +
-	 *	L	 |			|			|	R
-	 *	E	/\			\/			\/	I
-	 *	F	 | ->				 <- |	G
-	 *	T	/\          /\			\/	H
-	 *		 |          |			|	T
-	 *		 + -- < --- < --- < --- +
-	 *				  BOTTOM
-	 *		 
-	 */
-	
-	int xOffset;
-	int yOffset;
-
-	switch (location)
-	{
-	case EBoundaryLocation::LEFT:
-		
-		xOffset = 0;
-		yOffset = nGhostCells;
-		break;
-	case EBoundaryLocation::RIGHT:
-		xOffset = nX;
-		yOffset = nGhostCells;
-		break;
-	case EBoundaryLocation::TOP:
-		xOffset = nGhostCells;
-		yOffset = nY;
-		break;
-	case EBoundaryLocation::BOTTOM:
-		xOffset = nGhostCells;
-		yOffset = 0;
-		break;
-	default:
-		throw std::logic_error("Can't check a ghost cell from this side.");
-	}
-	
-	return (ghostX + xOffset) + ((ghostY + yOffset) * nX);
+	return (cellIndex.x + nGhostCells) + ((cellIndex.y + nGhostCells)*nX_);
 }
 
 double FieldQuantity::GetGradientInDirectionAndPosition(const CellIndex posIdx, const double directionAngle) const
@@ -216,14 +164,14 @@ double FieldQuantity::GetAverageValue(const bool bExpectUniformField) const
 		return currentTimeStep.GetAt(currentTimeStep.nX/4, currentTimeStep.nY/2);
 
 	double totalSum = 0;
-	for (int xIdx = 0; xIdx < nX; xIdx++)
+	for (int xIdx = 0; xIdx < nX_; xIdx++)
 	{
-		for (int yIdx = 0; yIdx < nY; yIdx++)
+		for (int yIdx = 0; yIdx < nY_; yIdx++)
 		{
 			totalSum += currentTimeStep.GetAt(xIdx,yIdx);
 		}
 	}
 	
-	return totalSum / (nX * nY);
+	return totalSum / (nX_ * nY_);
 }
 

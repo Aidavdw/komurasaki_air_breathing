@@ -8,7 +8,6 @@
 #include <cmath>
 
 #include "AuxFunctions.h"
-#include "parameters.h"
 
 #define HOLE_FACTOR 0.9
 

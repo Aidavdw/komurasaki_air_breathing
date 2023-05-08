@@ -1,4 +1,3 @@
-@@ -0,0 +1,93 @@
 #pragma once
 #include <string>
 #include "field_quantity.h"
@@ -63,7 +62,7 @@ struct Domain
 	void CopyFieldQuantitiesToBuffer(const EFieldQuantityBuffer from, const EFieldQuantityBuffer to);
 
 	//todo: implement output in format of CellQuantities
-	//CellValues GetValuesInCell(const int xidx, const int yidx);
+	//CellValues GetValuesInCell(const int xIdx, const int yIdx);
 
 	// Sets all the cells to some given ambient conditions.
 	void SetToAmbientConditions(const double T, const double p, const double u, const double v, const double R_ideal, const double gamma);
@@ -74,7 +73,7 @@ struct Domain
 	void UpdateGhostCells();
 
 	// Actually do a time step. Solve fluxes, etc
-	void TimeStep();
+	void PopulateFlowDeltaBuffer(const double dt);
 
 private:
 	// Sets the domain dimensions by reference.
