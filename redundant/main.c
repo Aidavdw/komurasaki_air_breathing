@@ -128,8 +128,8 @@ int main()
 	double  *** ERK;	// runge kutta field buffer.
 	double  *** TRK;	// runge kutta field buffer.
 	double  *** HRK;	// runge kutta field buffer.
-	double  *** sonic_x;	// mask corresponding to every cell. If 1, MUSCL has identified that the flow goes supersonic in the x-direction. if 0, it's subsonic.
-	double  *** sonic_y;	// mask corresponding to every cell. If 1, MUSCL has identified that the flow goes supersonic in the y-direction. if 0, it's subsonic.
+	double  *** sonic_x;	// mask corresponding to every cell. If > 1, MUSCL has identified that the flow goes supersonic in the x-direction. if 0, it's subsonic.
+	double  *** sonic_y;	// mask corresponding to every cell. If > 1, MUSCL has identified that the flow goes supersonic in the y-direction. if 0, it's subsonic.
     init_domain(NDOMAIN,NXtot,NYtot,&rho,&u,&v,&p,&E,&T,&H);
     init_domain(NDOMAIN,NXtot,NYtot,&rhot,&ut,&vt,&pt,&Et,&Tt,&Ht);
     init_domain(NDOMAIN,NXtot,NYtot,&rhoRK,&uRK,&vRK,&pRK,&ERK,&TRK,&HRK);
@@ -713,7 +713,8 @@ int main()
                         HR = (ER + pR)/rhoR;
 
                         // FLUX SPLITTING ON RIGHT FACE based on sonic points in Y-direction
-                        if (sonic_y[k][i][j]+sonic_y[k][i+1][j]>=0) // If either is 1, since it's a bitmask.
+                    	// A: This looks unphysical, as the value can be set by a flux in a different direction, but still cause hanel to be used.
+                        if (sonic_y[k][i][j]+sonic_y[k][i+1][j]>=0) // If either of the two sampled points has the 'sonic' flag set.
                         {
                             HANEL(flux_r,'H',rhoL,rhoR,uL,uR,vL,vR,pL,pR,HL,HR,R,GAMMA,ENTRO_FIX_C);
                         }

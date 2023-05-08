@@ -214,30 +214,28 @@ double ReedValve::GetMassFlowRate() const
 	const double pressureRatio = fmax(0.0,fmin(averagePressureIntoDomain/averagePressureOutOfDomain,1.0));
 	if (pressureRatio > 1.0)
 	{
-		// This only makes sense if the reed valve is completely closed in this case. There is a very small moment where this pressure gradient may be this way while it is still open, but this is disregarded.
+		// This only makes sense if the reed valve is completely closed. There is a very small moment where this pressure gradient may be this way while it is still open, but this is disregarded.
 		return 0;
 	}
 
-	double referenceArea = FukanariReferenceArea();
+	const double referenceArea = FukanariReferenceArea();
 	const double gamma = intoDomain_->SpecificHeatRatio();
 	// If the critical pressure ratio is reached, the flow is considered choked, so the mass flow can no longer be increased!
-	double criticalPressureRatio = pow(2.0/(gamma+1.0),gamma/(gamma-1.0));
-	double dischargeCoeffient = DischargeCoefficient();
-
-	// Todo: Isolate a function for IsChoked(), I think that might be useful for logging purposes.
+	const double criticalPressureRatio = pow(2.0/(gamma+1.0),gamma/(gamma-1.0));
+	const double dischargeCoefficient = DischargeCoefficient();
 	
-	if (pressureRatio > criticalPressureRatio) // && pratio <= 1.0)
+	if (pressureRatio > criticalPressureRatio) // && pratio <= 1.0), flow is choked.
 	{
-		double x = dischargeCoeffient*referenceArea*averageDensityOutOfDomain*pow(pressureRatio,1.0/gamma)*sqrt(2.0*gamma*averagePressureOutOfDomain/averageDensityOutOfDomain/(gamma-1.0)*(1.0-pow(pressureRatio,(gamma-1.0)/gamma)));
+		double x = dischargeCoefficient*referenceArea*averageDensityOutOfDomain*pow(pressureRatio,1.0/gamma)*sqrt(2.0*gamma*averagePressureOutOfDomain/averageDensityOutOfDomain/(gamma-1.0)*(1.0-pow(pressureRatio,(gamma-1.0)/gamma)));
 
 #ifdef _DEBUG
 		assert(!isnan(x));
 #endif
 		return x;
 	}
-	else // pressureRatio > 0.0 && pressureRatio <= criticalPressureRatio
+	else // pressureRatio > 0.0 && pressureRatio <= criticalPressureRatio, flow is not choked.
 	{
-		double x = dischargeCoeffient*referenceArea*gamma*averagePressureOutOfDomain/sqrt(gamma*averagePressureOutOfDomain/averageDensityOutOfDomain)*pow(2.0/(gamma+1.0),0.5*(gamma+1.0)/(gamma-1.0));
+		double x = dischargeCoefficient*referenceArea*gamma*averagePressureOutOfDomain/sqrt(gamma*averagePressureOutOfDomain/averageDensityOutOfDomain)*pow(2.0/(gamma+1.0),0.5*(gamma+1.0)/(gamma-1.0));
 
 #ifdef _DEBUG
 		assert(!isnan(x));
