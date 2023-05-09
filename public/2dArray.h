@@ -58,6 +58,12 @@ struct TwoDimensionalArray
 		return data[(xIdx)+((yIdx)*nX)];
 	}
 
+	// const operator overloaded getter. Note that does does not allow setting.
+	inline double GetAt(const CellIndex& cellIndex) const
+	{
+		return data[(cellIndex)+((cellIndex.y)*nX)];
+	}
+
 	// operator overloaded accessor
 	inline double& operator [] (int flattenedIndex)
 	{

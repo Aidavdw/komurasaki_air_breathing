@@ -1,6 +1,7 @@
 #include "fem_deformation.h"
 
 #include <cassert>
+#include <iterator>
 #include <stdexcept>
 #include <vector>
 
@@ -8,7 +9,7 @@
 
 
 
-FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const EBeamProfile beamProfile, const double freeLength, const double fixedLength, const double dt) :
+FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const EBeamProfile beamProfile, const double freeLength, const double fixedLength, const double dt, const EBoundaryLocation upDirection) :
 	fixedNodes(amountOfFixedNodes),
 	dt(dt),
 	beamProfile_(beamProfile)
@@ -22,7 +23,7 @@ FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountO
 	nodePositionsRelativeToRoot.emplace_back(0,0);
 	for (int i = 0; i < beamSections.size(); i++)
 	{
-		nodePositionsRelativeToRoot.emplace_back(nodePositionsRelativeToRoot[i].x + beamSections[i].length, 0, Opposite(boundary_));
+		nodePositionsRelativeToRoot.emplace_back(nodePositionsRelativeToRoot[i].x + beamSections[i].length, 0, upDirection);
 	}
 
 	AssembleGlobalMassMatrix(globalMassMatrix);
@@ -210,7 +211,7 @@ void FemDeformation::AssembleDampingMatrix(TwoDimensionalArray& matrixOut)
 	}
 	
 	#ifdef _DEBUG
-	assert(matrixOut.HasDiagonalGrainsOnly());
+	assert(matrixOut.HasDiagonalGrainsOnly(4));
 	#endif
 }
 
@@ -412,7 +413,7 @@ void FemDeformation::SolveCholeskySystem(std::vector<double> &deflectionVectorOu
 		{
 			sum += globalStiffnessMatrixCholeskyDecomposed.GetAt(j,i)*deflectionVectorOut[DOFVector.at(j)];
 		}
-		deflectionVectorOut[DOFVector.at(i)] = (deflectionVectorOut[DOFVector.at(i)] - sum)globalStiffnessMatrixCholeskyDecomposed.GetAt(i,i);
+		deflectionVectorOut[DOFVector.at(i)] = (deflectionVectorOut[DOFVector.at(i)] - sum)/globalStiffnessMatrixCholeskyDecomposed.GetAt(i,i);
 	}
 
 	#ifdef _DEBUG

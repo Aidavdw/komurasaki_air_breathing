@@ -10,6 +10,7 @@ struct SimCase {
 	SimCase(const double simulationDuration, const double dt);
 	
 	RuntimeParameters runtimeParameters;
+	int rungeKuttaOrder = 4;
 
 	std::map<int, Domain> domains; // The domains that are part of this SimCase
 	std::map<std::string, int> domainIDS;

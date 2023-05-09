@@ -6,6 +6,7 @@
 #include "sim_case.h"
 #include <stdexcept>
 #include <cmath>
+#include "fem_deformation.h"
 
 #include "AuxFunctions.h"
 
@@ -33,7 +34,8 @@ ReedValve::ReedValve(Domain* intoDomain, Domain* outOfDomain, const EBoundaryLoc
 	hingePositionIndex_ = intoDomain->InvertPositionToIndex(hingePositionInDomain);
 	holeEndPositionIndex_ = intoDomain->InvertPositionToIndex(holeEndPositionInDomain);
 
-	fem_ = FemDeformation(amountOfFreeSections, amountOfFixedNodes, beamProfile, lengthOfFreeSection, lengthOfFixedSections, intoDomain->simCase->dt, boundary);
+	// Instead, only create it at Register().
+	//fem_ = FemDeformation(amountOfFreeSections, amountOfFixedNodes, beamProfile, lengthOfFreeSection, lengthOfFixedSections, intoDomain->simCase->dt, Opposite(boundary));
 }
 
 void ReedValve::CalculateForceOnNodes(std::vector<double>& forceVectorOut) const

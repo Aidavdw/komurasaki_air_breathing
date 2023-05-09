@@ -10,7 +10,7 @@
 class FemDeformation
 {
 public:
-	FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const EBeamProfile beamProfile, const double freeLength, const double fixedLength, const double dt);
+	FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const EBeamProfile beamProfile, const double freeLength, const double fixedLength, const double dt, const EBoundaryLocation upDirection);
 
 	FemDeformation();
 	

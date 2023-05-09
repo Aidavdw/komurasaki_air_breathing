@@ -16,7 +16,7 @@ struct SimCase;
 // Contains information on a specific domain.
 struct Domain
 {
-	Domain(const std::string& name, SimCase* simCase, const Position position, const double size[2], const int amountOfCells[2], const MeshSpacing meshSpacing[2], const EInitialisationMethod initialisationMethod, const int ghostCellDepth);
+	Domain(const std::string& name, SimCase* simCase, const Position& position, const double sizeArg[2], const int amountOfCellsArg[2], const MeshSpacing meshSpacingArg[2], const EInitialisationMethod initialisationMethod, const int ghostCellDepth);
 
 	std::string name;
 	SimCase* simCase;
@@ -65,7 +65,7 @@ struct Domain
 	//CellValues GetValuesInCell(const int xIdx, const int yIdx);
 
 	// Sets all the cells to some given ambient conditions.
-	void SetToAmbientConditions(const double T, const double p, const double u, const double v, const double R_ideal, const double gamma);
+	void SetToAmbientConditions(const double temperatureSet, const double pSet, const double uSet, const double vSet, const double R_ideal, const double gamma);
 
 	// calculates gamma, the specific heat ratio. Current implementation just returns a fixed value, but in reality it is dependent on species & temperature.
 	double SpecificHeatRatio() const;
@@ -73,10 +73,10 @@ struct Domain
 	void UpdateGhostCells();
 
 	// Actually do a time step. Solve fluxes, etc
-	void PopulateFlowDeltaBuffer(const double dt);
+	void PopulateFlowDeltaBuffer(const double dt, const int currentRungeKuttaIter);
 
 private:
-	// Sets the domain dimensions by reference.
+	// Caches the domain dimensions, and asves them in cellLengths and localCellCenterPositions.
 	void PopulateDomainDimensions();
 
 	void PopulateSlipConditionGhostCells(const EBoundaryLocation boundary);

@@ -6,11 +6,12 @@
 #include "euler_container.h"
 
 
-Domain::Domain(const std::string& name, SimCase* simCase, Position position, const double sizeArg[2], const int amountOfCellsArg[2], const MeshSpacing meshSpacingArg[2], const EInitialisationMethod initialisationMethod) :
+Domain::Domain(const std::string& name, SimCase* simCase, const Position& position, const double sizeArg[2], const int amountOfCellsArg[2], const MeshSpacing meshSpacingArg[2], const EInitialisationMethod initialisationMethod, const int ghostCellDepth) :
 	name(name),
 	simCase(simCase),
 	initialisationMethod(initialisationMethod),
-	position(position)
+	position(position),
+	nGhost(ghostCellDepth)
 {
 	// Not a very pretty way to do this, but initialiser lists appear to break when using c style arrays
 	size[0] = sizeArg[0];
@@ -19,13 +20,13 @@ Domain::Domain(const std::string& name, SimCase* simCase, Position position, con
 	amountOfCells[1] = amountOfCellsArg[1];
 
 	// Initialising the field quantities with the given dimension
-	rho = FieldQuantity(amountOfCells[0], amountOfCells[1]);
-	u = FieldQuantity(amountOfCells[0], amountOfCells[1]);
-	v = FieldQuantity(amountOfCells[0], amountOfCells[1]);
-	p = FieldQuantity(amountOfCells[0], amountOfCells[1]);
-	E = FieldQuantity(amountOfCells[0], amountOfCells[1]);
-	T = FieldQuantity(amountOfCells[0], amountOfCells[1]);
-	H = FieldQuantity(amountOfCells[0], amountOfCells[1]);
+	rho = FieldQuantity(this, amountOfCells[0], amountOfCells[1], 0, nGhost);
+	u = FieldQuantity(this, amountOfCells[0], amountOfCells[1], 0, nGhost);
+	v = FieldQuantity(this, amountOfCells[0], amountOfCells[1], 0, nGhost);
+	p = FieldQuantity(this, amountOfCells[0], amountOfCells[1], 0, nGhost);
+	E = FieldQuantity(this, amountOfCells[0], amountOfCells[1], 0, nGhost);
+	T = FieldQuantity(this, amountOfCells[0], amountOfCells[1], 0, nGhost);
+	H = FieldQuantity(this, amountOfCells[0], amountOfCells[1], 0, nGhost);
 
 	meshSpacing[0] = MeshSpacing(meshSpacingArg[0]);
 	meshSpacing[1] = MeshSpacing(meshSpacingArg[1]);
@@ -145,19 +146,19 @@ void Domain::CopyFieldQuantitiesToBuffer(const EFieldQuantityBuffer from, const 
 	H.CopyToBuffer(from, to);
 }
 
-void Domain::SetToAmbientConditions(const double TSet, const double pSet, const double uSet, const double vSet, const double R_ideal, const double gamma)
+void Domain::SetToAmbientConditions(const double temperatureSet, const double pSet, const double uSet, const double vSet, const double R_ideal, const double gamma)
 {
-	T.SetAllToValue(TSet);
-	p.SetAllToValue(pSet);
-	u.SetAllToValue(uSet);
-	v.SetAllToValue(vSet);
+	T.currentTimeStep.SetAllToValue(temperatureSet);
+	p.currentTimeStep.SetAllToValue(pSet);
+	u.currentTimeStep.SetAllToValue(uSet);
+	v.currentTimeStep.SetAllToValue(vSet);
 
-	const double rhoSet = pSet / (TSet * R_ideal);
+	const double rhoSet = pSet / (temperatureSet * R_ideal);
 	const double ESet = pSet / (gamma - 1.0) + 0.5 * rhoSet * (pow(uSet, 2) + pow(vSet, 2));
 	const double HSet = (ESet + pSet) / rhoSet;
-	rho.SetAllToValue(rhoSet);
-	E.SetAllToValue(ESet);
-	H.SetAllToValue(HSet);
+	rho.currentTimeStep.SetAllToValue(rhoSet);
+	E.currentTimeStep.SetAllToValue(ESet);
+	H.currentTimeStep.SetAllToValue(HSet);
 }
 
 double Domain::SpecificHeatRatio() const
@@ -194,12 +195,13 @@ void Domain::UpdateGhostCells()
 	}
 }
 
-void Domain::PopulateFlowDeltaBuffer(const double dt)
+void Domain::PopulateFlowDeltaBuffer(const double dt, const int currentRungeKuttaIter)
 {
 	// Depending on whether or not there are shock fronts, the integration scheme changes. Determining whether or not there are shock fronts is done by looking at the MUSCL interpolated values of the field quantities. So, first calculate & cache the MUSCL vales.
 	
 	const double bias = simCase->MUSCLBias;
 	const EFluxLimiterType fluxLimiter = simCase->fluxLimiterType;
+	const int rungeKuttaOrder = simCase->rungeKuttaOrder;
 
 	rho.PopulateMUSCLBuffers(RUNGE_KUTTA, bias, fluxLimiter);
 	u.PopulateMUSCLBuffers(RUNGE_KUTTA, bias, fluxLimiter);
@@ -220,7 +222,8 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 			double cRight = sqrt(gamma * p.rightFaceMUSCLBuffer.GetAt(xIdx, yIdx));
 			double cTop = sqrt(gamma * p.topFaceMUSCLBuffer.GetAt(xIdx, yIdx));
 			double cBottom = sqrt(gamma * p.bottomFaceMUSCLBuffer.GetAt(xIdx, yIdx));
-			
+
+			// todo: implement hanel & ausmdv
 			// for each direction
 				// if flow is sonic
 					//directionFlux = GetHanel(direction)
@@ -230,29 +233,24 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 			// Total accumulation is what goes in - what goes out
 			const CellIndex currentCell(xIdx, yIdx);
 			auto cellSizes = GetCellSizes(currentCell);
-			EulerContinuity accumulation = ((rightFlux - leftFlux)/cellSizes.first + (upFlux - downFlux)/cellSizes.second)*dt; // dy = dr in this case, if you compensate for the squashification.
-			// Should be same as below, todo: check if they are the same value, and im not messing up operator overloads.
-			//accumulation.density = ((rightFlux.density - leftFlux.density)/dx + (upFlux.density - downFlux.density)/dr)*dt;
-			//accumulation.v = ((rightFlux.v - leftFlux.v)/dx + (upFlux.v - downFlux.v)/dr)*dt;
-			//accumulation.u = ((rightFlux.u - leftFlux.u)/dx + (upFlux.u - downFlux.u)/dr)*dt;
-			//accumulation.e = ((rightFlux.e - leftFlux.e)/dx + (upFlux.e - downFlux.e)/dr)*dt;
+			//EulerContinuity accumulation = ((rightFlux - leftFlux)/cellSizes.first + (upFlux - downFlux)/cellSizes.second)*dt; // dy = dr in this case, if you compensate for the squashification.
+			rho.deltaDueToFlow(xIdx,yIdx) = ((rightFlux.density - leftFlux.density)/cellSizes.first + (upFlux.density - downFlux.density)/cellSizes.second)*dt;
+			v.deltaDueToFlow(xIdx,yIdx) = ((rightFlux.v - leftFlux.v)/cellSizes.first + (upFlux.v - downFlux.v)/cellSizes.second)*dt;
+			u.deltaDueToFlow(xIdx,yIdx) = ((rightFlux.u - leftFlux.u)/cellSizes.first + (upFlux.u - downFlux.u)/cellSizes.second)*dt;
+			E.deltaDueToFlow(xIdx,yIdx) = ((rightFlux.e - leftFlux.e)/cellSizes.first + (upFlux.e - downFlux.e)/cellSizes.second)*dt;
 
 			// Extra term to compensate for the fact that the cell sizes are not uniform because we are in a cylindrical coordinate system. In Florian (2017), this is the term *** Hr ***.
 			EulerContinuity hr;
-			const double density = rho.GetAt(currentCell);
-			const double xVel = u.GetAt(currentCell);
-			const double yVel = v.GetAt(currentCell);
+			const double density = rho.currentTimeStep.GetAt(currentCell);
+			const double xVel = u.currentTimeStep.GetAt(currentCell);
+			const double yVel = v.currentTimeStep.GetAt(currentCell);
 			const double yc = localCellCenterPositions[1].At(currentCell);
-			const double enthalpy = H.GetAt(currentCell);
+			const double enthalpy = H.currentTimeStep.GetAt(currentCell);
 			
-			hr.density = density * yVel / yc * dt;
-			hr.u = density * yVel * xVel / yc * dt;
-			hr.v =  density * yVel * yVel / yc * dt;
-			hr.v =  density * yVel * enthalpy / yc * dt;
-
-			accumulation = accumulation + hr;
-
-			// Add the accumulation to the buffer for next iteration: tBuffer
+			rho.deltaDueToFlow(xIdx,yIdx) += density * yVel / yc * dt;
+			u.deltaDueToFlow(xIdx,yIdx) = density * yVel * xVel / yc * dt;
+			v.deltaDueToFlow(xIdx,yIdx) =  density * yVel * yVel / yc * dt;
+			v.deltaDueToFlow(xIdx,yIdx) =  density * yVel * enthalpy / yc * dt;
 		}
 	}	
 }
@@ -335,13 +333,13 @@ void Domain::PopulateSlipConditionGhostCells(const EBoundaryLocation boundary)
 			assert(ValidateCellIndex(sourceIndex, false));
 #endif
 			
-			rho(ghostIndex)		=	rho(sourceIndex);
-			p(ghostIndex)		=	p(sourceIndex);
-			u(ghostIndex)		= - u(sourceIndex); // Flipped!
-			v(ghostIndex)		=   v(sourceIndex);
-			H(ghostIndex)		=	H(sourceIndex);
-			E(ghostIndex)		=	E(sourceIndex);
-			T(ghostIndex)		=	T(sourceIndex);
+			rho.rungeKuttaBuffer(ghostIndex)		=	rho.rungeKuttaBuffer(sourceIndex);
+			p.rungeKuttaBuffer(ghostIndex)		=	p.rungeKuttaBuffer(sourceIndex);
+			u.rungeKuttaBuffer(ghostIndex)		= - u.rungeKuttaBuffer(sourceIndex); // Flipped!
+			v.rungeKuttaBuffer(ghostIndex)		=   v.rungeKuttaBuffer(sourceIndex);
+			H.rungeKuttaBuffer(ghostIndex)		=	H.rungeKuttaBuffer(sourceIndex);
+			E.rungeKuttaBuffer(ghostIndex)		=	E.rungeKuttaBuffer(sourceIndex);
+			T.rungeKuttaBuffer(ghostIndex)		=	T.rungeKuttaBuffer(sourceIndex);
 		}
 	}
 }
@@ -368,13 +366,13 @@ void Domain::PopulateNoSlipConditionGhostCells(const EBoundaryLocation boundary)
 			assert(ValidateCellIndex(sourceIndex, false));
 #endif
 
-			rho(ghostIndex)		=	rho(sourceIndex);
-			p(ghostIndex)		=	p(sourceIndex);
-			u(ghostIndex)		= - u(sourceIndex);	// Flipped!
-			v(ghostIndex)		= -	v(sourceIndex);	// Flipped!
-			H(ghostIndex)		=	H(sourceIndex);
-			E(ghostIndex)		=	E(sourceIndex);
-			T(ghostIndex)		=	T(sourceIndex);
+			rho.rungeKuttaBuffer(ghostIndex)	=	rho.rungeKuttaBuffer(sourceIndex);
+			p.rungeKuttaBuffer(ghostIndex)		=	p.rungeKuttaBuffer(sourceIndex);
+			u.rungeKuttaBuffer(ghostIndex)		= - u.rungeKuttaBuffer(sourceIndex);	// Flipped!
+			v.rungeKuttaBuffer(ghostIndex)		= -	v.rungeKuttaBuffer(sourceIndex);	// Flipped!
+			H.rungeKuttaBuffer(ghostIndex)		=	H.rungeKuttaBuffer(sourceIndex);
+			E.rungeKuttaBuffer(ghostIndex)		=	E.rungeKuttaBuffer(sourceIndex);
+			T.rungeKuttaBuffer(ghostIndex)		=	T.rungeKuttaBuffer(sourceIndex);
 		}
 	}
 }
@@ -461,13 +459,13 @@ void Domain::PopulateConnectedGhostCells(const EBoundaryLocation boundary)
 			assert(otherDomain->ValidateCellIndex(sourceIndex, false));
 #endif
 
-			rho(ghostIndex)		=	otherDomain->rho.GetAt(sourceIndex);
-			p(ghostIndex)		=	otherDomain->p.GetAt(sourceIndex);
-			u(ghostIndex)		=   otherDomain->u.GetAt(sourceIndex);	
-			v(ghostIndex)		=  	otherDomain->v.GetAt(sourceIndex);	
-			H(ghostIndex)		=	otherDomain->H.GetAt(sourceIndex);
-			E(ghostIndex)		=	otherDomain->E.GetAt(sourceIndex);
-			T(ghostIndex)		=	otherDomain->T.GetAt(sourceIndex);
+			rho.rungeKuttaBuffer(ghostIndex)		=	otherDomain->rho.rungeKuttaBuffer.GetAt(sourceIndex);
+			p.rungeKuttaBuffer(ghostIndex)		=	otherDomain->p.rungeKuttaBuffer.GetAt(sourceIndex);
+			u.rungeKuttaBuffer(ghostIndex)		=   otherDomain->u.rungeKuttaBuffer.GetAt(sourceIndex);	
+			v.rungeKuttaBuffer(ghostIndex)		=  	otherDomain->v.rungeKuttaBuffer.GetAt(sourceIndex);	
+			H.rungeKuttaBuffer(ghostIndex)		=	otherDomain->H.rungeKuttaBuffer.GetAt(sourceIndex);
+			E.rungeKuttaBuffer(ghostIndex)		=	otherDomain->E.rungeKuttaBuffer.GetAt(sourceIndex);
+			T.rungeKuttaBuffer(ghostIndex)		=	otherDomain->T.rungeKuttaBuffer.GetAt(sourceIndex);
 			
 		}
 	}
