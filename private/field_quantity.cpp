@@ -53,15 +53,15 @@ double FieldQuantity::GetInterpolatedValueAtPosition(const Position& atPosition)
 	std::pair<double, double> xInterpolateSize = domain->GetCellSizes(horizontalInterpolateTarget);
 	std::pair<double, double> yInterpolateSize = domain->GetCellSizes(verticalInterpolateTarget);
 
-	double deltaHorizontal = At(horizontalInterpolateTarget) + At(cellIndex) / (0.5*(cellSize.first + xInterpolateSize.first)) - At(cellIndex);
-	double deltaVertical = At(verticalInterpolateTarget) + At(cellIndex) / (0.5*(cellSize.second + yInterpolateSize.second)) - At(cellIndex);
-	double interpolatedValue = At(cellIndex) + deltaHorizontal + deltaVertical;
+	double deltaHorizontal = GetFlattenedIndex(horizontalInterpolateTarget) + GetFlattenedIndex(cellIndex) / (0.5*(cellSize.first + xInterpolateSize.first)) - GetFlattenedIndex(cellIndex);
+	double deltaVertical = GetFlattenedIndex(verticalInterpolateTarget) + GetFlattenedIndex(cellIndex) / (0.5*(cellSize.second + yInterpolateSize.second)) - GetFlattenedIndex(cellIndex);
+	double interpolatedValue = GetFlattenedIndex(cellIndex) + deltaHorizontal + deltaVertical;
 		
 	#ifdef _DEBUG
 	// Check if it's between the value of cells that it's interpolating from as a sanity check.
-	double highestVal = std::max(At(horizontalInterpolateTarget), At(verticalInterpolateTarget), At(cellIndex));
+	double highestVal = std::max(GetFlattenedIndex(horizontalInterpolateTarget), GetFlattenedIndex(verticalInterpolateTarget), GetFlattenedIndex(cellIndex));
 	assert(interpolatedValue < highestVal);
-	double lowestVal = std::min(At(horizontalInterpolateTarget), At(verticalInterpolateTarget), At(cellIndex));
+	double lowestVal = std::min(GetFlattenedIndex(horizontalInterpolateTarget), GetFlattenedIndex(verticalInterpolateTarget), GetFlattenedIndex(cellIndex));
 	assert(interpolatedValue > lowestVal);
 	#endif
 	
@@ -102,11 +102,11 @@ void FieldQuantity::PopulateMUSCLBuffers(const EFieldQuantityBuffer sourceBuffer
 	
 }
 
-inline int FieldQuantity::At(const int xIdx, const int yIdx) const
+inline int FieldQuantity::GetFlattenedIndex(const int xIdx, const int yIdx) const
 {
 	return (xIdx + nGhostCells) + ((yIdx + nGhostCells)*nX_);
 }
-int FieldQuantity::At(const CellIndex &cellIndex) const
+int FieldQuantity::GetFlattenedIndex(const CellIndex &cellIndex) const
 {
 	return (cellIndex.x + nGhostCells) + ((cellIndex.y + nGhostCells)*nX_);
 }

@@ -60,14 +60,14 @@ struct FieldQuantity
 	inline double& operator () (const int xIdx, const int yIdx, const EFieldQuantityBuffer buffer)
 	{
 		auto& buf = bufferMap.at(buffer);
-		return buf[At(xIdx, yIdx)];
+		return buf[GetFlattenedIndex(xIdx, yIdx)];
 	}
 
 	// operator overloaded accessor. Note that this is not the fastest way to set, so if possible do that directly on the 2d arrays level.
 	inline double& operator () (const CellIndex& cellIndex, const EFieldQuantityBuffer buffer)
 	{
 		auto& buf = bufferMap.at(buffer);
-		return buf[At(cellIndex.x, cellIndex.y)];
+		return buf[GetFlattenedIndex(cellIndex.x, cellIndex.y)];
 	}
 
 	/* Should defer all this just to the buffer names.
@@ -87,8 +87,8 @@ struct FieldQuantity
 	inline double GetAt(const CellIndex& cellIndex) const;
 	*/
 
-	inline int At(const int xIdx, const int yIdx) const; // Helper function for getting the flattened index in the internal arrays for a certain index. Use like buffer_name[At(x,y)].
-	inline int At(const CellIndex& cellIndex) const;
+	inline int GetFlattenedIndex(const int xIdx, const int yIdx) const; // Helper function for getting the flattened index in the internal arrays for a certain index. Use like buffer_name[At(x,y)].
+	inline int GetFlattenedIndex(const CellIndex& cellIndex) const;
 	
 	double GetGradientInDirectionAndPosition(const CellIndex posIdx, const double directionAngle) const;
 

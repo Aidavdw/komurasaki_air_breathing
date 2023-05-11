@@ -157,13 +157,13 @@ void ReedValve::SetSourceCellIndices(std::vector<CellIndex>& sourceCellIndicesOu
 void ReedValve::Update()
 {
 	#ifdef _DEBUG
-	if (fem_.dt == 0)
+	if (IsCloseToZero(fem_.dt - 0))
 		throw std::logic_error("FEM module is not initialised.");
 	#endif
 	
 	// TODO: Right now creates & destroys them every time. Possible optimisation would be to cache them?
-	std::vector<double> forcesOnNodes;
-	std::vector<double> newDeflection;
+	std::vector<double> forcesOnNodes; // The forces on each node in the local vertical (y positive!) direction.
+	std::vector<double> newDeflection; // The solution to the FEM will be here. it goes [x_node1, y_node1, x_node2, y_node2, (...)]
 	CalculateForceOnNodes(forcesOnNodes);
 	CalculateAerodynamicDamping(forcesOnNodes);
 	fem_.CalculateNewDeflections(newDeflection, forcesOnNodes);
@@ -178,11 +178,10 @@ double ReedValve::GetMassFlowRate() const
 		// This setting is a bit artifical, as the tip can also be arching, still leaving some mass flow. It comes close enough to reality though.
 		return 0;
 	}
-
 	
-	double averagePressureIntoDomain = GetAverageFieldQuantityAroundValve(intoDomain_->p, true);
-	double averagePressureOutOfDomain = GetAverageFieldQuantityAroundValve(outOfDomain_->p, true);
-	double averageDensityOutOfDomain = GetAverageFieldQuantityAroundValve(outOfDomain_->rho);
+	double averagePressureIntoDomain = GetAverageFieldQuantityAroundValve(intoDomain_->p, CURRENT_TIME_STEP, true);
+	double averagePressureOutOfDomain = GetAverageFieldQuantityAroundValve(outOfDomain_->p, CURRENT_TIME_STEP, true);
+	double averageDensityOutOfDomain = GetAverageFieldQuantityAroundValve(outOfDomain_->rho, CURRENT_TIME_STEP);
 
 #ifdef _DEBUG
 	if (averagePressureIntoDomain < 0 || averagePressureOutOfDomain < 0 || averageDensityOutOfDomain < 0 )
@@ -251,16 +250,14 @@ double ReedValve::GetTipDeflection() const
 	return fem_.nodePositionsRelativeToRoot.back().y;
 }
 
-double ReedValve::GetAverageFieldQuantityAroundValve(const FieldQuantity& fieldQuantity, const bool bInwards) const
+double ReedValve::GetAverageFieldQuantityAroundValve(const FieldQuantity& fieldQuantity, const EFieldQuantityBuffer bufferName, const bool bInwards) const
 {
 #ifdef _DEBUG
 	// First check if the given field quantity is actually on the domain that the valve is at. better safe than sorry!
 	if (fieldQuantity.domain != intoDomain_ || fieldQuantity.domain != outOfDomain_)
 		throw std::logic_error("Trying to get the average value of a field quantity from a valve on a domain that the valve is not connected to!");
-	#endif
-
-	double totalSum = 0;
-
+#endif
+	
 	// Define a bounding box, where within all cells will be sampled.
 	CellIndex boundingBoxCells[2];
 	if (bInwards)
@@ -274,7 +271,7 @@ double ReedValve::GetAverageFieldQuantityAroundValve(const FieldQuantity& fieldQ
 	else
 	{
 		// the location is in the outOfDomain. The location of the valve is not defined in this coordinate frame yet, so first transform it.
-		// Alternative way to do it would be to first compute to global coordinate frame, but since it is already known the start positions are on the edge, it can be done simpler
+		// Alternative way to do it would be to first compute to global coordinate frame, but since it is already known the start positions are on the edge, it can be done simpler this way.
 		const auto start = intoDomain_->GetLocationAlongBoundaryInAdjacentDomain(boundary_, positionAlongBoundary_);
 		const Position startPos = outOfDomain_->PositionAlongBoundaryToCoordinate(start.first, start.second, 0);
 		boundingBoxCells[0] = outOfDomain_->InvertPositionToIndex(startPos);
@@ -285,11 +282,13 @@ double ReedValve::GetAverageFieldQuantityAroundValve(const FieldQuantity& fieldQ
 	}
 
 	// Determine the total sum of all those cells
+	double totalSum = 0;
+	const TwoDimensionalArray& buffer = fieldQuantity.bufferMap.at(bufferName);
 	for (int xIdx = boundingBoxCells[0].x; xIdx < boundingBoxCells[1].x; xIdx++)
 	{
 		for (int yIdx = boundingBoxCells[0].y; yIdx < boundingBoxCells[1].y; yIdx++)
 		{
-			totalSum+= fieldQuantity.At(xIdx, yIdx);
+			totalSum+= buffer.GetAt(xIdx, yIdx);
 		}
 	}
 
@@ -302,7 +301,7 @@ double ReedValve::GetAverageFieldQuantityAroundValve(const FieldQuantity& fieldQ
 void ReedValve::CalculateAerodynamicDamping(std::vector<double> &forceVectorOut) //const
 {
 	#ifdef _DEBUG
-	assert(forceVectorOut.size() == fem_.amountOfNodes * N_DOF_PER_NODE);
+	assert(forceVectorOut.size() == static_cast<size_t>(fem_.amountOfNodes * N_DOF_PER_NODE));
 	#endif
 	
 	for (BeamSection& section : fem_.beamSections)

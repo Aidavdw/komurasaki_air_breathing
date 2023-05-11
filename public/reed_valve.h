@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include "fem_deformation.h"
+#include "field_quantity.h"
 #include "index2d.h"
 #include "IValve.h"
 
@@ -58,7 +59,7 @@ protected:
 	void SetSourceCellIndices(std::vector<CellIndex>& sourceCellIndicesOut, const EBoundaryLocation boundary, const double positionAlongBoundary, const  double lengthOfFreeSection, const double lengthOfFixedSections) const;
 
 	// Gets teh average field quantity in the region incscribed between the the start- and end point of the valve on the boundary and a point projected normal form this boundary. If bInwards=true, this extends into the intoDomain, if bInwards=false, this extends into the outOfDomain. 
-	double GetAverageFieldQuantityAroundValve(const FieldQuantity& fieldQuantity, const bool bInwards=true) const;
+	double GetAverageFieldQuantityAroundValve(const FieldQuantity& fieldQuantity, const EFieldQuantityBuffer bufferName, const bool bInwards = true) const;
 	
 	void CalculateAerodynamicDamping(std::vector<double>& forceVectorOut);
 

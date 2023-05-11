@@ -249,7 +249,7 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 			const double density = rho.currentTimeStep.GetAt(currentCell);
 			const double xVel = u.currentTimeStep.GetAt(currentCell);
 			const double yVel = v.currentTimeStep.GetAt(currentCell);
-			const double yc = localCellCenterPositions[1].At(currentCell);
+			const double yc = localCellCenterPositions[1].GetFlattenedIndex(currentCell);
 			const double enthalpy = H.currentTimeStep.GetAt(currentCell);
 			
 			rho.deltaDueToFlow(xIdx,yIdx) += density * yVel / yc * dt;
@@ -364,10 +364,10 @@ void Domain::PopulateDomainDimensions()
 	{
 		for (int yIdx = 0; yIdx < size[1]; yIdx++)
 		{
-			cellLengths[0].currentTimeStep[cellLengths[0].At(xIdx, yIdx)] = lengths[0][xIdx];
-			cellLengths[1].currentTimeStep[cellLengths[1].At(xIdx, yIdx)] = lengths[1][yIdx];
-			localCellCenterPositions[0].currentTimeStep[localCellCenterPositions[0].At(xIdx, yIdx)] = centerPositions[0][xIdx];
-			localCellCenterPositions[1].currentTimeStep[localCellCenterPositions[1].At(xIdx, yIdx)] = centerPositions[1][yIdx];
+			cellLengths[0].currentTimeStep[cellLengths[0].GetFlattenedIndex(xIdx, yIdx)] = lengths[0][xIdx];
+			cellLengths[1].currentTimeStep[cellLengths[1].GetFlattenedIndex(xIdx, yIdx)] = lengths[1][yIdx];
+			localCellCenterPositions[0].currentTimeStep[localCellCenterPositions[0].GetFlattenedIndex(xIdx, yIdx)] = centerPositions[0][xIdx];
+			localCellCenterPositions[1].currentTimeStep[localCellCenterPositions[1].GetFlattenedIndex(xIdx, yIdx)] = centerPositions[1][yIdx];
 		}
 	}
 }
