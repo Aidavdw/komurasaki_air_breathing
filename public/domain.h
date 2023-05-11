@@ -69,11 +69,15 @@ struct Domain
 
 	// calculates gamma, the specific heat ratio. Current implementation just returns a fixed value, but in reality it is dependent on species & temperature.
 	double SpecificHeatRatio() const;
+	double GasConstant() const;
 
 	void UpdateGhostCells();
 
 	// Actually do a time step. Solve fluxes, etc
 	void PopulateFlowDeltaBuffer(const double dt, const int currentRungeKuttaIter);
+
+	void SetNextTimeStepValuesBasedOnRungeKuttaAndDeltaBuffers(const int currentRungeKuttaIter);
+	
 
 private:
 	// Caches the domain dimensions, and asves them in cellLengths and localCellCenterPositions.

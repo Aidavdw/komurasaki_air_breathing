@@ -56,7 +56,6 @@ struct FieldQuantity
 	void PopulateMUSCLBuffers(const EFieldQuantityBuffer sourceBuffer, const double MUSCLBias, const EFluxLimiterType fluxLimiterType);
 
 
-
 	// operator overloaded accessor. Note that this is not the fastest way to set, so if possible do that directly on the 2d arrays level.
 	inline double& operator () (const int xIdx, const int yIdx, const EFieldQuantityBuffer buffer)
 	{

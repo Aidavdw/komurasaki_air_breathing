@@ -102,20 +102,13 @@ int main()
             }
 
             // Async await until both the buffers have been set for all the FieldQuantities in a domain. Easiest way to do this; wait until they're all finished.
+            for (auto& domainIter : simCase.domains)
+            {
+                Domain& domain = domainIter.second;
+                domain.SetNextTimeStepValuesBasedOnRungeKuttaAndDeltaBuffers(rungeKuttaIterationNumber);
+            }
 
-            // For each FieldQuantity, combine the FlowDelta and the ValveDelta buffers, and add them to the runge kutta buffer for the next iteration.
-            /* SOMETHING LIKE THIS
-            RK_k = 1./(RK_ORDER-currentRungeKuttaIter);
-            rhot[k][i][j] = rho[k][i][j] - RK_k*flux[0];
-            ut[k][i][j] = (rho[k][i][j]*u[k][i][j] - RK_k*flux[1])/rhot[k][i][j];
-            vt[k][i][j] = (rho[k][i][j]*v[k][i][j] - RK_k*flux[2])/rhot[k][i][j];
-            Et[k][i][j] = E[k][i][j] - RK_k*flux[3];
 
-            // Vars that can be determined from state variables.
-            pt[k][i][j] = (GAMMA-1)*(Et[k][i][j] - 0.5*rhot[k][i][j]*(pow(ut[k][i][j],2)+pow(vt[k][i][j],2)));
-            Tt[k][i][j] = pt[k][i][j]/(R*rhot[k][i][j]);
-            Ht[k][i][j] = (Et[k][i][j]+pt[k][i][j])/rhot[k][i][j];
-            */
             
         } 
         /* END OF THE RUNGE-KUTTA LOOP */

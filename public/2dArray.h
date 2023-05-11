@@ -24,6 +24,9 @@ struct TwoDimensionalArray
 	// Returns a transposed copy of this array.
 	TwoDimensionalArray Transpose() const;
 
+	// Returns whether or not all the entries are (approximately) zero. Note that this is an expensive operation, and should only be used for debugging, as it iterates over all the cells.
+	bool IsFilledWithZeroes() const;
+
 	bool IsEmpty() const;
 	bool IsSquare() const;
 	bool IsLowerTriangular() const;

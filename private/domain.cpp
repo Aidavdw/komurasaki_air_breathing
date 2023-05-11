@@ -167,6 +167,11 @@ double Domain::SpecificHeatRatio() const
 	return 1.4;
 }
 
+double Domain::GasConstant() const
+{
+	return 287.0;
+}
+
 void Domain::UpdateGhostCells()
 {
 	// These can all be parallelised!
@@ -250,9 +255,64 @@ void Domain::PopulateFlowDeltaBuffer(const double dt, const int currentRungeKutt
 			rho.deltaDueToFlow(xIdx,yIdx) += density * yVel / yc * dt;
 			u.deltaDueToFlow(xIdx,yIdx) = density * yVel * xVel / yc * dt;
 			v.deltaDueToFlow(xIdx,yIdx) =  density * yVel * yVel / yc * dt;
-			v.deltaDueToFlow(xIdx,yIdx) =  density * yVel * enthalpy / yc * dt;
+			E.deltaDueToFlow(xIdx,yIdx) =  density * yVel * enthalpy / yc * dt;
 		}
 	}	
+}
+
+void Domain::SetNextTimeStepValuesBasedOnRungeKuttaAndDeltaBuffers(const int currentRungeKuttaIter)
+{
+#ifdef _DEBUG
+	// Fail if the buffers are empty; they clearly must be set.
+	assert(!rho.rungeKuttaBuffer.IsFilledWithZeroes());
+	assert(!u.rungeKuttaBuffer.IsFilledWithZeroes());
+	assert(!v.rungeKuttaBuffer.IsFilledWithZeroes());
+	assert(!E.rungeKuttaBuffer.IsFilledWithZeroes());
+	assert(rho.deltaDueToFlow.IsFilledWithZeroes());
+	assert(rho.deltaDueToValve.IsFilledWithZeroes());
+	assert(u.deltaDueToFlow.IsFilledWithZeroes());
+	assert(u.deltaDueToValve.IsFilledWithZeroes());
+	assert(v.deltaDueToFlow.IsFilledWithZeroes());
+	assert(v.deltaDueToValve.IsFilledWithZeroes());
+	assert(E.deltaDueToFlow.IsFilledWithZeroes());
+	assert(E.deltaDueToValve.IsFilledWithZeroes());
+#endif
+	
+	const int rungeKuttaOrder = simCase->rungeKuttaOrder;
+	double rkK = 1./(rungeKuttaOrder-currentRungeKuttaIter); // Runge-kutta factor
+
+	for (int xIdx = 0; xIdx < amountOfCells[0]; xIdx++)
+	{
+		for (int yIdx = 0; yIdx < amountOfCells[1]; yIdx++)
+		{
+			// These are state variables, and are explicitly expressed. combine the values in the delta buffers, and apply runge-kutta scaling.
+			double dRho = rho.deltaDueToFlow.GetAt(xIdx, yIdx) + rho.deltaDueToValve.GetAt(xIdx, yIdx);
+			double dU = u.deltaDueToFlow.GetAt(xIdx, yIdx) + u.deltaDueToValve.GetAt(xIdx, yIdx);
+			double dV = v.deltaDueToFlow.GetAt(xIdx, yIdx) + v.deltaDueToValve.GetAt(xIdx, yIdx);
+			double dE = E.deltaDueToFlow.GetAt(xIdx, yIdx) + E.deltaDueToValve.GetAt(xIdx, yIdx);
+			rho.nextTimeStepBuffer(xIdx, yIdx) = rho.currentTimeStep.GetAt(xIdx, yIdx) - rkK * dRho;
+			u.nextTimeStepBuffer(xIdx, yIdx) = (rho.currentTimeStep.GetAt(xIdx, yIdx) * u.currentTimeStep.GetAt(xIdx,yIdx) - rkK * dU) / rho.nextTimeStepBuffer(xIdx, yIdx);
+			v.nextTimeStepBuffer(xIdx, yIdx) = (rho.currentTimeStep.GetAt(xIdx, yIdx) * v.currentTimeStep.GetAt(xIdx,yIdx) - rkK * dV) / rho.nextTimeStepBuffer(xIdx, yIdx);
+			E.nextTimeStepBuffer(xIdx, yIdx) = E.currentTimeStep.GetAt(xIdx, yIdx) - rkK * dRho;
+
+			// The others are not state variables; they can be calculated using the known variables. Calculate them now.
+			//todo: set a build mode where these are not calculated to speed things up, as this is only really necessary for data export.
+			p.nextTimeStepBuffer(xIdx, yIdx) = (SpecificHeatRatio()-1) * E.nextTimeStepBuffer.GetAt(xIdx, yIdx) - 0.5*rho.nextTimeStepBuffer(xIdx,yIdx)*pow(u.nextTimeStepBuffer.GetAt(xIdx,yIdx) + v.nextTimeStepBuffer.GetAt(xIdx,yIdx), 2);
+			T.nextTimeStepBuffer(xIdx, yIdx) = p.nextTimeStepBuffer.GetAt(xIdx, yIdx) / (GasConstant() * rho.nextTimeStepBuffer.GetAt(xIdx,yIdx));
+			H.nextTimeStepBuffer(xIdx,yIdx) = (E.nextTimeStepBuffer.GetAt(xIdx,yIdx) + p.nextTimeStepBuffer(xIdx,yIdx))/rho.nextTimeStepBuffer.GetAt(xIdx,yIdx);
+		}
+	}
+
+	// Clean up, empty the buffers
+	rho.deltaDueToFlow.SetAllToValue(0);
+	rho.deltaDueToValve.SetAllToValue(0);
+	u.deltaDueToFlow.SetAllToValue(0);
+	u.deltaDueToValve.SetAllToValue(0);
+	v.deltaDueToFlow.SetAllToValue(0);
+	v.deltaDueToValve.SetAllToValue(0);
+	E.deltaDueToFlow.SetAllToValue(0);
+	E.deltaDueToValve.SetAllToValue(0);
+	// Note that clearing the others (non-state variables) is not necessary, as they are not written to.
 }
 
 void ValidateAxisInput(const int axis)

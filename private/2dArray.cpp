@@ -37,6 +37,15 @@ TwoDimensionalArray TwoDimensionalArray::Transpose() const
 	return T;
 }
 
+bool TwoDimensionalArray::IsFilledWithZeroes() const
+{
+	double sum = 0;
+	for (const auto& val : data)
+		sum += val;
+
+	return (sum < 0.001);
+}
+
 bool TwoDimensionalArray::IsEmpty() const
 {
 	if (nX == 0 || nY == 0)
