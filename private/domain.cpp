@@ -200,7 +200,7 @@ void Domain::UpdateGhostCells()
 	}
 }
 
-void Domain::PopulateFlowDeltaBuffer(const double dt, const int currentRungeKuttaIter)
+void Domain::PopulateFlowDeltaBuffer(const double dt)
 {
 	// Depending on whether or not there are shock fronts, the integration scheme changes. Determining whether or not there are shock fronts is done by looking at the MUSCL interpolated values of the field quantities. So, first calculate & cache the MUSCL vales.
 	

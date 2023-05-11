@@ -74,7 +74,7 @@ struct Domain
 	void UpdateGhostCells();
 
 	// Actually do a time step. Solve fluxes, etc
-	void PopulateFlowDeltaBuffer(const double dt, const int currentRungeKuttaIter);
+	void PopulateFlowDeltaBuffer(const double dt);
 
 	void SetNextTimeStepValuesBasedOnRungeKuttaAndDeltaBuffers(const int currentRungeKuttaIter);
 	

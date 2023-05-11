@@ -80,14 +80,14 @@ int main()
         }
         
         /* 4TH ORDER RUNGE-KUTTA PREDICTOR-CORRECTOR LOOP (iterate 4 times)*/
-        for (int rungeKuttaIterationNumber = 0; rungeKuttaIterationNumber < RK_ORDER; ++rungeKuttaIterationNumber)
+        for (int rungeKuttaIterationNumber = 0; rungeKuttaIterationNumber < simCase.rungeKuttaOrder; ++rungeKuttaIterationNumber)
         {
             // Set the ghost cells values. Note that this is deliberately done in a separate loop so that the runge-kutta operation is sure to be finished before reading into ghost cells.
             for (auto& domainIter : simCase.domains)
             {
                 Domain& domain = domainIter.second;
                 domain.UpdateGhostCells();
-                domain.PopulateFlowDeltaBuffer(simCase.dt, TODO);
+                domain.PopulateFlowDeltaBuffer(simCase.dt);
             }
 
             for (IValve& valve : simCase.valves)
@@ -107,12 +107,8 @@ int main()
                 Domain& domain = domainIter.second;
                 domain.SetNextTimeStepValuesBasedOnRungeKuttaAndDeltaBuffers(rungeKuttaIterationNumber);
             }
-
-
-            
-        } 
-        /* END OF THE RUNGE-KUTTA LOOP */
-
+        } /* END OF THE RUNGE-KUTTA LOOP */
+        
         // Take the 'next time step' solution of the last runge-kutta iteration as the solution for the new time step.
         for (auto& domainIter : simCase.domains)
         {
