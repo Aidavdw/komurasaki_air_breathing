@@ -31,7 +31,7 @@ Domain::Domain(const std::string& name, SimCase* simCase, const Position& positi
 	meshSpacing[0] = MeshSpacing(meshSpacingArg[0]);
 	meshSpacing[1] = MeshSpacing(meshSpacingArg[1]);
 
-	PopulateDomainDimensions();
+	CacheCellSizes();
 
 }
 
@@ -249,7 +249,7 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 			const double density = rho.currentTimeStep.GetAt(currentCell);
 			const double xVel = u.currentTimeStep.GetAt(currentCell);
 			const double yVel = v.currentTimeStep.GetAt(currentCell);
-			const double yc = localCellCenterPositions[1].GetFlattenedIndex(currentCell);
+			const double yc = localCellCenterPositions[1].GetAt(currentCell);
 			const double enthalpy = H.currentTimeStep.GetAt(currentCell);
 			
 			rho.deltaDueToFlow(xIdx,yIdx) += density * yVel / yc * dt;
@@ -323,7 +323,7 @@ void ValidateAxisInput(const int axis)
 	}
 }
 
-void Domain::PopulateDomainDimensions()
+void Domain::CacheCellSizes()
 {
 	// Apologies if this function is a little hard to wrap your head around, but this saves a lot of performance pain and repeated code.
 	// First put it in just arrays, since the different axis are independent of eachother.
@@ -364,10 +364,10 @@ void Domain::PopulateDomainDimensions()
 	{
 		for (int yIdx = 0; yIdx < size[1]; yIdx++)
 		{
-			cellLengths[0].currentTimeStep[cellLengths[0].GetFlattenedIndex(xIdx, yIdx)] = lengths[0][xIdx];
-			cellLengths[1].currentTimeStep[cellLengths[1].GetFlattenedIndex(xIdx, yIdx)] = lengths[1][yIdx];
-			localCellCenterPositions[0].currentTimeStep[localCellCenterPositions[0].GetFlattenedIndex(xIdx, yIdx)] = centerPositions[0][xIdx];
-			localCellCenterPositions[1].currentTimeStep[localCellCenterPositions[1].GetFlattenedIndex(xIdx, yIdx)] = centerPositions[1][yIdx];
+			cellLengths[0](xIdx,yIdx) = lengths[0].at(xIdx);
+			cellLengths[1](xIdx,yIdx) = lengths[1].at(yIdx);
+			localCellCenterPositions[0](xIdx, yIdx) = centerPositions[0].at(xIdx);
+			localCellCenterPositions[1](xIdx, yIdx) = centerPositions[1].at(yIdx);
 		}
 	}
 }

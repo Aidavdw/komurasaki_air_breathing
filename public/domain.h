@@ -37,8 +37,8 @@ struct Domain
 	FieldQuantity T;							// Temperature
 	FieldQuantity H;							// enthalpy ?
 
-	FieldQuantity cellLengths[2];					// The length of each cell.
-	FieldQuantity localCellCenterPositions[2];		// The location of the cell relative to where the domain is anchored. To get global position, add with Domain.position.
+	TwoDimensionalArray cellLengths[2];					// The length of each cell.
+	TwoDimensionalArray localCellCenterPositions[2];		// The location of the cell relative to where the domain is anchored. To get global position, add with Domain.position.
 
 	// returns the cell indices that this position is in.
 	CellIndex InvertPositionToIndex(const Position pos) const;
@@ -81,7 +81,7 @@ struct Domain
 
 private:
 	// Caches the domain dimensions, and asves them in cellLengths and localCellCenterPositions.
-	void PopulateDomainDimensions();
+	void CacheCellSizes();
 
 	void PopulateSlipConditionGhostCells(const EBoundaryLocation boundary);
 	void PopulateNoSlipConditionGhostCells(const EBoundaryLocation boundary);

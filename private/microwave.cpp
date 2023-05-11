@@ -112,13 +112,13 @@ void InitialiseDomainFromChapmanJougetDetonationSolution(Domain* domain, const C
         
         for (int yIndex = 0; yIndex < domain->size[1]; yIndex++)
         {
-            domain->rho.SetAllToValue(cellValues.rho);
-            domain->u.SetAllToValue(cellValues.u);
-            domain->v.SetAllToValue(cellValues.v);
-            domain->p.SetAllToValue(cellValues.p);
-            domain->E.SetAllToValue(cellValues.E);
-            domain->T.SetAllToValue(cellValues.T);
-            domain->E.SetAllToValue(cellValues.E);
+            domain->rho.SetAllToValue(cellValues.rho, CURRENT_TIME_STEP);
+            domain->u.SetAllToValue(cellValues.u, CURRENT_TIME_STEP);
+            domain->v.SetAllToValue(cellValues.v, CURRENT_TIME_STEP);
+            domain->p.SetAllToValue(cellValues.p, CURRENT_TIME_STEP);
+            domain->E.SetAllToValue(cellValues.E, CURRENT_TIME_STEP);
+            domain->T.SetAllToValue(cellValues.T, CURRENT_TIME_STEP);
+            domain->E.SetAllToValue(cellValues.E, CURRENT_TIME_STEP);
         }
     }
 }
