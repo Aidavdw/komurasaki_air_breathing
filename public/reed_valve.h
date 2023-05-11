@@ -40,7 +40,7 @@ protected:
 public:
 
 	// Calculates the forces in the transverse direction on all the fem sections similar to how Florian's original code did it. The optional argument adds extra zeros to get the system of equations representations.
-	void CalculateForceOnNodes(std::vector<double>& forceVectorOut) const;
+	void CalculateForceOnNodesFromPressure(std::vector<double>& forceVectorOut, const EFieldQuantityBuffer bufferName) const;
 	
 	/********* Overrides from Valve interface **********/
 	// Actually sets up the valve inside of the domain.

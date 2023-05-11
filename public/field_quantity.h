@@ -50,7 +50,7 @@ struct FieldQuantity
 	void CopyToBuffer(const EFieldQuantityBuffer from, const EFieldQuantityBuffer to);
 
 	// Instead of taking considering that the entire volume has one value (lumped parameter estimation), consider that the cell center has the value, and anything outside of that will be linearly interpolated between those cells.
-	double GetInterpolatedValueAtPosition(const Position& atPosition) const;
+	double GetInterpolatedValueAtPosition(const Position& atPosition, const EFieldQuantityBuffer bufferName) const;
 
 	// Fills left/right/top/bottomFaceMUSCLBuffer variables from the given source buffer
 	void PopulateMUSCLBuffers(const EFieldQuantityBuffer sourceBuffer, const double MUSCLBias, const EFluxLimiterType fluxLimiterType);

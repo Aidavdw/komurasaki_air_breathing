@@ -386,6 +386,7 @@ int main()
             // damping_load(N_FEM,N_DOF,N_DOF_PER_NODE,RHO_V,L_V,H0,H1,B0,B1,F_DOF[k]);
 
         	// Setting p_FEM, the pressure differences between the up- and the bottom.
+        	
             fem_pressure(N_NODE,fem_n[k],fem_index_inf[k],x_FEM[k],p_neighbour[k],p_coef[k],NYtot[dom_low],p[dom_low],p[dom_up],NGHOST,p_FEM[k]);
         	// Sets F_DOF for the current valve.
             fem_load(N_FEM,N_DOF,N_CLAMP,N_DOF_PER_NODE,p_FEM[k],U2_DOF[k],F_DOF[k],x_FEM[k],b);

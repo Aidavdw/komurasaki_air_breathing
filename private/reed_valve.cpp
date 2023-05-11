@@ -38,7 +38,7 @@ ReedValve::ReedValve(Domain* intoDomain, Domain* outOfDomain, const EBoundaryLoc
 	//fem_ = FemDeformation(amountOfFreeSections, amountOfFixedNodes, beamProfile, lengthOfFreeSection, lengthOfFixedSections, intoDomain->simCase->dt, Opposite(boundary));
 }
 
-void ReedValve::CalculateForceOnNodes(std::vector<double>& forceVectorOut) const
+void ReedValve::CalculateForceOnNodesFromPressure(std::vector<double>& forceVectorOut, const EFieldQuantityBuffer bufferName) const
 {
 	// Only do this for the nodes that are considered 'free'.
 	// Note that the beam connecting the last fixed and the first free node is still considered 'fixed', it cannot create loading, as this would be impossible to distribute between the two nodes.
@@ -51,7 +51,14 @@ void ReedValve::CalculateForceOnNodes(std::vector<double>& forceVectorOut) const
 	 *
 	 * f on N3 = 0.5 * S3
 	 */
-
+#ifdef _DEBUG
+	// Reading from a pressure field, so pressure cannot be 0 (possibly unset)
+	if (intoDomain_->p.bufferMap.at(bufferName).IsFilledWithZeroes())
+		throw std::logic_error("intoDomain's pressure field is not initialised.");
+	if (outOfDomain_->p.bufferMap.at(bufferName).IsFilledWithZeroes())
+		throw std::logic_error("outOfDomain's pressure field is not initialised.");
+#endif
+	
 	forceVectorOut.resize(fem_.amountOfNodes * N_DOF_PER_NODE);
 	
 	// This iterates over the beam section elements, but we need the indices to determine the positions. Hence, up to amountOfNodes-1
@@ -60,7 +67,7 @@ void ReedValve::CalculateForceOnNodes(std::vector<double>& forceVectorOut) const
 		// Sample the pressures where the element is in the physical domain. To get the position where the beam section is in the total domain, the positions of the nodes that it spans between are averaged, it is converted to the reference frame of the domain (instead of the reed valve), and then added to the actual position of the valve in the domain.
 		const Position beamSectionCenterPositionLocal = (fem_.nodePositionsRelativeToRoot[nodeIdx] + fem_.nodePositionsRelativeToRoot[nodeIdx + 1]) * 0.5;
 		const Position beamSectionCenterPositionInDomain = TransformToOtherCoordinateSystem(beamSectionCenterPositionLocal, hingePositionInDomain, {0,0});
-		const double pressureAtBeamCenter = intoDomain_->p.GetInterpolatedValueAtPosition(beamSectionCenterPositionInDomain);
+		const double pressureAtBeamCenter = intoDomain_->p.GetInterpolatedValueAtPosition(beamSectionCenterPositionInDomain, bufferName);
 
 		// The pressure is now sampled in a very similar manner in the the domain that this valve source from.
 		// To get the position, the fact that the position of the node is known in a local coordinate system is used to essentially 'mirror' it over the boundary, into the other domain.
@@ -84,7 +91,7 @@ void ReedValve::CalculateForceOnNodes(std::vector<double>& forceVectorOut) const
 			throw std::logic_error("Sampling position in other domain is not implemented for this boundary type.");
 		}
 
-		double pressureAtSink =  outOfDomain_->p.GetInterpolatedValueAtPosition(ambientSamplePositionLocal);
+		double pressureAtSink =  outOfDomain_->p.GetInterpolatedValueAtPosition(ambientSamplePositionLocal, bufferName);
 		
 		const double deltaPressureWithAmbient = pressureAtBeamCenter - pressureAtSink;
 
@@ -95,6 +102,7 @@ void ReedValve::CalculateForceOnNodes(std::vector<double>& forceVectorOut) const
 		double forceOnElement = deltaPressureWithAmbient * fem_.beamSections.at(nodeIdx).topOrBottomSurfaceArea * cosTheta;
 
 		// The forces is assumed to be equally distributed over the two different nodes.
+		// Note that only the local y-force is calculated, so the others are left empty.
 		forceVectorOut[nodeIdx * N_DOF_PER_NODE] += 0.5* forceOnElement;
 		forceVectorOut[(nodeIdx + 1) * N_DOF_PER_NODE] += 0.5* forceOnElement;
 		
@@ -164,7 +172,7 @@ void ReedValve::Update()
 	// TODO: Right now creates & destroys them every time. Possible optimisation would be to cache them?
 	std::vector<double> forcesOnNodes; // The forces on each node in the local vertical (y positive!) direction.
 	std::vector<double> newDeflection; // The solution to the FEM will be here. it goes [x_node1, y_node1, x_node2, y_node2, (...)]
-	CalculateForceOnNodes(forcesOnNodes);
+	CalculateForceOnNodesFromPressure(forcesOnNodes, RUNGE_KUTTA);
 	CalculateAerodynamicDamping(forcesOnNodes);
 	fem_.CalculateNewDeflections(newDeflection, forcesOnNodes);
 	fem_.UpdatePositions(newDeflection);
@@ -238,7 +246,7 @@ void ReedValve::SetInitialConditions()
 	// TODO: Right now creates & destroys them every time. Possible optimisation would be to cache them?
 	std::vector<double> forcesOnNodes;
 	std::vector<double> newDeflection; // Name based on florian's code, still need to actually figure out what it means...
-	CalculateForceOnNodes(forcesOnNodes);
+	CalculateForceOnNodesFromPressure(forcesOnNodes, CURRENT_TIME_STEP);
 	fem_.SolveCholeskySystem(newDeflection, forcesOnNodes);
 	fem_.UpdatePositions(newDeflection);
 

@@ -38,7 +38,7 @@ void FieldQuantity::CopyToBuffer(const EFieldQuantityBuffer from, const EFieldQu
 {
 	TwoDimensionalArray::ElementWiseCopy(bufferMap.at(from), bufferMap.at(to));
 }
-double FieldQuantity::GetInterpolatedValueAtPosition(const Position& atPosition) const
+double FieldQuantity::GetInterpolatedValueAtPosition(const Position& atPosition, const EFieldQuantityBuffer bufferName) const
 {
 	Position distanceFromCellCenter;
 	const CellIndex cellIndex = domain->InvertPositionToIndex(atPosition, distanceFromCellCenter);
@@ -46,24 +46,23 @@ double FieldQuantity::GetInterpolatedValueAtPosition(const Position& atPosition)
 	// Setting which cells to interpolate with
 	const CellIndex horizontalInterpolateTarget = (distanceFromCellCenter.x < 0) ? cellIndex + CellIndex{1,0} : cellIndex + CellIndex{-1, 0} ;
 	const CellIndex verticalInterpolateTarget = (distanceFromCellCenter.y < 0) ? cellIndex + CellIndex{0,1} : cellIndex + CellIndex{0, -1} ;
-
-	//double sizeX, sizeXInterpolateTarget, sizeY, sizeYInterpolateTarget;
-	//double discard;
+	
 	std::pair<double, double> cellSize = domain->GetCellSizes(cellIndex);
 	std::pair<double, double> xInterpolateSize = domain->GetCellSizes(horizontalInterpolateTarget);
 	std::pair<double, double> yInterpolateSize = domain->GetCellSizes(verticalInterpolateTarget);
 
-	double deltaHorizontal = GetFlattenedIndex(horizontalInterpolateTarget) + GetFlattenedIndex(cellIndex) / (0.5*(cellSize.first + xInterpolateSize.first)) - GetFlattenedIndex(cellIndex);
-	double deltaVertical = GetFlattenedIndex(verticalInterpolateTarget) + GetFlattenedIndex(cellIndex) / (0.5*(cellSize.second + yInterpolateSize.second)) - GetFlattenedIndex(cellIndex);
-	double interpolatedValue = GetFlattenedIndex(cellIndex) + deltaHorizontal + deltaVertical;
+	const TwoDimensionalArray& buffer = bufferMap.at(bufferName);
+	double deltaHorizontal = buffer.GetAt(horizontalInterpolateTarget) + buffer.GetAt(cellIndex) / (0.5*(cellSize.first + xInterpolateSize.first)) - buffer.GetAt(cellIndex);
+	double deltaVertical = buffer.GetAt(verticalInterpolateTarget) + buffer.GetAt(cellIndex) / (0.5*(cellSize.second + yInterpolateSize.second)) - buffer.GetAt(cellIndex);
+	double interpolatedValue = buffer.GetAt(cellIndex) + deltaHorizontal + deltaVertical;
 		
-	#ifdef _DEBUG
+#ifdef _DEBUG
 	// Check if it's between the value of cells that it's interpolating from as a sanity check.
-	double highestVal = std::max(GetFlattenedIndex(horizontalInterpolateTarget), GetFlattenedIndex(verticalInterpolateTarget), GetFlattenedIndex(cellIndex));
+	double highestVal = std::max(buffer.GetAt(horizontalInterpolateTarget), buffer.GetAt(verticalInterpolateTarget), buffer.GetAt(cellIndex));
 	assert(interpolatedValue < highestVal);
-	double lowestVal = std::min(GetFlattenedIndex(horizontalInterpolateTarget), GetFlattenedIndex(verticalInterpolateTarget), GetFlattenedIndex(cellIndex));
+	double lowestVal = std::min(buffer.GetAt(horizontalInterpolateTarget), buffer.GetAt(verticalInterpolateTarget), buffer.GetAt(cellIndex));
 	assert(interpolatedValue > lowestVal);
-	#endif
+#endif
 	
 	return interpolatedValue;
 }
