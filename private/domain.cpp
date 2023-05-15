@@ -246,23 +246,36 @@ void Domain::PopulateFlowDeltaBuffer(const double dt, const double AUSMkFactor, 
 
 			// Now, for every face, determine which flux scheme to use based on whether or not it is critical (sonic), and perform the flux transfer.
 			// indexes for sides ---- 0: right; 1: left; 2: top; 3: down;
+			EBoundaryLocation faces[4] = {LEFT, RIGHT, TOP, BOTTOM};
 			EulerContinuity fluxSplit[4];
 			for (int sideIndex = 0; sideIndex < 4; sideIndex++)
 			{
+				EBoundaryLocation face = faces[sideIndex]; // Easier to debug and read, just a map of sideIndex. Note that enum decays into int.
 				CellIndex rf; // The position in the MUSCL buffer where the relevant values are stored.
-				// the fluxes for the cells that are 'backwards' in the positive axis need to have their sampling positions subtracted by 1.
-				if (sideIndex == 1)
+				// the fluxes for the cells that are 'backwards' in the positive axis are therefore by definition equal to the
+
+				/* The values in the MUSCL buffers are stored as positive terms on their current cells; this means that musclbuffer(i,j) is the flux to the positive axis.
+				 * There are 4 buffers; each for flow going in one specific direction.
+				 * Hence, for flow in the right direction, take the flux in the right direction at right face, and the left face; right face is stored at i,j normally, and for the one on the left face use the value for the previous cell (identical).
+				 *	
+				 *									|	cell (xIdx, yIdx)	|
+				 *		musclRight(xIdx - 1, yIdx) -|-->				  --|--> musclRight(xIdx, yIdx)
+				 *									|						|
+				 *
+				 */
+				
+				if (face == LEFT)
 					rf = CellIndex(xIdx -1, yIdx);
-				if (sideIndex == 3)
+				if (sideIndex == BOTTOM)
 					rf = CellIndex(xIdx, yIdx - 1);
 
 				EulerContinuity leftContinuity, rightContinuity;
-				if (sideIndex < 2) // horizontal flux
+				if (face == LEFT || face == RIGHT) // horizontal flux
 				{
-					leftContinuity = EulerContinuity(rho.leftFaceMUSCLBuffer.GetAt(rf), u.leftFaceMUSCLBuffer.GetAt(rf), v.leftFaceMUSCLBuffer.GetAt(rf), E.leftFaceMUSCLBuffer.GetAt(rf), H.leftFaceMUSCLBuffer.GetAt(rf), p.leftFaceMUSCLBuffer.GetAt(rf));
-					rightContinuity = EulerContinuity(rho.rightFaceMUSCLBuffer.GetAt(rf), u.rightFaceMUSCLBuffer.GetAt(rf), v.rightFaceMUSCLBuffer.GetAt(rf), E.rightFaceMUSCLBuffer.GetAt(rf), H.rightFaceMUSCLBuffer.GetAt(rf), p.rightFaceMUSCLBuffer.GetAt(rf));
+					leftContinuity = EulerContinuity(rho.leftFaceMUSCLBuffer.GetAt(rf), u.leftFaceMUSCLBuffer.GetAt(rf), v.leftFaceMUSCLBuffer.GetAt(rf), eLeft, hLeft, p.leftFaceMUSCLBuffer.GetAt(rf));
+					rightContinuity = EulerContinuity(rho.rightFaceMUSCLBuffer.GetAt(rf), u.rightFaceMUSCLBuffer.GetAt(rf), v.rightFaceMUSCLBuffer.GetAt(rf), eRight, hRight, p.rightFaceMUSCLBuffer.GetAt(rf));
 				}
-				else // vertical flux
+				else //face == TOP || face == BOTTOM, vertical flux
 				{
 					leftContinuity = EulerContinuity(rho.leftFaceMUSCLBuffer.GetAt(rf), u.leftFaceMUSCLBuffer.GetAt(rf), v.leftFaceMUSCLBuffer.GetAt(rf), E.leftFaceMUSCLBuffer.GetAt(rf), H.leftFaceMUSCLBuffer.GetAt(rf), p.leftFaceMUSCLBuffer.GetAt(rf));
 					rightContinuity = EulerContinuity(rho.rightFaceMUSCLBuffer.GetAt(rf), u.rightFaceMUSCLBuffer.GetAt(rf), v.rightFaceMUSCLBuffer.GetAt(rf), E.rightFaceMUSCLBuffer.GetAt(rf), H.rightFaceMUSCLBuffer.GetAt(rf), p.rightFaceMUSCLBuffer.GetAt(rf));
@@ -279,17 +292,16 @@ void Domain::PopulateFlowDeltaBuffer(const double dt, const double AUSMkFactor, 
 					// It's subsonic, use AUSM_DV.
 					fluxSplit[sideIndex] = AUSMDVFluxSplitting(leftContinuity, rightContinuity, gasConstant, gamma, AUSMkFactor, entropyFix);
 				}
-
 			}
 
 			// Total accumulation is what goes in - what goes out
 			const CellIndex currentCell(xIdx, yIdx);
 			auto cellSizes = GetCellSizes(currentCell);
 			//EulerContinuity accumulation = ((rightFlux - leftFlux)/cellSizes.first + (upFlux - downFlux)/cellSizes.second)*dt; // dy = dr in this case, if you compensate for the squashification.
-			rho.deltaDueToFlow(xIdx,yIdx) = ((fluxSplit[0].density - fluxSplit[1].density)/cellSizes.first + (fluxSplit[2].density - fluxSplit[3].density)/cellSizes.second)*dt;
-			v.deltaDueToFlow(xIdx,yIdx) = ((fluxSplit[0].v - fluxSplit[1].v)/cellSizes.first + (fluxSplit[2].v - fluxSplit[3].v)/cellSizes.second)*dt;
-			u.deltaDueToFlow(xIdx,yIdx) = ((fluxSplit[0].u - fluxSplit[1].u)/cellSizes.first + (fluxSplit[2].u - fluxSplit[3].u)/cellSizes.second)*dt;
-			E.deltaDueToFlow(xIdx,yIdx) = ((fluxSplit[0].e - fluxSplit[1].e)/cellSizes.first + (fluxSplit[2].e - fluxSplit[3].e)/cellSizes.second)*dt;
+			rho.deltaDueToFlow(xIdx,yIdx) = ((fluxSplit[RIGHT].density - fluxSplit[LEFT].density)/cellSizes.first + (fluxSplit[TOP].density - fluxSplit[BOTTOM].density)/cellSizes.second)*dt;
+			v.deltaDueToFlow(xIdx,yIdx) = ((fluxSplit[RIGHT].v - fluxSplit[LEFT].v)/cellSizes.first + (fluxSplit[TOP].v - fluxSplit[BOTTOM].v)/cellSizes.second)*dt;
+			u.deltaDueToFlow(xIdx,yIdx) = ((fluxSplit[RIGHT].u - fluxSplit[LEFT].u)/cellSizes.first + (fluxSplit[TOP].u - fluxSplit[BOTTOM].u)/cellSizes.second)*dt;
+			E.deltaDueToFlow(xIdx,yIdx) = ((fluxSplit[RIGHT].e - fluxSplit[LEFT].e)/cellSizes.first + (fluxSplit[TOP].e - fluxSplit[BOTTOM].e)/cellSizes.second)*dt;
 
 			// Extra term to compensate for the fact that the cell sizes are not uniform because we are in a cylindrical coordinate system. In Florian (2017), this is the term *** Hr ***.
 			EulerContinuity hr;
