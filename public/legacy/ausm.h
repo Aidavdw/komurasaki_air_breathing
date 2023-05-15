@@ -8,7 +8,7 @@ Choice between these two schemes is performed directly in the main routine.
 */
 
 /* AUSM-DV scheme at a certain face (R is right, L is left of this face) --> Might be problematic */
-void AUSM_DV(double flux[4],char horOrVer, double rhoL,double rhoR,double uL,double uR,double vL,double vR,double pL,double pR,double HL,double HR,double R,double gamma,double AUSM_K,double ENTRO_FIX_C)
+void AUSM_DV(double flux[4], const char horOrVer, const double rhoL, const double rhoR, const double uL, const double uR, const double vL, const double vR, const double pL, const double pR, const double HL, const double HR,double r, const double gamma, const double AUSM_K, const double ENTRO_FIX_C)
 {
     double s=0;
     double rhou2MV=0,rhou2MD=0,rhouhalf=0,uhalf=0,phalf;

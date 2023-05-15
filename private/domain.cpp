@@ -4,6 +4,7 @@
 #include <cassert>
 
 #include "euler_container.h"
+#include "flux_splitting.h"
 
 
 Domain::Domain(const std::string& name, SimCase* simCase, const Position& position, const double sizeArg[2], const int amountOfCellsArg[2], const MeshSpacing meshSpacingArg[2], const EInitialisationMethod initialisationMethod, const int ghostCellDepth) :
@@ -200,7 +201,7 @@ void Domain::UpdateGhostCells()
 	}
 }
 
-void Domain::PopulateFlowDeltaBuffer(const double dt)
+void Domain::PopulateFlowDeltaBuffer(const double dt, const double AUSMkFactor, const double entropyFix)
 {
 	// Depending on whether or not there are shock fronts, the integration scheme changes. Determining whether or not there are shock fronts is done by looking at the MUSCL interpolated values of the field quantities. So, first calculate & cache the MUSCL vales.
 	
@@ -220,29 +221,75 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 		{
 			// These here contain 4 terms for the euler equations. They all represent the flux of those variables at each side of the cell.
 			EulerContinuity leftFlux, rightFlux, upFlux, downFlux;
-
-			// Is it (super)sonic in the x-direction?
+			
+			// rho, u, v and p's MUSCL values are stored in their respective buffers. the other variables are not, but they can be calculated directly from the state values in those buffers. So, do this for energy and enthalpy.
 			double gamma = SpecificHeatRatio();
-			double cLeft = sqrt(gamma * p.leftFaceMUSCLBuffer.GetAt(xIdx, yIdx));
-			double cRight = sqrt(gamma * p.rightFaceMUSCLBuffer.GetAt(xIdx, yIdx));
-			double cTop = sqrt(gamma * p.topFaceMUSCLBuffer.GetAt(xIdx, yIdx));
-			double cBottom = sqrt(gamma * p.bottomFaceMUSCLBuffer.GetAt(xIdx, yIdx));
+			double gasConstant = GasConstant();
+			// energy
+			const double eLeft = p.leftFaceMUSCLBuffer.GetAt(xIdx,yIdx) / (gamma - 1) + 0.5 * rho.leftFaceMUSCLBuffer.GetAt(xIdx, yIdx) * (pow(u.leftFaceMUSCLBuffer(xIdx, yIdx), 2) + pow(v.leftFaceMUSCLBuffer(xIdx, yIdx), 2));
+			const double eRight = p.rightFaceMUSCLBuffer.GetAt(xIdx,yIdx) / (gamma - 1) + 0.5 * rho.rightFaceMUSCLBuffer.GetAt(xIdx, yIdx) * (pow(u.rightFaceMUSCLBuffer(xIdx, yIdx), 2) + pow(v.rightFaceMUSCLBuffer(xIdx, yIdx), 2));
+			const double eTop = p.topFaceMUSCLBuffer.GetAt(xIdx,yIdx) / (gamma - 1) + 0.5 * rho.topFaceMUSCLBuffer.GetAt(xIdx, yIdx) * (pow(u.topFaceMUSCLBuffer(xIdx, yIdx), 2) + pow(v.topFaceMUSCLBuffer(xIdx, yIdx), 2));
+			const double eBottom = p.bottomFaceMUSCLBuffer.GetAt(xIdx,yIdx) / (gamma - 1) + 0.5 * rho.bottomFaceMUSCLBuffer.GetAt(xIdx, yIdx) * (pow(u.bottomFaceMUSCLBuffer(xIdx, yIdx), 2) + pow(v.bottomFaceMUSCLBuffer(xIdx, yIdx), 2));
 
-			// todo: implement hanel & ausmdv
-			// for each direction
-				// if flow is sonic
-					//directionFlux = GetHanel(direction)
-				// else
-					// directionFlux = GetAUSMDV(direction)
+			// enthalpy
+			const double hLeft = (eLeft + p.leftFaceMUSCLBuffer.GetAt(xIdx,yIdx))/rho.leftFaceMUSCLBuffer.GetAt(xIdx,yIdx);
+			const double hRight = (eRight + p.rightFaceMUSCLBuffer.GetAt(xIdx,yIdx))/rho.rightFaceMUSCLBuffer.GetAt(xIdx,yIdx);
+			const double hTop = (eTop + p.topFaceMUSCLBuffer.GetAt(xIdx,yIdx))/rho.topFaceMUSCLBuffer.GetAt(xIdx,yIdx);
+			const double hBottom = (eBottom + p.bottomFaceMUSCLBuffer.GetAt(xIdx,yIdx))/rho.bottomFaceMUSCLBuffer.GetAt(xIdx,yIdx);
+
+			// Cache whether or not the flow is supersonic through faces.
+			const double cLeft = sqrt(gamma * p.leftFaceMUSCLBuffer.GetAt(xIdx, yIdx)/rho.leftFaceMUSCLBuffer.GetAt(xIdx, yIdx));
+			const double cRight = sqrt(gamma * p.rightFaceMUSCLBuffer.GetAt(xIdx, yIdx)/rho.rightFaceMUSCLBuffer.GetAt(xIdx, yIdx));
+			const double cTop = sqrt(gamma * p.topFaceMUSCLBuffer.GetAt(xIdx, yIdx)/rho.topFaceMUSCLBuffer.GetAt(xIdx, yIdx));
+			const double cBottom = sqrt(gamma * p.bottomFaceMUSCLBuffer.GetAt(xIdx, yIdx)/rho.bottomFaceMUSCLBuffer.GetAt(xIdx, yIdx));
+			const double speedOfSound[4] = {cRight, cLeft, cTop, cBottom};
+
+			// Now, for every face, determine which flux scheme to use based on whether or not it is critical (sonic), and perform the flux transfer.
+			// indexes for sides ---- 0: right; 1: left; 2: top; 3: down;
+			EulerContinuity fluxSplit[4];
+			for (int sideIndex = 0; sideIndex < 4; sideIndex++)
+			{
+				CellIndex rf; // The position in the MUSCL buffer where the relevant values are stored.
+				// the fluxes for the cells that are 'backwards' in the positive axis need to have their sampling positions subtracted by 1.
+				if (sideIndex == 1)
+					rf = CellIndex(xIdx -1, yIdx);
+				if (sideIndex == 3)
+					rf = CellIndex(xIdx, yIdx - 1);
+
+				EulerContinuity leftContinuity, rightContinuity;
+				if (sideIndex < 2) // horizontal flux
+				{
+					leftContinuity = EulerContinuity(rho.leftFaceMUSCLBuffer.GetAt(rf), u.leftFaceMUSCLBuffer.GetAt(rf), v.leftFaceMUSCLBuffer.GetAt(rf), E.leftFaceMUSCLBuffer.GetAt(rf), H.leftFaceMUSCLBuffer.GetAt(rf), p.leftFaceMUSCLBuffer.GetAt(rf));
+					rightContinuity = EulerContinuity(rho.rightFaceMUSCLBuffer.GetAt(rf), u.rightFaceMUSCLBuffer.GetAt(rf), v.rightFaceMUSCLBuffer.GetAt(rf), E.rightFaceMUSCLBuffer.GetAt(rf), H.rightFaceMUSCLBuffer.GetAt(rf), p.rightFaceMUSCLBuffer.GetAt(rf));
+				}
+				else // vertical flux
+				{
+					leftContinuity = EulerContinuity(rho.leftFaceMUSCLBuffer.GetAt(rf), u.leftFaceMUSCLBuffer.GetAt(rf), v.leftFaceMUSCLBuffer.GetAt(rf), E.leftFaceMUSCLBuffer.GetAt(rf), H.leftFaceMUSCLBuffer.GetAt(rf), p.leftFaceMUSCLBuffer.GetAt(rf));
+					rightContinuity = EulerContinuity(rho.rightFaceMUSCLBuffer.GetAt(rf), u.rightFaceMUSCLBuffer.GetAt(rf), v.rightFaceMUSCLBuffer.GetAt(rf), E.rightFaceMUSCLBuffer.GetAt(rf), H.rightFaceMUSCLBuffer.GetAt(rf), p.rightFaceMUSCLBuffer.GetAt(rf));
+				}
+
+				// Set the flux split for this side (declared above in the array).
+				if (v.rightFaceMUSCLBuffer.GetAt(rf) > speedOfSound[sideIndex])
+				{
+					// It's sonic, use Hanel.
+					fluxSplit[sideIndex] = HanelFluxSplitting(leftContinuity, rightContinuity, gamma, AUSMkFactor, entropyFix);
+				}
+				else
+				{
+					// It's subsonic, use AUSM_DV.
+					fluxSplit[sideIndex] = AUSMDVFluxSplitting(leftContinuity, rightContinuity, gasConstant, gamma, AUSMkFactor, entropyFix);
+				}
+
+			}
 
 			// Total accumulation is what goes in - what goes out
 			const CellIndex currentCell(xIdx, yIdx);
 			auto cellSizes = GetCellSizes(currentCell);
 			//EulerContinuity accumulation = ((rightFlux - leftFlux)/cellSizes.first + (upFlux - downFlux)/cellSizes.second)*dt; // dy = dr in this case, if you compensate for the squashification.
-			rho.deltaDueToFlow(xIdx,yIdx) = ((rightFlux.density - leftFlux.density)/cellSizes.first + (upFlux.density - downFlux.density)/cellSizes.second)*dt;
-			v.deltaDueToFlow(xIdx,yIdx) = ((rightFlux.v - leftFlux.v)/cellSizes.first + (upFlux.v - downFlux.v)/cellSizes.second)*dt;
-			u.deltaDueToFlow(xIdx,yIdx) = ((rightFlux.u - leftFlux.u)/cellSizes.first + (upFlux.u - downFlux.u)/cellSizes.second)*dt;
-			E.deltaDueToFlow(xIdx,yIdx) = ((rightFlux.e - leftFlux.e)/cellSizes.first + (upFlux.e - downFlux.e)/cellSizes.second)*dt;
+			rho.deltaDueToFlow(xIdx,yIdx) = ((fluxSplit[0].density - fluxSplit[1].density)/cellSizes.first + (fluxSplit[2].density - fluxSplit[3].density)/cellSizes.second)*dt;
+			v.deltaDueToFlow(xIdx,yIdx) = ((fluxSplit[0].v - fluxSplit[1].v)/cellSizes.first + (fluxSplit[2].v - fluxSplit[3].v)/cellSizes.second)*dt;
+			u.deltaDueToFlow(xIdx,yIdx) = ((fluxSplit[0].u - fluxSplit[1].u)/cellSizes.first + (fluxSplit[2].u - fluxSplit[3].u)/cellSizes.second)*dt;
+			E.deltaDueToFlow(xIdx,yIdx) = ((fluxSplit[0].e - fluxSplit[1].e)/cellSizes.first + (fluxSplit[2].e - fluxSplit[3].e)/cellSizes.second)*dt;
 
 			// Extra term to compensate for the fact that the cell sizes are not uniform because we are in a cylindrical coordinate system. In Florian (2017), this is the term *** Hr ***.
 			EulerContinuity hr;

@@ -60,6 +60,7 @@
     <ClCompile Include="private\domain.cpp" />
     <ClCompile Include="private\fem_deformation.cpp" />
     <ClCompile Include="private\field_quantity.cpp" />
+    <ClCompile Include="private\flux_splitting.cpp" />
     <ClCompile Include="private\gradient_descent.cpp" />
     <ClCompile Include="private\index2d.cpp" />
     <ClCompile Include="private\mesh_spacing.cpp" />
@@ -71,6 +72,9 @@
     <ClCompile Include="private\sim_case.cpp" />
     <ClCompile Include="private\IValve.cpp" />
     <ClCompile Include="redundant\main.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="public\flux_splitting.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

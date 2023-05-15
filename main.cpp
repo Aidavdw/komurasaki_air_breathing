@@ -87,7 +87,7 @@ int main()
             {
                 Domain& domain = domainIter.second;
                 domain.UpdateGhostCells();
-                domain.PopulateFlowDeltaBuffer(simCase.dt);
+                domain.PopulateFlowDeltaBuffer(simCase.dt, TODO, TODO);
             }
 
             for (IValve& valve : simCase.valves)
