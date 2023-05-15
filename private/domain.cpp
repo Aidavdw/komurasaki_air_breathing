@@ -288,7 +288,7 @@ void Domain::PopulateFlowDeltaBuffer(const double dt, const double AUSMkFactor, 
 				else
 				{
 					// It's subsonic, use AUSM_DV.
-					fluxSplit[face] = AUSMDVFluxSplitting(continuityInLeftDirection, continuityInRightDirection, gasConstant, gamma, AUSMkFactor, entropyFix);
+					fluxSplit[face] = AUSMDVFluxSplitting(continuityInLeftDirection, continuityInRightDirection, gamma, AUSMkFactor, entropyFix);
 				}
 
 				// If it's a vertical flux, then the u and v are in the local reference frame, and hence they must be inverted.
