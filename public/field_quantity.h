@@ -40,10 +40,6 @@ struct FieldQuantity
 
 	// MUSCL buffers
 	TwoDimensionalArray MUSCLBuffer[4]; // index with EBoundaryLocation.
-	TwoDimensionalArray leftFaceMUSCLBuffer;
-	TwoDimensionalArray rightFaceMUSCLBuffer;
-	TwoDimensionalArray topFaceMUSCLBuffer;
-	TwoDimensionalArray bottomFaceMUSCLBuffer;
 
 	// Sets all the values in the field to this value.
 	void SetAllToValue(const double value, const EFieldQuantityBuffer bufferToWriteTo);

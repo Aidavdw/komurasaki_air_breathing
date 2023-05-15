@@ -226,22 +226,22 @@ void Domain::PopulateFlowDeltaBuffer(const double dt, const double AUSMkFactor, 
 			double gamma = SpecificHeatRatio();
 			double gasConstant = GasConstant();
 			// energy
-			const double eLeft = p.leftFaceMUSCLBuffer.GetAt(xIdx,yIdx) / (gamma - 1) + 0.5 * rho.leftFaceMUSCLBuffer.GetAt(xIdx, yIdx) * (pow(u.leftFaceMUSCLBuffer(xIdx, yIdx), 2) + pow(v.leftFaceMUSCLBuffer(xIdx, yIdx), 2));
-			const double eRight = p.rightFaceMUSCLBuffer.GetAt(xIdx,yIdx) / (gamma - 1) + 0.5 * rho.rightFaceMUSCLBuffer.GetAt(xIdx, yIdx) * (pow(u.rightFaceMUSCLBuffer(xIdx, yIdx), 2) + pow(v.rightFaceMUSCLBuffer(xIdx, yIdx), 2));
-			const double eTop = p.topFaceMUSCLBuffer.GetAt(xIdx,yIdx) / (gamma - 1) + 0.5 * rho.topFaceMUSCLBuffer.GetAt(xIdx, yIdx) * (pow(u.topFaceMUSCLBuffer(xIdx, yIdx), 2) + pow(v.topFaceMUSCLBuffer(xIdx, yIdx), 2));
-			const double eBottom = p.bottomFaceMUSCLBuffer.GetAt(xIdx,yIdx) / (gamma - 1) + 0.5 * rho.bottomFaceMUSCLBuffer.GetAt(xIdx, yIdx) * (pow(u.bottomFaceMUSCLBuffer(xIdx, yIdx), 2) + pow(v.bottomFaceMUSCLBuffer(xIdx, yIdx), 2));
+			const double eLeft = p.MUSCLBuffer[LEFT].GetAt(xIdx,yIdx) / (gamma - 1) + 0.5 * rho.MUSCLBuffer[LEFT].GetAt(xIdx, yIdx) * (pow(u.MUSCLBuffer[LEFT](xIdx, yIdx), 2) + pow(v.MUSCLBuffer[LEFT](xIdx, yIdx), 2));
+			const double eRight = p.MUSCLBuffer[RIGHT].GetAt(xIdx,yIdx) / (gamma - 1) + 0.5 * rho.MUSCLBuffer[RIGHT].GetAt(xIdx, yIdx) * (pow(u.MUSCLBuffer[RIGHT](xIdx, yIdx), 2) + pow(v.MUSCLBuffer[RIGHT](xIdx, yIdx), 2));
+			const double eTop = p.MUSCLBuffer[TOP].GetAt(xIdx,yIdx) / (gamma - 1) + 0.5 * rho.MUSCLBuffer[TOP].GetAt(xIdx, yIdx) * (pow(u.MUSCLBuffer[TOP](xIdx, yIdx), 2) + pow(v.MUSCLBuffer[TOP](xIdx, yIdx), 2));
+			const double eBottom = p.MUSCLBuffer[BOTTOM].GetAt(xIdx,yIdx) / (gamma - 1) + 0.5 * rho.MUSCLBuffer[BOTTOM].GetAt(xIdx, yIdx) * (pow(u.MUSCLBuffer[BOTTOM](xIdx, yIdx), 2) + pow(v.MUSCLBuffer[BOTTOM](xIdx, yIdx), 2));
 
 			// enthalpy
-			const double hLeft = (eLeft + p.leftFaceMUSCLBuffer.GetAt(xIdx,yIdx))/rho.leftFaceMUSCLBuffer.GetAt(xIdx,yIdx);
-			const double hRight = (eRight + p.rightFaceMUSCLBuffer.GetAt(xIdx,yIdx))/rho.rightFaceMUSCLBuffer.GetAt(xIdx,yIdx);
-			const double hTop = (eTop + p.topFaceMUSCLBuffer.GetAt(xIdx,yIdx))/rho.topFaceMUSCLBuffer.GetAt(xIdx,yIdx);
-			const double hBottom = (eBottom + p.bottomFaceMUSCLBuffer.GetAt(xIdx,yIdx))/rho.bottomFaceMUSCLBuffer.GetAt(xIdx,yIdx);
+			const double hLeft = (eLeft + p.MUSCLBuffer[LEFT].GetAt(xIdx,yIdx))/rho.MUSCLBuffer[LEFT].GetAt(xIdx,yIdx);
+			const double hRight = (eRight + p.MUSCLBuffer[RIGHT].GetAt(xIdx,yIdx))/rho.MUSCLBuffer[RIGHT].GetAt(xIdx,yIdx);
+			const double hTop = (eTop + p.MUSCLBuffer[TOP].GetAt(xIdx,yIdx))/rho.MUSCLBuffer[TOP].GetAt(xIdx,yIdx);
+			const double hBottom = (eBottom + p.MUSCLBuffer[BOTTOM].GetAt(xIdx,yIdx))/rho.MUSCLBuffer[BOTTOM].GetAt(xIdx,yIdx);
 
 			// Cache whether or not the flow is supersonic through faces.
-			const double cLeft = sqrt(gamma * p.leftFaceMUSCLBuffer.GetAt(xIdx, yIdx)/rho.leftFaceMUSCLBuffer.GetAt(xIdx, yIdx));
-			const double cRight = sqrt(gamma * p.rightFaceMUSCLBuffer.GetAt(xIdx, yIdx)/rho.rightFaceMUSCLBuffer.GetAt(xIdx, yIdx));
-			const double cTop = sqrt(gamma * p.topFaceMUSCLBuffer.GetAt(xIdx, yIdx)/rho.topFaceMUSCLBuffer.GetAt(xIdx, yIdx));
-			const double cBottom = sqrt(gamma * p.bottomFaceMUSCLBuffer.GetAt(xIdx, yIdx)/rho.bottomFaceMUSCLBuffer.GetAt(xIdx, yIdx));
+			const double cLeft = sqrt(gamma * p.MUSCLBuffer[LEFT].GetAt(xIdx, yIdx)/rho.MUSCLBuffer[LEFT].GetAt(xIdx, yIdx));
+			const double cRight = sqrt(gamma * p.MUSCLBuffer[RIGHT].GetAt(xIdx, yIdx)/rho.MUSCLBuffer[RIGHT].GetAt(xIdx, yIdx));
+			const double cTop = sqrt(gamma * p.MUSCLBuffer[TOP].GetAt(xIdx, yIdx)/rho.MUSCLBuffer[TOP].GetAt(xIdx, yIdx));
+			const double cBottom = sqrt(gamma * p.MUSCLBuffer[BOTTOM].GetAt(xIdx, yIdx)/rho.MUSCLBuffer[BOTTOM].GetAt(xIdx, yIdx));
 			const double speedOfSound[4] = {cRight, cLeft, cTop, cBottom};
 
 			// Now, for every face, determine which flux scheme to use based on whether or not it is critical (sonic), and perform the flux transfer.
@@ -261,6 +261,8 @@ void Domain::PopulateFlowDeltaBuffer(const double dt, const double AUSMkFactor, 
 				 *									|	cell (xIdx, yIdx)	|
 				 *		musclRight(xIdx - 1, yIdx) -|-->				  --|--> musclRight(xIdx, yIdx)
 				 *									|						|
+				 *		musclLeft(xIdx -1, yIdx) <--|--					 <--|-- musclLeft(xIdx, yIdx)
+				 *									|						|
 				 *
 				 */
 				
@@ -269,28 +271,29 @@ void Domain::PopulateFlowDeltaBuffer(const double dt, const double AUSMkFactor, 
 				if (sideIndex == BOTTOM)
 					rf = CellIndex(xIdx, yIdx - 1);
 
-				EulerContinuity leftContinuity, rightContinuity;
+				// Get the left- and right bound fluxes at the specific face we're considering now.
+				EulerContinuity continuityInLeftDirection, continuityInRightDirection;
 				if (face == LEFT || face == RIGHT) // horizontal flux
 				{
-					leftContinuity = EulerContinuity(rho.leftFaceMUSCLBuffer.GetAt(rf), u.leftFaceMUSCLBuffer.GetAt(rf), v.leftFaceMUSCLBuffer.GetAt(rf), eLeft, hLeft, p.leftFaceMUSCLBuffer.GetAt(rf));
-					rightContinuity = EulerContinuity(rho.rightFaceMUSCLBuffer.GetAt(rf), u.rightFaceMUSCLBuffer.GetAt(rf), v.rightFaceMUSCLBuffer.GetAt(rf), eRight, hRight, p.rightFaceMUSCLBuffer.GetAt(rf));
+					continuityInLeftDirection = EulerContinuity(rho.MUSCLBuffer[LEFT].GetAt(rf), u.MUSCLBuffer[LEFT].GetAt(rf), v.MUSCLBuffer[LEFT].GetAt(rf), eLeft, hLeft, p.MUSCLBuffer[LEFT].GetAt(rf));
+					continuityInRightDirection = EulerContinuity(rho.MUSCLBuffer[RIGHT].GetAt(rf), u.MUSCLBuffer[RIGHT].GetAt(rf), v.MUSCLBuffer[RIGHT].GetAt(rf), eRight, hRight, p.MUSCLBuffer[RIGHT].GetAt(rf));
 				}
 				else //face == TOP || face == BOTTOM, vertical flux
 				{
-					leftContinuity = EulerContinuity(rho.leftFaceMUSCLBuffer.GetAt(rf), u.leftFaceMUSCLBuffer.GetAt(rf), v.leftFaceMUSCLBuffer.GetAt(rf), E.leftFaceMUSCLBuffer.GetAt(rf), H.leftFaceMUSCLBuffer.GetAt(rf), p.leftFaceMUSCLBuffer.GetAt(rf));
-					rightContinuity = EulerContinuity(rho.rightFaceMUSCLBuffer.GetAt(rf), u.rightFaceMUSCLBuffer.GetAt(rf), v.rightFaceMUSCLBuffer.GetAt(rf), E.rightFaceMUSCLBuffer.GetAt(rf), H.rightFaceMUSCLBuffer.GetAt(rf), p.rightFaceMUSCLBuffer.GetAt(rf));
+					continuityInLeftDirection = EulerContinuity(rho.MUSCLBuffer[LEFT].GetAt(rf), u.MUSCLBuffer[LEFT].GetAt(rf), v.MUSCLBuffer[LEFT].GetAt(rf), E.MUSCLBuffer[LEFT].GetAt(rf), H.MUSCLBuffer[LEFT].GetAt(rf), p.MUSCLBuffer[LEFT].GetAt(rf));
+					continuityInRightDirection = EulerContinuity(rho.MUSCLBuffer[RIGHT].GetAt(rf), u.MUSCLBuffer[RIGHT].GetAt(rf), v.MUSCLBuffer[RIGHT].GetAt(rf), E.MUSCLBuffer[RIGHT].GetAt(rf), H.MUSCLBuffer[RIGHT].GetAt(rf), p.MUSCLBuffer[RIGHT].GetAt(rf));
 				}
 
 				// Set the flux split for this side (declared above in the array).
-				if (v.rightFaceMUSCLBuffer.GetAt(rf) > speedOfSound[sideIndex])
+				if (v.MUSCLBuffer[RIGHT].GetAt(rf) > speedOfSound[sideIndex])
 				{
 					// It's sonic, use Hanel.
-					fluxSplit[sideIndex] = HanelFluxSplitting(leftContinuity, rightContinuity, gamma, AUSMkFactor, entropyFix);
+					fluxSplit[sideIndex] = HanelFluxSplitting(continuityInLeftDirection, continuityInRightDirection, gamma, AUSMkFactor, entropyFix);
 				}
 				else
 				{
 					// It's subsonic, use AUSM_DV.
-					fluxSplit[sideIndex] = AUSMDVFluxSplitting(leftContinuity, rightContinuity, gasConstant, gamma, AUSMkFactor, entropyFix);
+					fluxSplit[sideIndex] = AUSMDVFluxSplitting(continuityInLeftDirection, continuityInRightDirection, gasConstant, gamma, AUSMkFactor, entropyFix);
 				}
 			}
 

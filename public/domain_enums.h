@@ -1,4 +1,5 @@
 #pragma once
+#include <stdexcept>
 
 // Decides how this domain will be initialised
 enum EInitialisationMethod
