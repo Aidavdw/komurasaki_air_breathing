@@ -201,18 +201,15 @@ void Domain::UpdateGhostCells()
 	}
 }
 
-void Domain::PopulateFlowDeltaBuffer(const double dt, const double AUSMkFactor, const double entropyFix)
+void Domain::PopulateFlowDeltaBuffer(const double dt)
 {
 	// Depending on whether or not there are shock fronts, the integration scheme changes. Determining whether or not there are shock fronts is done by looking at the MUSCL interpolated values of the field quantities. So, first calculate & cache the MUSCL vales.
-	
-	const double bias = simCase->MUSCLBias;
-	const EFluxLimiterType fluxLimiter = simCase->fluxLimiterType;
-	const int rungeKuttaOrder = simCase->rungeKuttaOrder;
+	const SolverSettings& solverSettings = simCase->solverSettings;
 
-	rho.PopulateMUSCLBuffers(RUNGE_KUTTA, bias, fluxLimiter);
-	u.PopulateMUSCLBuffers(RUNGE_KUTTA, bias, fluxLimiter);
-	v.PopulateMUSCLBuffers(RUNGE_KUTTA, bias, fluxLimiter);
-	p.PopulateMUSCLBuffers(RUNGE_KUTTA, bias, fluxLimiter);
+	rho.PopulateMUSCLBuffers(RUNGE_KUTTA, solverSettings.MUSCLBias, solverSettings.fluxLimiterType);
+	u.PopulateMUSCLBuffers(RUNGE_KUTTA, solverSettings.MUSCLBias, solverSettings.fluxLimiterType);
+	v.PopulateMUSCLBuffers(RUNGE_KUTTA, solverSettings.MUSCLBias, solverSettings.fluxLimiterType);
+	p.PopulateMUSCLBuffers(RUNGE_KUTTA, solverSettings.MUSCLBias, solverSettings.fluxLimiterType);
 
 	// Do flux splitting on all the faces. Use hanel if flow is sonic in either cell, ausm_dv if not.
 	for (int xIdx = 0; xIdx < amountOfCells[0]; xIdx++)
@@ -283,12 +280,12 @@ void Domain::PopulateFlowDeltaBuffer(const double dt, const double AUSMkFactor, 
 				if (v.MUSCLBuffer[RIGHT].GetAt(rf) > speedOfSound)
 				{
 					// It's sonic, use Hanel.
-					fluxSplit[face] = HanelFluxSplitting(continuityInLeftDirection, continuityInRightDirection, gamma, AUSMkFactor, entropyFix);
+					fluxSplit[face] = HanelFluxSplitting(continuityInLeftDirection, continuityInRightDirection, gamma, solverSettings.entropyFix);
 				}
 				else
 				{
 					// It's subsonic, use AUSM_DV.
-					fluxSplit[face] = AUSMDVFluxSplitting(continuityInLeftDirection, continuityInRightDirection, gamma, AUSMkFactor, entropyFix);
+					fluxSplit[face] = AUSMDVFluxSplitting(continuityInLeftDirection, continuityInRightDirection, gamma, solverSettings.AUSMSwitchBias, solverSettings.entropyFix);
 				}
 
 				// If it's a vertical flux, then the u and v are in the local reference frame, and hence they must be inverted.
@@ -342,10 +339,8 @@ void Domain::SetNextTimeStepValuesBasedOnRungeKuttaAndDeltaBuffers(const int cur
 	assert(E.deltaDueToFlow.IsFilledWithZeroes());
 	assert(E.deltaDueToValve.IsFilledWithZeroes());
 #endif
-	
-	const int rungeKuttaOrder = simCase->rungeKuttaOrder;
-	double rkK = 1./(rungeKuttaOrder-currentRungeKuttaIter); // Runge-kutta factor
 
+	const double rkK = 1./(simCase->solverSettings.rungeKuttaOrder-currentRungeKuttaIter); // Runge-kutta factor
 	for (int xIdx = 0; xIdx < amountOfCells[0]; xIdx++)
 	{
 		for (int yIdx = 0; yIdx < amountOfCells[1]; yIdx++)

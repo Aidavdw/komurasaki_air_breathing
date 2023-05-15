@@ -2,7 +2,6 @@
 #include <stdexcept>
 
 #include "IValve.h"
-#include "parameters.h"  // List of parameters specified by user
 #include "microwave.h"
 
 SimCase::SimCase(const double simulationDuration, const double dt) :

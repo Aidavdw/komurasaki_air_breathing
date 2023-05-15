@@ -36,6 +36,8 @@ struct FieldQuantity
 	TwoDimensionalArray rungeKuttaBuffer;			// The Runge Kutta buffer of this field quantity. Access using At(), don't manually index!
 	TwoDimensionalArray nextTimeStepBuffer;			// The T buffer of this field quantity. Access using At(), don't manually index!
 	TwoDimensionalArray deltaDueToFlow;				// Gets added to nextTimeBuffer, but separately writeable for async possibility.
+
+	// TODO: remove. Have valves use their own buffer, so it doesn't have to store so many zeros.
 	TwoDimensionalArray deltaDueToValve;			// Gets added to nextTimeBuffer, but separately writeable for async possibility.
 
 	// MUSCL buffers

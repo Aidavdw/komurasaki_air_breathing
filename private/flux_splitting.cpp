@@ -4,7 +4,7 @@
 #include <cmath>
 
 EulerContinuity HanelFluxSplitting(const EulerContinuity& l, const EulerContinuity& r,
-                                   const double gamma, const double AUSMkFactor, const double entropyFix)
+                                   const double gamma, const double entropyFix)
 {
     const double alphaLPartial=l.p/l.density;
     const double alphaRPartial=r.p/r.density;

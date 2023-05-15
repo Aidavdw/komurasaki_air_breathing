@@ -5,12 +5,21 @@
 
 struct IValve;
 
+struct SolverSettings
+{
+	double AUSMSwitchBias						= 10.0;		// Bias parameter for AUSM switching function
+	double MUSCLBias							= 1.0/3;	// MUSCL bias coefficient between upwind and downwind differences;
+	EFluxLimiterType fluxLimiterType			= EFluxLimiterType::MIN_MOD; // The type of flux limiting that will be used in the flux splitting.
+	double entropyFix							= 0.125;  // Parameter for entropy fix in AUSM-DV scheme
+	int rungeKuttaOrder							= 4;		
+};
 
 struct SimCase {
 	SimCase(const double simulationDuration, const double dt);
 	
 	RuntimeParameters runtimeParameters;
-	int rungeKuttaOrder = 4;
+	SolverSettings solverSettings;
+
 
 	std::map<int, Domain> domains; // The domains that are part of this SimCase
 	std::map<std::string, int> domainIDS;
@@ -24,12 +33,11 @@ struct SimCase {
 	double dt;
 	int totalSimulationTimeStepCount;			// The total amount of time steps that are in this simulation.
 
-	double MUSCLBias;
-	EFluxLimiterType fluxLimiterType;
+
 
 	// Reed valve setup
 	int numberOfReedValves = 0;
-	double reed_valve_total_length = 0.; // Total length of the reed valve, with the fixed part and the flexible part combined.
+	//double reed_valve_total_length = 0.; // Total length of the reed valve, with the fixed part and the flexible part combined.
 
 	void RegisterValve(const IValve& valve);
 
@@ -41,3 +49,4 @@ struct SimCase {
 	void ApplyInitialConditions();
 
 };
+

@@ -3,7 +3,7 @@
 
 class Domain;
 
-EulerContinuity HanelFluxSplitting(const EulerContinuity& l, const EulerContinuity& r, const double gamma, const double AUSMkFactor, const double entropyFix);
+EulerContinuity HanelFluxSplitting(const EulerContinuity& l, const EulerContinuity& r, const double gamma, const double entropyFix);
 
 EulerContinuity AUSMDVFluxSplitting(const EulerContinuity& leftContinuity, const EulerContinuity& rightContinuity, const double gamma, const double
                                     AUSMkFactor, const double entropyFix);

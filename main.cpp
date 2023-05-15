@@ -5,21 +5,11 @@
 #include <ctime>
 #include <iostream>
 
-#include "colors.h"      // Colors for use in terminal
-#include "parameters.h"  // List of parameters specified by user
-#include "functions.h"   // General functions
-#include "initial.h"     // Initial conditions suitable for each case
-#include "muscl.h"       // MUSCL interpolation
-#include "ausm.h"        // AUSM scheme
-#include "microwave.h"   // Microwave heating and MSD theory
-#include "export.h"      // Export functions
-#include "bound_cond.h"  // Boundary conditions
-#include "fem_model.h"   // FEM model of the reed valve
-
 #include "sim_case.h"
 //#include "case_det_tube.cpp" // Temporary hard-code of specific case implementation
 #include <chrono>
 
+#include "microwave.h"
 #include "reed_valve.h"
 
 
@@ -80,14 +70,14 @@ int main()
         }
         
         /* 4TH ORDER RUNGE-KUTTA PREDICTOR-CORRECTOR LOOP (iterate 4 times)*/
-        for (int rungeKuttaIterationNumber = 0; rungeKuttaIterationNumber < simCase.rungeKuttaOrder; ++rungeKuttaIterationNumber)
+        for (int rungeKuttaIterationNumber = 0; rungeKuttaIterationNumber < simCase.solverSettings.rungeKuttaOrder; ++rungeKuttaIterationNumber)
         {
             // Set the ghost cells values. Note that this is deliberately done in a separate loop so that the runge-kutta operation is sure to be finished before reading into ghost cells.
             for (auto& domainIter : simCase.domains)
             {
                 Domain& domain = domainIter.second;
                 domain.UpdateGhostCells();
-                domain.PopulateFlowDeltaBuffer(simCase.dt, TODO, TODO);
+                domain.PopulateFlowDeltaBuffer(simCase.dt);
             }
 
             for (IValve& valve : simCase.valves)
