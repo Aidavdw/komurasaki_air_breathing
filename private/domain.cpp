@@ -237,13 +237,6 @@ void Domain::PopulateFlowDeltaBuffer(const double dt, const double AUSMkFactor, 
 			const double hTop = (eTop + p.MUSCLBuffer[TOP].GetAt(xIdx,yIdx))/rho.MUSCLBuffer[TOP].GetAt(xIdx,yIdx);
 			const double hBottom = (eBottom + p.MUSCLBuffer[BOTTOM].GetAt(xIdx,yIdx))/rho.MUSCLBuffer[BOTTOM].GetAt(xIdx,yIdx);
 
-			// Cache whether or not the flow is supersonic through faces.
-			const double cLeft = sqrt(gamma * p.MUSCLBuffer[LEFT].GetAt(xIdx, yIdx)/rho.MUSCLBuffer[LEFT].GetAt(xIdx, yIdx));
-			const double cRight = sqrt(gamma * p.MUSCLBuffer[RIGHT].GetAt(xIdx, yIdx)/rho.MUSCLBuffer[RIGHT].GetAt(xIdx, yIdx));
-			const double cTop = sqrt(gamma * p.MUSCLBuffer[TOP].GetAt(xIdx, yIdx)/rho.MUSCLBuffer[TOP].GetAt(xIdx, yIdx));
-			const double cBottom = sqrt(gamma * p.MUSCLBuffer[BOTTOM].GetAt(xIdx, yIdx)/rho.MUSCLBuffer[BOTTOM].GetAt(xIdx, yIdx));
-			const double speedOfSound[4] = {cRight, cLeft, cTop, cBottom};
-
 			// Now, for every face, determine which flux scheme to use based on whether or not it is critical (sonic), and perform the flux transfer.
 			// indexes for sides ---- 0: right; 1: left; 2: top; 3: down;
 			EBoundaryLocation faces[4] = {LEFT, RIGHT, TOP, BOTTOM};
@@ -265,10 +258,12 @@ void Domain::PopulateFlowDeltaBuffer(const double dt, const double AUSMkFactor, 
 				 *									|						|
 				 *
 				 */
+
+				const double speedOfSound = sqrt(gamma * p.MUSCLBuffer[face].GetAt(xIdx, yIdx)/rho.MUSCLBuffer[face].GetAt(xIdx, yIdx));
 				
 				if (face == LEFT)
 					rf = CellIndex(xIdx -1, yIdx);
-				if (sideIndex == BOTTOM)
+				if (face == BOTTOM)
 					rf = CellIndex(xIdx, yIdx - 1);
 
 				// Get the left- and right bound fluxes at the specific face we're considering now.
@@ -285,15 +280,23 @@ void Domain::PopulateFlowDeltaBuffer(const double dt, const double AUSMkFactor, 
 				}
 
 				// Set the flux split for this side (declared above in the array).
-				if (v.MUSCLBuffer[RIGHT].GetAt(rf) > speedOfSound[sideIndex])
+				if (v.MUSCLBuffer[RIGHT].GetAt(rf) > speedOfSound)
 				{
 					// It's sonic, use Hanel.
-					fluxSplit[sideIndex] = HanelFluxSplitting(continuityInLeftDirection, continuityInRightDirection, gamma, AUSMkFactor, entropyFix);
+					fluxSplit[face] = HanelFluxSplitting(continuityInLeftDirection, continuityInRightDirection, gamma, AUSMkFactor, entropyFix);
 				}
 				else
 				{
 					// It's subsonic, use AUSM_DV.
-					fluxSplit[sideIndex] = AUSMDVFluxSplitting(continuityInLeftDirection, continuityInRightDirection, gasConstant, gamma, AUSMkFactor, entropyFix);
+					fluxSplit[face] = AUSMDVFluxSplitting(continuityInLeftDirection, continuityInRightDirection, gasConstant, gamma, AUSMkFactor, entropyFix);
+				}
+
+				// If it's a vertical flux, then the u and v are in the local reference frame, and hence they must be inverted.
+				if (face == TOP || face == BOTTOM)
+				{
+					double buf = fluxSplit[face].u;
+					fluxSplit[face].u = fluxSplit[face].v;
+					fluxSplit[face].v = buf;
 				}
 			}
 
