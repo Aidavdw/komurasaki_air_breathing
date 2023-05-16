@@ -11,9 +11,8 @@ enum EFieldQuantityBuffer
 {
 	CURRENT_TIME_STEP,			// The field that physically represents the value
 	RUNGE_KUTTA,				// to be used for runge kutta iteration. A temporary buffer.
-	NEXT_TIME_STEP,				// not yet sure what this means but oh well!
-	DELTA_FLOW,
-	DELTA_VALVE
+	NEXT_TIME_STEP,				// The value as it will be used for the next time step
+	FLUX,
 };
 
 // Thin wrapper around a 2d array with doubles, representing a value over an entire domain (in a grid). It is implemented as a flattened 2d array.
@@ -35,10 +34,7 @@ struct FieldQuantity
 	TwoDimensionalArray currentTimeStep;			// The actual value of this field quantity. Access using At(), don't manually index!
 	TwoDimensionalArray rungeKuttaBuffer;			// The Runge Kutta buffer of this field quantity. Access using At(), don't manually index!
 	TwoDimensionalArray nextTimeStepBuffer;			// The T buffer of this field quantity. Access using At(), don't manually index!
-	TwoDimensionalArray deltaDueToFlow;				// Gets added to nextTimeBuffer, but separately writeable for async possibility.
-
-	// TODO: remove. Have valves use their own buffer, so it doesn't have to store so many zeros.
-	TwoDimensionalArray deltaDueToValve;			// Gets added to nextTimeBuffer, but separately writeable for async possibility.
+	TwoDimensionalArray flux;						// Gets added to nextTimeBuffer, but separately writeable for async possibility.
 
 	// MUSCL buffers
 	TwoDimensionalArray MUSCLBuffer[4]; // index with EBoundaryLocation.
@@ -56,35 +52,13 @@ struct FieldQuantity
 	
 
 	// operator overloaded accessor. Note that this is not the fastest way to set, so if possible do that directly on the 2d arrays level.
-	inline double& operator () (const int xIdx, const int yIdx, const EFieldQuantityBuffer buffer)
-	{
-		auto& buf = bufferMap.at(buffer);
-		return buf[GetFlattenedIndex(xIdx, yIdx)];
-	}
+	inline double& operator () (const int xIdx, const int yIdx, const EFieldQuantityBuffer buffer);
 
 	// operator overloaded accessor. Note that this is not the fastest way to set, so if possible do that directly on the 2d arrays level.
 	inline double& operator () (const CellIndex& cellIndex, const EFieldQuantityBuffer buffer)
 	{
-		auto& buf = bufferMap.at(buffer);
-		return buf[GetFlattenedIndex(cellIndex.x, cellIndex.y)];
+		return operator()(cellIndex.x, cellIndex.y, buffer);
 	}
-
-	/* Should defer all this just to the buffer names.
-	// Shorthand overloaded accessor for currentTimeStep buffer.
-	inline double& operator () (const int xIdx, const int yIdx)
-	{
-		return currentTimeStep[At(xIdx, yIdx)];
-	}
-
-	// Shorthand overloaded accessor for currentTimeStep buffer.
-	inline double& operator () (const CellIndex& cellIndex)
-	{
-		return currentTimeStep[At(cellIndex.x, cellIndex.y)];
-	}
-	
-
-	inline double GetAt(const CellIndex& cellIndex) const;
-	*/
 
 	inline int GetFlattenedIndex(const int xIdx, const int yIdx) const; // Helper function for getting the flattened index in the internal arrays for a certain index. Use like buffer_name[At(x,y)].
 	inline int GetFlattenedIndex(const CellIndex& cellIndex) const;
@@ -92,6 +66,8 @@ struct FieldQuantity
 	double GetGradientInDirectionAndPosition(const CellIndex posIdx, const double directionAngle) const;
 
 	double GetAverageValue(const bool bExpectUniformField) const;
+
+	bool IsValidIndex(const CellIndex& cellIndex, const bool bAllowGhostCells) const;
 
 private:
 	int nX_ = 0; // Amount of fields in the x-direction, not counting ghost cells.

@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "AuxFunctions.h"
 
 struct EulerContinuity
 {
@@ -41,4 +42,12 @@ struct EulerContinuity
     {
         return operator*(1/scale);
     }
+
+    bool operator== (const EulerContinuity& other) const;
+
 };
+
+inline bool EulerContinuity::operator==(const EulerContinuity& other) const
+{
+    return (IsCloseToZero(density - other.density) && IsCloseToZero(u - other.u) && IsCloseToZero(v - other.v) && IsCloseToZero(e - other.e) && IsCloseToZero(p - other.p) && IsCloseToZero(h - other.h));
+}

@@ -45,7 +45,7 @@ enum EFace
 	BOTTOM
 };
 
-inline std::string LocationToString(const EFace location)
+inline std::string FaceToString(const EFace location)
 {
 	switch (location)
 	{

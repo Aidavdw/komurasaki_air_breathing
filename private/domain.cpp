@@ -206,6 +206,19 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 	// Depending on whether or not there are shock fronts, the integration scheme changes. Determining whether or not there are shock fronts is done by looking at the MUSCL interpolated values of the field quantities. So, first calculate & cache the MUSCL vales.
 	const SolverSettings& solverSettings = simCase->solverSettings;
 
+#ifdef _DEBUG
+	// Ensure that the buffers are actually empty to start with
+	if (rho.flux.IsFilledWithZeroes())
+		throw std::logic_error("rho delta buffer is non-empty");
+	if (u.flux.IsFilledWithZeroes())
+		throw std::logic_error("u delta buffer is non-empty");
+	if (v.flux.IsFilledWithZeroes())
+		throw std::logic_error("v delta buffer is non-empty");
+	if (E.flux.IsFilledWithZeroes())
+		throw std::logic_error("E delta buffer is non-empty");
+#endif
+	
+
 	rho.PopulateMUSCLBuffers(RUNGE_KUTTA, solverSettings.MUSCLBias, solverSettings.fluxLimiterType);
 	u.PopulateMUSCLBuffers(RUNGE_KUTTA, solverSettings.MUSCLBias, solverSettings.fluxLimiterType);
 	v.PopulateMUSCLBuffers(RUNGE_KUTTA, solverSettings.MUSCLBias, solverSettings.fluxLimiterType);
@@ -216,8 +229,6 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 	{
 		for (int yIdx = 0; yIdx < amountOfCells[1]; yIdx++)
 		{
-			
-			
 			// rho, u, v and p's MUSCL values are stored in their respective buffers. the other variables are not, but they can be calculated directly from the state values in those buffers. So, do this for energy and enthalpy.
 			double gamma = SpecificHeatRatio();
 			double gasConstant = GasConstant();
@@ -294,13 +305,13 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 			{
 				const EFace face = static_cast<EFace>(i);
 				if (IsCloseToZero(fluxSplit[i].density))
-					throw std::logic_error("Density is zero for flux split of face" + LocationToString(face));
+					throw std::logic_error("Density is zero for flux split of face" + FaceToString(face));
 				if (IsCloseToZero(fluxSplit[i].u))
-					throw std::logic_error("v is zero for flux split of face" + LocationToString(face));
+					throw std::logic_error("v is zero for flux split of face" + FaceToString(face));
 				if (IsCloseToZero(fluxSplit[i].v))
-					throw std::logic_error("Density is zero for flux split of face" + LocationToString(face));
+					throw std::logic_error("Density is zero for flux split of face" + FaceToString(face));
 				if (IsCloseToZero(fluxSplit[i].e))
-					throw std::logic_error("energy is zero for flux split of face" + LocationToString(face));
+					throw std::logic_error("energy is zero for flux split of face" + FaceToString(face));
 			}
 #endif
 
@@ -308,10 +319,10 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 			const CellIndex currentCell(xIdx, yIdx);
 			auto cellSizes = GetCellSizes(currentCell);
 			//EulerContinuity accumulation = ((rightFlux - leftFlux)/cellSizes.first + (upFlux - downFlux)/cellSizes.second)*dt; // dy = dr in this case, if you compensate for the squashification.
-			rho.deltaDueToFlow(xIdx,yIdx) = ((fluxSplit[RIGHT].density - fluxSplit[LEFT].density)/cellSizes.first + (fluxSplit[TOP].density - fluxSplit[BOTTOM].density)/cellSizes.second)*dt;
-			v.deltaDueToFlow(xIdx,yIdx) = ((fluxSplit[RIGHT].v - fluxSplit[LEFT].v)/cellSizes.first + (fluxSplit[TOP].v - fluxSplit[BOTTOM].v)/cellSizes.second)*dt;
-			u.deltaDueToFlow(xIdx,yIdx) = ((fluxSplit[RIGHT].u - fluxSplit[LEFT].u)/cellSizes.first + (fluxSplit[TOP].u - fluxSplit[BOTTOM].u)/cellSizes.second)*dt;
-			E.deltaDueToFlow(xIdx,yIdx) = ((fluxSplit[RIGHT].e - fluxSplit[LEFT].e)/cellSizes.first + (fluxSplit[TOP].e - fluxSplit[BOTTOM].e)/cellSizes.second)*dt;
+			rho.flux(xIdx,yIdx) = ((fluxSplit[RIGHT].density - fluxSplit[LEFT].density)/cellSizes.first + (fluxSplit[TOP].density - fluxSplit[BOTTOM].density)/cellSizes.second)*dt;
+			v.flux(xIdx,yIdx) = ((fluxSplit[RIGHT].v - fluxSplit[LEFT].v)/cellSizes.first + (fluxSplit[TOP].v - fluxSplit[BOTTOM].v)/cellSizes.second)*dt;
+			u.flux(xIdx,yIdx) = ((fluxSplit[RIGHT].u - fluxSplit[LEFT].u)/cellSizes.first + (fluxSplit[TOP].u - fluxSplit[BOTTOM].u)/cellSizes.second)*dt;
+			E.flux(xIdx,yIdx) = ((fluxSplit[RIGHT].e - fluxSplit[LEFT].e)/cellSizes.first + (fluxSplit[TOP].e - fluxSplit[BOTTOM].e)/cellSizes.second)*dt;
 
 			// Extra term to compensate for the fact that the cell sizes are not uniform because we are in a cylindrical coordinate system. In Florian (2017), this is the term *** Hr ***.
 			EulerContinuity hr;
@@ -321,12 +332,26 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 			const double yc = localCellCenterPositions[1].GetAt(currentCell);
 			const double enthalpy = H.currentTimeStep.GetAt(currentCell);
 			
-			rho.deltaDueToFlow(xIdx,yIdx) += density * yVel / yc * dt;
-			u.deltaDueToFlow(xIdx,yIdx) = density * yVel * xVel / yc * dt;
-			v.deltaDueToFlow(xIdx,yIdx) =  density * yVel * yVel / yc * dt;
-			E.deltaDueToFlow(xIdx,yIdx) =  density * yVel * enthalpy / yc * dt;
+			rho.flux(xIdx,yIdx) += density * yVel / yc * dt;
+			u.flux(xIdx,yIdx) = density * yVel * xVel / yc * dt;
+			v.flux(xIdx,yIdx) =  density * yVel * yVel / yc * dt;
+			E.flux(xIdx,yIdx) =  density * yVel * enthalpy / yc * dt;
 		}
 	}	
+}
+
+void Domain::EmptyFlowDeltaBuffer()
+{
+	rho.flux.SetAllToValue(0);
+	u.flux.SetAllToValue(0);
+	v.flux.SetAllToValue(0);
+	E.flux.SetAllToValue(0);
+	// Note that clearing the others (non-state variables) is not necessary, as they are not written to.
+#ifdef _DEBUG
+	p.flux.SetAllToValue(0);
+	T.flux.SetAllToValue(0);
+	H.flux.SetAllToValue(0);
+#endif
 }
 
 void Domain::SetNextTimeStepValuesBasedOnRungeKuttaAndDeltaBuffers(const int currentRungeKuttaIter)
@@ -337,14 +362,10 @@ void Domain::SetNextTimeStepValuesBasedOnRungeKuttaAndDeltaBuffers(const int cur
 	assert(!u.rungeKuttaBuffer.IsFilledWithZeroes());
 	assert(!v.rungeKuttaBuffer.IsFilledWithZeroes());
 	assert(!E.rungeKuttaBuffer.IsFilledWithZeroes());
-	assert(rho.deltaDueToFlow.IsFilledWithZeroes());
-	assert(rho.deltaDueToValve.IsFilledWithZeroes());
-	assert(u.deltaDueToFlow.IsFilledWithZeroes());
-	assert(u.deltaDueToValve.IsFilledWithZeroes());
-	assert(v.deltaDueToFlow.IsFilledWithZeroes());
-	assert(v.deltaDueToValve.IsFilledWithZeroes());
-	assert(E.deltaDueToFlow.IsFilledWithZeroes());
-	assert(E.deltaDueToValve.IsFilledWithZeroes());
+	assert(rho.flux.IsFilledWithZeroes());
+	assert(u.flux.IsFilledWithZeroes());
+	assert(v.flux.IsFilledWithZeroes());
+	assert(E.flux.IsFilledWithZeroes());
 #endif
 
 	const double rkK = 1./(simCase->solverSettings.rungeKuttaOrder-currentRungeKuttaIter); // Runge-kutta factor
@@ -353,14 +374,10 @@ void Domain::SetNextTimeStepValuesBasedOnRungeKuttaAndDeltaBuffers(const int cur
 		for (int yIdx = 0; yIdx < amountOfCells[1]; yIdx++)
 		{
 			// These are state variables, and are explicitly expressed. combine the values in the delta buffers, and apply runge-kutta scaling.
-			double dRho = rho.deltaDueToFlow.GetAt(xIdx, yIdx) + rho.deltaDueToValve.GetAt(xIdx, yIdx);
-			double dU = u.deltaDueToFlow.GetAt(xIdx, yIdx) + u.deltaDueToValve.GetAt(xIdx, yIdx);
-			double dV = v.deltaDueToFlow.GetAt(xIdx, yIdx) + v.deltaDueToValve.GetAt(xIdx, yIdx);
-			double dE = E.deltaDueToFlow.GetAt(xIdx, yIdx) + E.deltaDueToValve.GetAt(xIdx, yIdx);
-			rho.nextTimeStepBuffer(xIdx, yIdx) = rho.currentTimeStep.GetAt(xIdx, yIdx) - rkK * dRho;
-			u.nextTimeStepBuffer(xIdx, yIdx) = (rho.currentTimeStep.GetAt(xIdx, yIdx) * u.currentTimeStep.GetAt(xIdx,yIdx) - rkK * dU) / rho.nextTimeStepBuffer(xIdx, yIdx);
-			v.nextTimeStepBuffer(xIdx, yIdx) = (rho.currentTimeStep.GetAt(xIdx, yIdx) * v.currentTimeStep.GetAt(xIdx,yIdx) - rkK * dV) / rho.nextTimeStepBuffer(xIdx, yIdx);
-			E.nextTimeStepBuffer(xIdx, yIdx) = E.currentTimeStep.GetAt(xIdx, yIdx) - rkK * dRho;
+			rho.nextTimeStepBuffer(xIdx, yIdx) = rho.currentTimeStep.GetAt(xIdx, yIdx) - rkK * rho.flux.GetAt(xIdx, yIdx);
+			u.nextTimeStepBuffer(xIdx, yIdx) = (rho.currentTimeStep.GetAt(xIdx, yIdx) * u.currentTimeStep.GetAt(xIdx,yIdx) - rkK * u.flux.GetAt(xIdx, yIdx)) / rho.nextTimeStepBuffer(xIdx, yIdx);
+			v.nextTimeStepBuffer(xIdx, yIdx) = (rho.currentTimeStep.GetAt(xIdx, yIdx) * v.currentTimeStep.GetAt(xIdx,yIdx) - rkK * v.flux.GetAt(xIdx, yIdx)) / rho.nextTimeStepBuffer(xIdx, yIdx);
+			E.nextTimeStepBuffer(xIdx, yIdx) = E.currentTimeStep.GetAt(xIdx, yIdx) - rkK * E.flux.GetAt(xIdx, yIdx);
 
 			// The others are not state variables; they can be calculated using the known variables. Calculate them now.
 			//todo: set a build mode where these are not calculated to speed things up, as this is only really necessary for data export.
@@ -370,16 +387,7 @@ void Domain::SetNextTimeStepValuesBasedOnRungeKuttaAndDeltaBuffers(const int cur
 		}
 	}
 
-	// Clean up, empty the buffers
-	rho.deltaDueToFlow.SetAllToValue(0);
-	rho.deltaDueToValve.SetAllToValue(0);
-	u.deltaDueToFlow.SetAllToValue(0);
-	u.deltaDueToValve.SetAllToValue(0);
-	v.deltaDueToFlow.SetAllToValue(0);
-	v.deltaDueToValve.SetAllToValue(0);
-	E.deltaDueToFlow.SetAllToValue(0);
-	E.deltaDueToValve.SetAllToValue(0);
-	// Note that clearing the others (non-state variables) is not necessary, as they are not written to.
+
 }
 
 void ValidateAxisInput(const int axis)

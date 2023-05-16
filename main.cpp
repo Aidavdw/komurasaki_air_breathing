@@ -87,15 +87,26 @@ int main()
 
                 // Compute mean pressure on each side and mass-flow rate at valve
                 // todo: value is currently just output. Store in IValve?
-                valve.GetMassFlowRate();
-                valve.PopulateValveDeltaBuffer();
+                valve.FillBuffer();
             }
 
             // Async await until both the buffers have been set for all the FieldQuantities in a domain. Easiest way to do this; wait until they're all finished.
+            for (IValve& valve : simCase.valves)
+            {
+                // Add the delta due to the valve sourcing into the delta flow buffer.
+                valve.AddBufferTermsToSourceCells(EFieldQuantityBuffer::FLUX);
+            }
+   
             for (auto& domainIter : simCase.domains)
             {
                 Domain& domain = domainIter.second;
                 domain.SetNextTimeStepValuesBasedOnRungeKuttaAndDeltaBuffers(rungeKuttaIterationNumber);
+                domain.EmptyFlowDeltaBuffer();
+            }
+            
+            for (IValve& valve : simCase.valves)
+            {
+                valve.EmptyBuffer();
             }
         } /* END OF THE RUNGE-KUTTA LOOP */
         

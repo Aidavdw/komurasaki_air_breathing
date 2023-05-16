@@ -1,7 +1,14 @@
 #include "index2d.h"
 
+#include <string>
+
+std::string CellIndex::ToString() const
+{
+    return "(x=" + std::to_string(x) + ", y=" + std::to_string(y) + "), up=" + FaceToString(upDirection);
+}
+
 CellIndex TransformToOtherCoordinateSystem(const CellIndex& positionInOtherCoordinateSystem,
-    const CellIndex& fromOrigin, const CellIndex& toOrigin)
+                                           const CellIndex& fromOrigin, const CellIndex& toOrigin)
 {
         // The order of operations is important here; First de-rotate the original coordinate system
     

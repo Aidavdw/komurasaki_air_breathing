@@ -75,8 +75,11 @@ struct Domain
 
 	// Actually do a time step. Solve fluxes, etc
 	void PopulateFlowDeltaBuffer(const double dt);
+	void EmptyFlowDeltaBuffer();
 
 	void SetNextTimeStepValuesBasedOnRungeKuttaAndDeltaBuffers(const int currentRungeKuttaIter);
+
+	bool ValidateCellIndex(const CellIndex cellIndex, const bool bAllowGhostCells) const;
 	
 
 private:
@@ -88,8 +91,6 @@ private:
 	void PopulateConnectedGhostCells(const EFace boundary);
 	void PopulateSupersonicInletGhostCells(const EFace boundary);
 	void PopulateSupersonicOutletGhostCells(const EFace boundary);
-
-	bool ValidateCellIndex(const CellIndex cellIndex, const bool bAllowGhostCells) const;
 };
 
 

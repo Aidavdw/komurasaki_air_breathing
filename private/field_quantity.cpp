@@ -18,14 +18,12 @@ FieldQuantity::FieldQuantity(Domain* domain, const int sizeX, const int sizeY, c
 {
 	currentTimeStep = TwoDimensionalArray(sizeX + nGhostCells, sizeY + nGhostCells, initialValue);
 	rungeKuttaBuffer = TwoDimensionalArray(sizeX + nGhostCells, sizeY + nGhostCells, initialValue);
-	deltaDueToFlow = TwoDimensionalArray(sizeX + nGhostCells, sizeY + nGhostCells, initialValue);
-	deltaDueToValve = TwoDimensionalArray(sizeX + nGhostCells, sizeY + nGhostCells, initialValue);
+	flux = TwoDimensionalArray(sizeX + nGhostCells, sizeY + nGhostCells, initialValue);
 
 	bufferMap.insert({ CURRENT_TIME_STEP, currentTimeStep });
 	bufferMap.insert({ RUNGE_KUTTA, rungeKuttaBuffer });
 	bufferMap.insert({ NEXT_TIME_STEP, nextTimeStepBuffer });
-	bufferMap.insert({ DELTA_FLOW, deltaDueToFlow });
-	bufferMap.insert({ DELTA_VALVE, deltaDueToValve });
+	bufferMap.insert({ FLUX, flux });
 }
 
 void FieldQuantity::SetAllToValue(const double value, const EFieldQuantityBuffer bufferToWriteTo)
@@ -102,6 +100,18 @@ void FieldQuantity::PopulateMUSCLBuffers(const EFieldQuantityBuffer sourceBuffer
 	
 }
 
+double& FieldQuantity::operator()(const int xIdx, const int yIdx, const EFieldQuantityBuffer buffer)
+{
+#ifdef _DEBUG
+	const CellIndex c = {xIdx, yIdx};
+	if (!IsValidIndex(c, false))
+		throw std::logic_error("Cannot access field quantity at index" + c.ToString());
+#endif
+		
+	auto& buf = bufferMap.at(buffer);
+	return buf[GetFlattenedIndex(xIdx, yIdx)];
+}
+
 inline int FieldQuantity::GetFlattenedIndex(const int xIdx, const int yIdx) const
 {
 	return (xIdx + nGhostCells) + ((yIdx + nGhostCells)*nX_);
@@ -173,5 +183,19 @@ double FieldQuantity::GetAverageValue(const bool bExpectUniformField) const
 	}
 	
 	return totalSum / (nX_ * nY_);
+}
+
+bool FieldQuantity::IsValidIndex(const CellIndex& cellIndex, const bool bAllowGhostCells) const
+{
+	if (cellIndex.x < -nGhostCells*bAllowGhostCells)
+		return false;
+	if (cellIndex.x > nX_ + nGhostCells*bAllowGhostCells)
+		return false;
+	if (cellIndex.y < -nGhostCells*bAllowGhostCells)
+		return false;
+	if (cellIndex.y > nY_ + nGhostCells*bAllowGhostCells)
+		return false;
+	
+	return true;
 }
 

@@ -229,11 +229,12 @@ double ReedValve::GetMassFlowRate() const
 	}
 }
 
-void ReedValve::PopulateValveDeltaBuffer()
+void ReedValve::FillBuffer()
 {
 	// ASYNC WARNING: This function is only thread-safe if the places where the valves source in- and out of are unique; if they overlap, it is not memory safe.
 	// UNIMPLEMENTED
 	// todo: implement!!
+	double totalMassFlowRate = GetMassFlowRate();
 }
 
 void ReedValve::SetInitialConditions()

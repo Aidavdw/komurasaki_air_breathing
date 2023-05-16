@@ -58,6 +58,7 @@
     <ClCompile Include="private\case_det_tube.cpp" />
     <ClCompile Include="private\cell_values_container.cpp" />
     <ClCompile Include="private\domain.cpp" />
+    <ClCompile Include="private\euler_container.cpp" />
     <ClCompile Include="private\fem_deformation.cpp" />
     <ClCompile Include="private\field_quantity.cpp" />
     <ClCompile Include="private\flux_splitting.cpp" />

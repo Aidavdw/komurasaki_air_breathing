@@ -43,6 +43,8 @@ struct CellIndex
 		return { x + other.x, y+other.y };
 	}
 
+	std::string ToString() const;
+
 };
 
 CellIndex TransformToOtherCoordinateSystem(const CellIndex& positionInOtherCoordinateSystem, const CellIndex& fromOrigin, const CellIndex& toOrigin);
