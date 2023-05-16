@@ -20,8 +20,6 @@ public:
 	Position holeEndPositionInDomain;		// The exact position in the intoDomain where the hole of this reed valve ends.
 
 	double naturalFrequency = 470.0; // todo: figure out where on earth this comes from.
-	
-	std::vector<CellIndex> sourceCellIndices;	// The cell indices where the mass flow will be sourced into in the intoDomain.
 
 	int amountOfFixedNodes;
 	int amountOfFreeNodes;
@@ -45,7 +43,7 @@ public:
 	/********* Overrides from Valve interface **********/
 	// Actually sets up the valve inside of the domain.
 	void OnRegister() override;
-	void Update() override;
+	void UpdateValveState() override;
 	void FillBuffer() override;
 
 	// Reads off the field, and solves the FEM equations a first time to determine the initial deflection for the FEM members.
@@ -55,7 +53,7 @@ public:
 
 protected:
 	// Used in constructor; Sets the source cell indices based on the given 
-	void SetSourceCellIndices(std::vector<CellIndex>& sourceCellIndicesOut, const EFace boundary, const double positionAlongBoundary, const  double lengthOfFreeSection, const double lengthOfFixedSections) const;
+	void FillCellIndexArrayWithLine(std::vector<CellIndex>& sourceCellIndicesOut, const EFace boundary, const double positionAlongBoundary, const  double lengthOfFreeSection, const double lengthOfFixedSections) const;
 
 	// Gets teh average field quantity in the region incscribed between the the start- and end point of the valve on the boundary and a point projected normal form this boundary. If bInwards=true, this extends into the intoDomain, if bInwards=false, this extends into the outOfDomain. 
 	double GetAverageFieldQuantityAroundValve(const FieldQuantity& fieldQuantity, const EFieldQuantityBuffer bufferName, const bool bInwards = true) const;

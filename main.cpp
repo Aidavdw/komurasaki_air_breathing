@@ -83,7 +83,7 @@ int main()
             for (IValve& valve : simCase.valves)
             {
                 // Update the deflections
-                valve.Update();
+                valve.UpdateValveState();
 
                 // Compute mean pressure on each side and mass-flow rate at valve
                 valve.CalculateFlow();

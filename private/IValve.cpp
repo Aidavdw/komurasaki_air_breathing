@@ -38,7 +38,7 @@ void IValve::OnRegister()
 }
 
 
-void IValve::Update()
+void IValve::UpdateValveState()
 {
     throw std::logic_error("Update() is not overridden for this type of valve!");
 }
@@ -57,6 +57,8 @@ void IValve::AddBufferTermsToSourceCells(const EFieldQuantityBuffer buffer)
 {
 #ifdef _DEBUG
     assert(sourceCellsIndices_.size() == sourceTermBuffer_.size());
+    assert(sinkCellsIndices_.size() == sinkTermBuffer_.size());
+    assert(sinkCellsIndices_.size() == sourceCellsIndices_.size());
     assert(intoDomain_ != nullptr);
     if (sourceCellsIndices_.empty())
         throw std::logic_error("No source cells are set for this valve.");
@@ -69,10 +71,19 @@ void IValve::AddBufferTermsToSourceCells(const EFieldQuantityBuffer buffer)
     TwoDimensionalArray& em = intoDomain_->E.bufferMap.at(buffer);
     TwoDimensionalArray& tm = intoDomain_->T.bufferMap.at(buffer);
     TwoDimensionalArray& hm = intoDomain_->H.bufferMap.at(buffer);
+
+    TwoDimensionalArray& rhos = intoDomain_->rho.bufferMap.at(buffer);
+    TwoDimensionalArray& us = intoDomain_->u.bufferMap.at(buffer);
+    TwoDimensionalArray& vs = intoDomain_->v.bufferMap.at(buffer);
+    TwoDimensionalArray& ps = intoDomain_->p.bufferMap.at(buffer);
+    TwoDimensionalArray& es = intoDomain_->E.bufferMap.at(buffer);
+    TwoDimensionalArray& ts = intoDomain_->T.bufferMap.at(buffer);
+    TwoDimensionalArray& hs = intoDomain_->H.bufferMap.at(buffer);
     
     for (size_t i = 0; i < sourceCellsIndices_.size(); i++)
     {
-        const CellIndex& cix = sourceCellsIndices_[i];
+        // The source cells in the in-domain
+        const CellIndex& cixSource = sourceCellsIndices_[i];
         const EulerContinuity sourceTerms = sourceTermBuffer_[i];
         
 #ifdef _DEBUG
@@ -81,15 +92,35 @@ void IValve::AddBufferTermsToSourceCells(const EFieldQuantityBuffer buffer)
             throw std::logic_error("Source term is not initialised.");
 #endif
 
-        rhom(cix) = sourceTerms.density;
-        um(cix) = sourceTerms.u;
-        vm(cix) = sourceTerms.v;
-        pm(cix) = sourceTerms.p;
-        em(cix) = sourceTerms.e;
-        hm(cix) = sourceTerms.h;
+        rhom(cixSource) = sourceTerms.density;
+        um(cixSource) = sourceTerms.u;
+        vm(cixSource) = sourceTerms.v;
+        pm(cixSource) = sourceTerms.p;
+        em(cixSource) = sourceTerms.e;
+        hm(cixSource) = sourceTerms.h;
 
         //todo: set temperature based on the other values of state
-        tm(cix) = 0;
+        tm(cixSource) = 0;
+
+        // The sink cells in the outOfDomain_
+        const CellIndex& cixSink = sinkCellsIndices_[i];
+        const EulerContinuity sinkTerms = sinkTermBuffer_[i];
+        
+#ifdef _DEBUG
+        assert(intoDomain_->ValidateCellIndex(sinkCellsIndices_.at(i), false));
+        if (sinkTerms == EulerContinuity())
+            throw std::logic_error("sink term is not initialised.");
+#endif
+
+        rhom(cixSink) = sinkTerms.density;
+        um(cixSink) = sinkTerms.u;
+        vm(cixSink) = sinkTerms.v;
+        pm(cixSink) = sinkTerms.p;
+        em(cixSink) = sinkTerms.e;
+        hm(cixSink) = sinkTerms.h;
+
+        //todo: set temperature based on the other values of state
+        tm(cixSink) = 0;
     }
     
 }
@@ -98,9 +129,14 @@ void IValve::EmptyBuffer()
 {
 #ifdef _DEBUG
     assert(sourceCellsIndices_.size() == sourceTermBuffer_.size());
+    assert(sinkCellsIndices_.size() == sinkTermBuffer_.size());
+    assert(sinkCellsIndices_.size() == sourceCellsIndices_.size());
 #endif
     
     for (size_t i = 0; i < sourceCellsIndices_.size() ; i++)
+    {
         sourceTermBuffer_[i] = EulerContinuity();
+        sinkTermBuffer_[i] = EulerContinuity();
+    }
 }
 

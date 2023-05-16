@@ -147,6 +147,19 @@ double Domain::GetCellVolume(const CellIndex cix) const
 	return volume;
 }
 
+double Domain::GetLengthOfSide(const EFace face) const
+{
+	switch (face)
+	{
+	case LEFT: return size[1];
+	case RIGHT: return size[1];
+	case TOP: return size[0];
+	case BOTTOM: return size[0];
+	default:
+		throw std::logic_error("Cannot get length of this type of side.");
+	}
+}
+
 void Domain::CopyFieldQuantitiesToBuffer(const EFieldQuantityBuffer from, const EFieldQuantityBuffer to)
 {
 	rho.CopyToBuffer(from, to);

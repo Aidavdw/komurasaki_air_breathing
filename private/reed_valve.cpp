@@ -53,6 +53,7 @@ void ReedValve::CalculateForceOnNodesFromPressure(std::vector<double>& forceVect
 	 * f on N3 = 0.5 * S3
 	 */
 #ifdef _DEBUG
+	assert(intoDomain_);
 	// Reading from a pressure field, so pressure cannot be 0 (possibly unset)
 	if (intoDomain_->p.bufferMap.at(bufferName).IsFilledWithZeroes())
 		throw std::logic_error("intoDomain's pressure field is not initialised.");
@@ -113,11 +114,19 @@ void ReedValve::CalculateForceOnNodesFromPressure(std::vector<double>& forceVect
 void ReedValve::OnRegister()
 {
 	fem_ = FemDeformation(amountOfFreeNodes, amountOfFixedNodes, beamProfile_, lengthOfFreeSection, lengthOfFixedSections, intoDomain_->simCase->dt, boundary_);
-	SetSourceCellIndices(sourceCellIndices, boundary_, positionAlongBoundary_, lengthOfFreeSection, lengthOfFixedSections);
+	FillCellIndexArrayWithLine(sourceCellsIndices_, boundary_, positionAlongBoundary_, lengthOfFreeSection, lengthOfFixedSections);
+
+	/*	     0	    					posAlongBoundary		posAlongBoundary+lengthOfValveSection			lengthOfSide
+	 *		 +---------------------------------+----------------------------------+-----------------------------------+
+	 *	lengthOfSide			complement+lengthOfValveSection				complement								  0
+	 */
+	
+	const double complementPositionAlongBoundary = intoDomain_->GetLengthOfSide(boundary_) - (positionAlongBoundary_+lengthOfFreeSection+lengthOfFixedSections);
+	FillCellIndexArrayWithLine(sinkCellsIndices_, Opposite(boundary_), complementPositionAlongBoundary, lengthOfFreeSection, lengthOfFixedSections);
 	
 }
 
-void ReedValve::SetSourceCellIndices(std::vector<CellIndex>& sourceCellIndicesOut, const EFace boundary, double positionAlongBoundary, const double lengthOfFreeSection, const double lengthOfFixedSections) const
+void ReedValve::FillCellIndexArrayWithLine(std::vector<CellIndex>& sourceCellIndicesOut, const EFace boundary, double positionAlongBoundary, const double lengthOfFreeSection, const double lengthOfFixedSections) const
 {
 	// calculate the 'starting position' based on the position along the boundary as provided, offsetting with the hole size etc.
 	double posAlongBoundaryStart = positionAlongBoundary + lengthOfFixedSections + lengthOfFreeSection * (1 - HOLE_FACTOR);
@@ -157,13 +166,13 @@ void ReedValve::SetSourceCellIndices(std::vector<CellIndex>& sourceCellIndicesOu
 
 	#ifdef _DEBUG
 	if (bHorizontalDifference)
-		assert(sourceCellIndices.size() < intoDomain_->size[0]);
+		assert(sourceCellsIndices_.size() < intoDomain_->size[0]);
 	else if (bVerticalDifference)
-		assert(sourceCellIndices.size() < intoDomain_->size[1]);
+		assert(sourceCellsIndices_.size() < intoDomain_->size[1]);
 	#endif
 }
 
-void ReedValve::Update()
+void ReedValve::UpdateValveState()
 {
 	#ifdef _DEBUG
 	if (IsCloseToZero(fem_.dt - 0))
@@ -225,7 +234,6 @@ void ReedValve::FillBuffer()
 #endif
 
 	double totalMassFlowRate;
-	
 	if (averagePressureRatio > criticalPressureRatio) // && pratio <= 1.0), flow is choked.
 	{
 		totalMassFlowRate = dischargeCoefficient*referenceArea*averageDensityOutOfDomain*pow(averagePressureRatio,1.0/gamma)*sqrt(2.0*gamma*averagePressureOutOfDomain/averageDensityOutOfDomain/(gamma-1.0)*(1.0-pow(averagePressureRatio,(gamma-1.0)/gamma)));
@@ -247,49 +255,67 @@ void ReedValve::FillBuffer()
 	
 #ifdef _DEBUG
 	assert(sourceCellsIndices_.size() == sourceTermBuffer_.size());
+	assert(sinkCellsIndices_.size() == sinkTermBuffer_.size());
+	assert(sinkCellsIndices_.size() == sourceCellsIndices_.size());
 	assert(intoDomain_ != nullptr);
 	if (sourceCellsIndices_.empty())
 		throw std::logic_error("No source cells are set for this valve.");
 
 #endif
 
-	auto volumes = std::vector<double>(sourceTermBuffer_.size(), 0);
+	// Get the volumes of the cells, and also calculate the total volume so that it can be normalised on a volume basis.
+	auto sourceCellVolumes = std::vector<double>(sourceTermBuffer_.size(), 0);
+	auto sinkCellVolumes = std::vector<double>(sourceTermBuffer_.size(), 0);
 	//todo: cache this, if the sources cannot be moved.
 
 	// Assume that the mass flow is equally distributed over all the cells, weighted by cell volume.
 	// todo: weighing can be done relative to the tip deflection. Would have to be validated though.
-	double totalVolume = 0;
+	double sourceCellTotalVolume = 0;
+	double sinkCellTotalVolume = 0;
 	for (size_t i = 0; i < sourceTermBuffer_.size(); i++)
 	{
-		const double vol = intoDomain_->GetCellVolume(sourceCellIndices.at(i));
-		totalVolume += vol;
+		const double volSource = intoDomain_->GetCellVolume(sourceCellsIndices_.at(i));
+		sourceCellTotalVolume += volSource;
+		const double volSink = intoDomain_->GetCellVolume(sinkCellsIndices_.at(i));
+		sinkCellTotalVolume += volSink;
 	}
 
 	double averageUOutside = GetAverageFieldQuantityAroundValve(outOfDomain_->u, CURRENT_TIME_STEP, false);
 	double averageVOutside = GetAverageFieldQuantityAroundValve(outOfDomain_->v, CURRENT_TIME_STEP, false);
 	
-
-	// not very pretty, but do it again. Might want to reformat this to not need re-calculation.
 	for (size_t i = 0; i < sourceTermBuffer_.size(); i++)
 	{
-		const CellIndex& cix = sourceCellIndices.at(i);
+		// The source terms, the intoDomain_.
+		{
+			const CellIndex& cix = sourceCellsIndices_.at(i);
+			double normalisedMassFlowRate = totalMassFlowRate * sourceCellVolumes.at(i) / sourceCellTotalVolume; // normalised mass flow rate
+			const double cellDx = intoDomain_->cellLengths[0].GetAt(cix);
+			const double cellR = intoDomain_->localCellCenterPositions[1].GetAt(cix);
+			double outerSurfaceArea = (2.0*M_PI*cellR*cellDx);
+			double volumeFlowRate = normalisedMassFlowRate/averageDensityOutOfDomain/outerSurfaceArea;
 		
-		double normalisedMassFlowRate = totalMassFlowRate * volumes.at(i) / totalVolume; // normalised mass flow rate
-		const double cellDx = intoDomain_->cellLengths[0].GetAt(cix);
-		const double cellR = intoDomain_->localCellCenterPositions[1].GetAt(cix);
-		double outerSurfaceArea = (2.0*M_PI*cellR*cellDx);
-		double volumeFlowRate = normalisedMassFlowRate/averageDensityOutOfDomain/outerSurfaceArea;
-		
-		sourceTermBuffer_.at(i).density = normalisedMassFlowRate/volumes.at(i);
-		sourceTermBuffer_.at(i).u = (normalisedMassFlowRate*averageUOutside)/volumes.at(i);
-		sourceTermBuffer_.at(i).v = (normalisedMassFlowRate*averageVOutside)/volumes.at(i);
-		sourceTermBuffer_.at(i).e = (gamma/(gamma-1.0)*averagePressureOutOfDomain/averageDensityOutOfDomain + 0.5*volumeFlowRate*sqrt(pow(averageUOutside, 2) + pow(averageVOutside,2)))*normalisedMassFlowRate/volumes.at(i);
+			sourceTermBuffer_.at(i).density = normalisedMassFlowRate/sourceCellVolumes.at(i);
+			sourceTermBuffer_.at(i).u = (normalisedMassFlowRate*averageUOutside)/sourceCellVolumes.at(i);
+			sourceTermBuffer_.at(i).v = (normalisedMassFlowRate*averageVOutside)/sourceCellVolumes.at(i);
+			sourceTermBuffer_.at(i).e = (gamma/(gamma-1.0)*averagePressureOutOfDomain/averageDensityOutOfDomain + 0.5*volumeFlowRate*sqrt(pow(averageUOutside, 2) + pow(averageVOutside,2)))*normalisedMassFlowRate/sourceCellVolumes.at(i);
+		}
+
+		// The sink terms, the outOfDomain_.
+		{
+			const CellIndex& cix = sinkCellsIndices_.at(i);
+			double normalisedMassFlowRate = totalMassFlowRate * sinkCellVolumes.at(i) / sinkCellTotalVolume; // normalised mass flow rate
+			const double cellDx = intoDomain_->cellLengths[0].GetAt(cix);
+			const double cellR = intoDomain_->localCellCenterPositions[1].GetAt(cix);
+			double outerSurfaceArea = (2.0*M_PI*cellR*cellDx);
+			double volumeFlowRate = normalisedMassFlowRate/averageDensityOutOfDomain/outerSurfaceArea;
+
+			// Note that as it is a sink, the flux is negative!
+			sinkTermBuffer_.at(i).density = -normalisedMassFlowRate/sinkCellVolumes.at(i);
+			sinkTermBuffer_.at(i).u = -(normalisedMassFlowRate*averageUOutside)/sinkCellVolumes.at(i);
+			sinkTermBuffer_.at(i).v = -(normalisedMassFlowRate*averageVOutside)/sinkCellVolumes.at(i);
+			sinkTermBuffer_.at(i).e = -(gamma/(gamma-1.0)*averagePressureOutOfDomain/averageDensityOutOfDomain + 0.5*volumeFlowRate*sqrt(pow(averageUOutside, 2) + pow(averageVOutside,2)))*normalisedMassFlowRate/sinkCellVolumes.at(i);
+		}
 	}
-
-	// todo: set drain terms for the other domain
-
-	
-	
 }
 
 void ReedValve::SetInitialConditions()
