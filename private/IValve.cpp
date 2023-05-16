@@ -62,6 +62,18 @@ void IValve::AddBufferTermsToSourceCells(const EFieldQuantityBuffer buffer)
     assert(intoDomain_ != nullptr);
     if (sourceCellsIndices_.empty())
         throw std::logic_error("No source cells are set for this valve.");
+
+    // The total sum of all fluxes must be zero
+    EulerContinuity totalSource;
+    EulerContinuity totalSink;
+    for (auto& sourceTermInCell : sourceTermBuffer_)
+        totalSource = totalSource + sourceTermInCell;
+    for (auto& sinkTermInCell : sinkTermBuffer_)
+        totalSink = totalSink + sinkTermInCell;
+
+    if (!((totalSource - totalSink) == EulerContinuity()))
+        throw std::logic_error("conservation laws are being broken, as the total source term is not equal to the total sink term for this valve!");
+
 #endif
 
     TwoDimensionalArray& rhom = intoDomain_->rho.bufferMap.at(buffer);
