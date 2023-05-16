@@ -32,9 +32,7 @@ public:
 	// Called to all valves upon being registered by the SimCase
 	virtual void OnRegister();
 	virtual void Update();
-
-	// Gets the mass flow rate going through the valve in its current condition. Positive values ar from the outOfDomain_ into the intoDomain_
-	virtual double GetMassFlowRate() const;
+	
 	void CalculateFlow(); // Safely calls FillBuffer. Proxy function.
 	virtual void SetInitialConditions();
 

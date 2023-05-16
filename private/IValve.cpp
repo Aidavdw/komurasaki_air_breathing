@@ -43,11 +43,6 @@ void IValve::Update()
     throw std::logic_error("Update() is not overridden for this type of valve!");
 }
 
-double IValve::GetMassFlowRate() const
-{
-    throw std::logic_error("GetMassFlowRate() is not overridden for this type of valve!");
-}
-
 void IValve::SetInitialConditions()
 {
     throw std::logic_error("SetInitialConditions() is not overridden for this type of valve!");

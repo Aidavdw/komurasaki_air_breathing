@@ -179,58 +179,6 @@ void ReedValve::Update()
 	fem_.UpdatePositions(newDeflection);
 }
 
-double ReedValve::GetMassFlowRate() const
-{
-	double tipDeflection = GetTipDeflection();
-	if (IsCloseToZero(tipDeflection) || tipDeflection < 0)
-	{
-		// This setting is a bit artifical, as the tip can also be arching, still leaving some mass flow. It comes close enough to reality though.
-		return 0;
-	}
-	
-	// todo: replace by SetPressureRatios
-	double averagePressureIntoDomain = GetAverageFieldQuantityAroundValve(intoDomain_->p, CURRENT_TIME_STEP, true);
-	double averagePressureOutOfDomain = GetAverageFieldQuantityAroundValve(outOfDomain_->p, CURRENT_TIME_STEP, true);
-	double averageDensityOutOfDomain = GetAverageFieldQuantityAroundValve(outOfDomain_->rho, CURRENT_TIME_STEP);
-
-#ifdef _DEBUG
-	if (averagePressureIntoDomain < 0 || averagePressureOutOfDomain < 0 || averageDensityOutOfDomain < 0 )
-		throw std::logic_error("Average pressures or densities cannot be lower than 0.");
-#endif
-
-	const double pressureRatio = fmax(0.0,fmin(averagePressureIntoDomain/averagePressureOutOfDomain,1.0));
-	if (pressureRatio > 1.0)
-	{
-		// This only makes sense if the reed valve is completely closed. There is a very small moment where this pressure gradient may be this way while it is still open, but this is disregarded.
-		return 0;
-	}
-
-	const double referenceArea = FukanariReferenceArea();
-	const double gamma = intoDomain_->SpecificHeatRatio();
-	// If the critical pressure ratio is reached, the flow is considered choked, so the mass flow can no longer be increased!
-	const double criticalPressureRatio = pow(2.0/(gamma+1.0),gamma/(gamma-1.0));
-	const double dischargeCoefficient = DischargeCoefficient();
-	
-	if (pressureRatio > criticalPressureRatio) // && pratio <= 1.0), flow is choked.
-	{
-		double x = dischargeCoefficient*referenceArea*averageDensityOutOfDomain*pow(pressureRatio,1.0/gamma)*sqrt(2.0*gamma*averagePressureOutOfDomain/averageDensityOutOfDomain/(gamma-1.0)*(1.0-pow(pressureRatio,(gamma-1.0)/gamma)));
-
-#ifdef _DEBUG
-		assert(!isnan(x));
-#endif
-		return x;
-	}
-	else // pressureRatio > 0.0 && pressureRatio <= criticalPressureRatio, flow is not choked.
-	{
-		double x = dischargeCoefficient*referenceArea*gamma*averagePressureOutOfDomain/sqrt(gamma*averagePressureOutOfDomain/averageDensityOutOfDomain)*pow(2.0/(gamma+1.0),0.5*(gamma+1.0)/(gamma-1.0));
-
-#ifdef _DEBUG
-		assert(!isnan(x));
-#endif
-		return x;
-	}
-}
-
 void ReedValve::FillBuffer()
 {
 	// First part: calculating the total mass flow rate. in legacy code, equal to calculate_mfr function.

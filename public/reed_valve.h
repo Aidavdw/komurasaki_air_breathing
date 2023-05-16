@@ -46,7 +46,6 @@ public:
 	// Actually sets up the valve inside of the domain.
 	void OnRegister() override;
 	void Update() override;
-	double GetMassFlowRate() const override;
 	void FillBuffer() override;
 
 	// Reads off the field, and solves the FEM equations a first time to determine the initial deflection for the FEM members.
