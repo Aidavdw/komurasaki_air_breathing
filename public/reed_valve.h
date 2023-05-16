@@ -51,7 +51,7 @@ public:
 
 	// Reads off the field, and solves the FEM equations a first time to determine the initial deflection for the FEM members.
 	void SetInitialConditions() override;
-
+	
 	double GetTipDeflection() const;
 
 protected:

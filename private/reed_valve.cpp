@@ -1,6 +1,7 @@
 #include "reed_valve.h"
 
 #include <cassert>
+#include <numeric>
 
 #include "domain.h"
 #include "sim_case.h"
@@ -187,6 +188,7 @@ double ReedValve::GetMassFlowRate() const
 		return 0;
 	}
 	
+	// todo: replace by SetPressureRatios
 	double averagePressureIntoDomain = GetAverageFieldQuantityAroundValve(intoDomain_->p, CURRENT_TIME_STEP, true);
 	double averagePressureOutOfDomain = GetAverageFieldQuantityAroundValve(outOfDomain_->p, CURRENT_TIME_STEP, true);
 	double averageDensityOutOfDomain = GetAverageFieldQuantityAroundValve(outOfDomain_->rho, CURRENT_TIME_STEP);
@@ -231,10 +233,128 @@ double ReedValve::GetMassFlowRate() const
 
 void ReedValve::FillBuffer()
 {
-	// ASYNC WARNING: This function is only thread-safe if the places where the valves source in- and out of are unique; if they overlap, it is not memory safe.
-	// UNIMPLEMENTED
-	// todo: implement!!
-	double totalMassFlowRate = GetMassFlowRate();
+	// First part: calculating the total mass flow rate. in legacy code, equal to calculate_mfr function.
+	double tipDeflection = GetTipDeflection();
+
+	// Early exit with zeroes if the valve is closed.
+	if (IsCloseToZero(tipDeflection) || tipDeflection < 0)
+	{
+		// This setting is a bit artifical, as the tip can also be arching, still leaving some mass flow. It comes close enough to reality though.
+		for (auto& a : sourceTermBuffer_)
+			a = EulerContinuity();
+		return;
+	}
+
+	double averagePressureIntoDomain = GetAverageFieldQuantityAroundValve(intoDomain_->p, CURRENT_TIME_STEP, true);
+	double averagePressureOutOfDomain = GetAverageFieldQuantityAroundValve(outOfDomain_->p, CURRENT_TIME_STEP, true);
+	double averageDensityOutOfDomain = GetAverageFieldQuantityAroundValve(outOfDomain_->rho, CURRENT_TIME_STEP, false);
+
+#ifdef _DEBUG
+	if (averagePressureIntoDomain < 0 || averagePressureOutOfDomain < 0 || averageDensityOutOfDomain < 0 )
+		throw std::logic_error("Average pressures or densities cannot be lower than 0.");
+#endif
+
+	const double averagePressureRatio = fmax(0.0,fmin(averagePressureIntoDomain/averagePressureOutOfDomain,1.0));
+
+	// Early exit that does not allow flow reversal.
+	if (averagePressureRatio > 1.0)
+	{
+		// This only makes sense if the reed valve is completely closed. There is a very small moment where this pressure gradient may be this way while it is still open, but this is disregarded.
+		for (auto& a : sourceTermBuffer_)
+			a = EulerContinuity();
+		return;
+	}
+
+	const double referenceArea = FukanariReferenceArea();
+	const double gamma = intoDomain_->SpecificHeatRatio();
+	// If the critical pressure ratio is reached, the flow is considered choked, so the mass flow can no longer be increased!
+	const double criticalPressureRatio = pow(2.0/(gamma+1.0),gamma/(gamma-1.0));
+	const double dischargeCoefficient = DischargeCoefficient();
+
+#ifdef _DEBUG
+	assert(!IsCloseToZero(averagePressureRatio));
+	assert(!IsCloseToZero(criticalPressureRatio));
+#endif
+
+	double totalMassFlowRate;
+	
+	if (averagePressureRatio > criticalPressureRatio) // && pratio <= 1.0), flow is choked.
+	{
+		totalMassFlowRate = dischargeCoefficient*referenceArea*averageDensityOutOfDomain*pow(averagePressureRatio,1.0/gamma)*sqrt(2.0*gamma*averagePressureOutOfDomain/averageDensityOutOfDomain/(gamma-1.0)*(1.0-pow(averagePressureRatio,(gamma-1.0)/gamma)));
+
+#ifdef _DEBUG
+		assert(!isnan(totalMassFlowRate));
+#endif
+	}
+	else // pressureRatio > 0.0 && pressureRatio <= criticalPressureRatio, flow is not choked.
+	{
+		totalMassFlowRate = dischargeCoefficient*referenceArea*gamma*averagePressureOutOfDomain/sqrt(gamma*averagePressureOutOfDomain/averageDensityOutOfDomain)*pow(2.0/(gamma+1.0),0.5*(gamma+1.0)/(gamma-1.0));
+
+#ifdef _DEBUG
+		assert(!isnan(totalMassFlowRate));
+#endif
+	}
+
+	/*** Here is what old cold has in compute_cell_source ***/
+	
+#ifdef _DEBUG
+	assert(sourceCellsIndices_.size() == sourceTermBuffer_.size());
+	assert(intoDomain_ != nullptr);
+	if (sourceCellsIndices_.empty())
+		throw std::logic_error("No source cells are set for this valve.");
+
+#endif
+
+	auto volumes = std::vector<double>(sourceTermBuffer_.size(), 0);
+	//todo: cache this, if the sources cannot be moved.
+
+	// Assume that the mass flow is equally distributed over all the cells, weighted by cell volume.
+	// todo: weighing can be done relative to the tip deflection. Would have to be validated though.
+	// todo: separate function for calculating cell volumes.
+	for (size_t i = 0; i < sourceTermBuffer_.size(); i++)
+	{
+		const CellIndex& cix = sourceCellIndices.at(i);
+		double cellDX = intoDomain_->cellLengths[0].GetAt(cix);
+		double cellDR = intoDomain_->cellLengths[1].GetAt(cix);
+		double cellR = intoDomain_->localCellCenterPositions[1].GetAt(cix);
+		double rInner = cellR - 0.5*cellDR;
+		double rOuter = cellR + 0.5*cellDR;
+		volumes.at(i) = cellDX * M_PI * (pow(rOuter, 2) - pow(rInner, 2));
+	}
+
+	double totalVolume = 0;
+	for (const double& v : volumes)
+		totalVolume += v;
+
+	double averageUOutside = GetAverageFieldQuantityAroundValve(outOfDomain_->u, CURRENT_TIME_STEP, false);
+	double averageVOutside = GetAverageFieldQuantityAroundValve(outOfDomain_->v, CURRENT_TIME_STEP, false);
+	
+
+	// not very pretty, but do it again. Might want to reformat this to not need re-calculation.
+	for (size_t i = 0; i < sourceTermBuffer_.size(); i++)
+	{
+		const CellIndex& cix = sourceCellIndices.at(i);
+		double cellDX = intoDomain_->cellLengths[0].GetAt(cix);
+		double cellDR = intoDomain_->cellLengths[1].GetAt(cix);
+		double cellR = intoDomain_->localCellCenterPositions[1].GetAt(cix);
+		double rInner = cellR - 0.5*cellDR;
+		double rOuter = cellR + 0.5*cellDR;
+
+		double cellVolume = cellDX * M_PI * (pow(rOuter, 2) - pow(rInner, 2));
+		double mfr_eq = totalMassFlowRate * cellVolume / totalVolume; // normalised mass flow rate
+
+		double outerSurfaceArea = (2.0*M_PI*cellR*cellDX);
+		double volumeFlowRate = mfr_eq/averageDensityOutOfDomain/outerSurfaceArea;
+		sourceTermBuffer_.at(i).density = mfr_eq/cellVolume;
+		sourceTermBuffer_.at(i).u = (mfr_eq*averageUOutside)/cellVolume;
+		sourceTermBuffer_.at(i).v = (mfr_eq*averageVOutside)/cellVolume;
+		sourceTermBuffer_.at(i).e = (gamma/(gamma-1.0)*averagePressureOutOfDomain/averageDensityOutOfDomain + 0.5*volumeFlowRate*sqrt(pow(averageUOutside, 2) + pow(averageVOutside,2)))*mfr_eq/cellVolume;
+	}
+
+	// todo: set drain terms for the other domain
+
+	
+	
 }
 
 void ReedValve::SetInitialConditions()

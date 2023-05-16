@@ -86,8 +86,7 @@ int main()
                 valve.Update();
 
                 // Compute mean pressure on each side and mass-flow rate at valve
-                // todo: value is currently just output. Store in IValve?
-                valve.FillBuffer();
+                valve.CalculateFlow();
             }
 
             // Async await until both the buffers have been set for all the FieldQuantities in a domain. Easiest way to do this; wait until they're all finished.

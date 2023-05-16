@@ -4,6 +4,8 @@
 
 #include "pos2d.h"
 
+# define M_PI 3.14159265358979323846
+
 
 bool IsCloseToZero(const double x, const double tolerance=std::numeric_limits<double>::epsilon() );
 

@@ -560,6 +560,7 @@ int main()
                     }
 
                     // Time-average value of mean fields and mass flow rate
+                	// A: SET MASS FLOW RATE, STORED for use in compute_cell_source
                     mfr[k] = compute_mfr(mean_p_inf[k],mean_p_sup[k],mean_rho_sup[k],y_tip,L_T,B0,B1,GAMMA,R);
                     
                 }

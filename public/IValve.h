@@ -25,7 +25,7 @@ protected:
 	std::vector<CellIndex> sourceCellsIndices_;		// The cells in the intoDomain that this valve will add an accumulation term to.
 	std::vector<EulerContinuity> sourceTermBuffer_;			// Stores how much will be sourced into the sourceCellIndices.
 
-	void CalculateFlow(); // Safely calls FillBuffer. Proxy function.
+
 	
 
 public:
@@ -35,6 +35,7 @@ public:
 
 	// Gets the mass flow rate going through the valve in its current condition. Positive values ar from the outOfDomain_ into the intoDomain_
 	virtual double GetMassFlowRate() const;
+	void CalculateFlow(); // Safely calls FillBuffer. Proxy function.
 	virtual void SetInitialConditions();
 
 	virtual void AddBufferTermsToSourceCells(const EFieldQuantityBuffer bufferToWriteInto);	// Sets the source terms in sourceTermBuffer_ as calculated with CalculateFlowFromValve(), and puts them in the sourceCellsIndices in the intoDomain_. Excepts if it cannot do this.

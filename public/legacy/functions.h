@@ -108,10 +108,11 @@ double compute_mfr(const double p_inf, const double p_sup, const double rho_sup,
 
 /* Compute the total source term based on mass flow rate and fluid variables around the reed valve.
 Sets the source[4] by reference, where the index corresponds to the euler equation it will be coupled to: [density term, x-axis velocity, y/r-axis velocity, and specific internal energy]
-
 */ 
-void compute_cell_source(int k_dom, int k_inf, int k_sup, double r_low, double r_up, double mfr_valve, double y_tip, double theta_tip, double dy, int n_per_stage, double gamma,double radius, double l_hole, double hole_factor, double dx, double b_hole, int mfr_n_cell,double rho_mean_sup, double p_mean_sup,double p_mean_inf, double rho_sup, double u_sup, double v_sup, double p_sup, double b0, double b1, double l, double source[4])
-{   
+void compute_cell_source(const int k_dom, const int k_inf, const int k_sup, const double r_low, const double r_up, const double mfr_valve, const double y_tip, double theta_tip, const double dy, const int n_per_stage, const double gamma,double radius, const double l_hole, double hole_factor, const double dx, const double b_hole, const int mfr_n_cell, const double rho_mean_sup, const double p_mean_sup, const double p_mean_inf, const double rho_sup, const double u_sup, const double v_sup, const double p_sup, double b0, double b1, double l, double source[4])
+{
+
+    // Note that mass flow rate is not calculated; it is passed as mfr_valve, as calculated in a previous step.
     source[0] = 0.0;
     source[1] = 0.0;
     source[2] = 0.0;
@@ -152,6 +153,7 @@ void compute_cell_source(int k_dom, int k_inf, int k_sup, double r_low, double r
         // double mfr_eq = (n_per_stage*mfr_valve);
         double mfr_eq = (n_per_stage*mfr_valve)/mfr_n_cell;
 
+        // A: These values are never used?
         // Normal velocity assuming that total mass flow rate is eq. to rho*A_eq*V_eq
         double p_ratio = fmax(0.0,fmin(1.0,p_mean_inf/p_mean_sup));
         double p_crit = pow(2.0/(gamma+1.0),gamma/(gamma-1.0));
