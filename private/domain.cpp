@@ -76,7 +76,7 @@ void Domain::ConnectBoundary(const EFace location, Domain* otherDomain)
 {
 	Boundary& thisBoundary = boundaries.at(location);
 	// Validate the boundary on this domain 
-	if (thisBoundary.boundaryType != NOT_SET)
+	if (thisBoundary.boundaryType != EBoundaryCondition::NOT_SET)
 		throw std::logic_error("This boundary has already been assigned another value");
 	if (thisBoundary.connectedBoundary != nullptr)
 		throw std::logic_error("This boundary has already been connected with another one!");
@@ -86,7 +86,7 @@ void Domain::ConnectBoundary(const EFace location, Domain* otherDomain)
 	Boundary& otherBoundary = otherDomain->boundaries.at(Opposite(location));
 
 	// Validate the boundary on the other domain
-	if (otherBoundary.boundaryType != NOT_SET)
+	if (otherBoundary.boundaryType != EBoundaryCondition::NOT_SET)
 		throw std::logic_error("This boundary has already been assigned another value");
 	if (otherBoundary.connectedBoundary != nullptr)
 		throw std::logic_error("This boundary has already been connected with another one!");
@@ -101,9 +101,9 @@ void Domain::ConnectBoundary(const EFace location, Domain* otherDomain)
 		throw std::logic_error("Cannot connect two boundaries that have a different spacing.");
 	
 	// All good, connect both of them.
-	thisBoundary.boundaryType = CONNECTED;
+	thisBoundary.boundaryType = EBoundaryCondition::CONNECTED;
 	thisBoundary.connectedBoundary = &otherBoundary;
-	otherBoundary.boundaryType = CONNECTED;
+	otherBoundary.boundaryType = EBoundaryCondition::CONNECTED;
 	otherBoundary.connectedBoundary = &thisBoundary;
 }
 
@@ -184,15 +184,15 @@ void Domain::UpdateGhostCells()
 		// Note that the below functions all work in relative coordinate frames.
 		// Technically a performance gain could be achieved by not calling a transformation on the frame every time, instead directly accessing those entries directly by looping. However, this is more legible.
 		switch (boundary.boundaryType) {
-		case NOT_SET:
+		case EBoundaryCondition::NOT_SET:
 				throw std::logic_error("Cannot update Ghost cell if boundary condition is not set.");
-			case SLIP:
+			case EBoundaryCondition::SLIP:
 				PopulateSlipConditionGhostCells(location);
 				break;
-			case NO_SLIP:
+			case EBoundaryCondition::NO_SLIP:
 				PopulateNoSlipConditionGhostCells(location);
 				break;
-			case CONNECTED:
+			case EBoundaryCondition::CONNECTED:
 				PopulateConnectedGhostCells(location);
 				break;
 		default:
@@ -531,13 +531,13 @@ void Domain::PopulateConnectedGhostCells(const EFace boundary)
 	 */
 
 	// Validate that this is in fact a connected boundary
-	if (boundaries.at(boundary).boundaryType != CONNECTED || boundaries.at(boundary).connectedBoundary == nullptr)
+	if (boundaries.at(boundary).boundaryType != EBoundaryCondition::CONNECTED || boundaries.at(boundary).connectedBoundary == nullptr)
 		throw std::logic_error("This boundary has not been connected properly.");
 
 #ifdef _DEBUG
 	// Also check the opposite boundary
 	Boundary* otherBoundary = boundaries.at(boundary).connectedBoundary;
-	if (otherBoundary->boundaryType != CONNECTED || otherBoundary->connectedBoundary != &boundaries.at(boundary))
+	if (otherBoundary->boundaryType != EBoundaryCondition::CONNECTED || otherBoundary->connectedBoundary != &boundaries.at(boundary))
 		throw std::logic_error("The boundary is only properly connected one way!");
 #endif
 

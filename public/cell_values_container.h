@@ -10,7 +10,7 @@ struct CellValues
 		E(0),
 		T(0),
 		H(0)
-	{};
+	{}
 
 	double rho; // Density
 	double u; // velocity x-component
