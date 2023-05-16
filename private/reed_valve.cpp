@@ -258,21 +258,12 @@ void ReedValve::FillBuffer()
 
 	// Assume that the mass flow is equally distributed over all the cells, weighted by cell volume.
 	// todo: weighing can be done relative to the tip deflection. Would have to be validated though.
-	// todo: separate function for calculating cell volumes.
+	double totalVolume = 0;
 	for (size_t i = 0; i < sourceTermBuffer_.size(); i++)
 	{
-		const CellIndex& cix = sourceCellIndices.at(i);
-		double cellDX = intoDomain_->cellLengths[0].GetAt(cix);
-		double cellDR = intoDomain_->cellLengths[1].GetAt(cix);
-		double cellR = intoDomain_->localCellCenterPositions[1].GetAt(cix);
-		double rInner = cellR - 0.5*cellDR;
-		double rOuter = cellR + 0.5*cellDR;
-		volumes.at(i) = cellDX * M_PI * (pow(rOuter, 2) - pow(rInner, 2));
+		const double vol = intoDomain_->GetCellVolume(sourceCellIndices.at(i));
+		totalVolume += vol;
 	}
-
-	double totalVolume = 0;
-	for (const double& v : volumes)
-		totalVolume += v;
 
 	double averageUOutside = GetAverageFieldQuantityAroundValve(outOfDomain_->u, CURRENT_TIME_STEP, false);
 	double averageVOutside = GetAverageFieldQuantityAroundValve(outOfDomain_->v, CURRENT_TIME_STEP, false);
@@ -282,21 +273,17 @@ void ReedValve::FillBuffer()
 	for (size_t i = 0; i < sourceTermBuffer_.size(); i++)
 	{
 		const CellIndex& cix = sourceCellIndices.at(i);
-		double cellDX = intoDomain_->cellLengths[0].GetAt(cix);
-		double cellDR = intoDomain_->cellLengths[1].GetAt(cix);
-		double cellR = intoDomain_->localCellCenterPositions[1].GetAt(cix);
-		double rInner = cellR - 0.5*cellDR;
-		double rOuter = cellR + 0.5*cellDR;
-
-		double cellVolume = cellDX * M_PI * (pow(rOuter, 2) - pow(rInner, 2));
-		double mfr_eq = totalMassFlowRate * cellVolume / totalVolume; // normalised mass flow rate
-
-		double outerSurfaceArea = (2.0*M_PI*cellR*cellDX);
-		double volumeFlowRate = mfr_eq/averageDensityOutOfDomain/outerSurfaceArea;
-		sourceTermBuffer_.at(i).density = mfr_eq/cellVolume;
-		sourceTermBuffer_.at(i).u = (mfr_eq*averageUOutside)/cellVolume;
-		sourceTermBuffer_.at(i).v = (mfr_eq*averageVOutside)/cellVolume;
-		sourceTermBuffer_.at(i).e = (gamma/(gamma-1.0)*averagePressureOutOfDomain/averageDensityOutOfDomain + 0.5*volumeFlowRate*sqrt(pow(averageUOutside, 2) + pow(averageVOutside,2)))*mfr_eq/cellVolume;
+		
+		double normalisedMassFlowRate = totalMassFlowRate * volumes.at(i) / totalVolume; // normalised mass flow rate
+		const double cellDx = intoDomain_->cellLengths[0].GetAt(cix);
+		const double cellR = intoDomain_->localCellCenterPositions[1].GetAt(cix);
+		double outerSurfaceArea = (2.0*M_PI*cellR*cellDx);
+		double volumeFlowRate = normalisedMassFlowRate/averageDensityOutOfDomain/outerSurfaceArea;
+		
+		sourceTermBuffer_.at(i).density = normalisedMassFlowRate/volumes.at(i);
+		sourceTermBuffer_.at(i).u = (normalisedMassFlowRate*averageUOutside)/volumes.at(i);
+		sourceTermBuffer_.at(i).v = (normalisedMassFlowRate*averageVOutside)/volumes.at(i);
+		sourceTermBuffer_.at(i).e = (gamma/(gamma-1.0)*averagePressureOutOfDomain/averageDensityOutOfDomain + 0.5*volumeFlowRate*sqrt(pow(averageUOutside, 2) + pow(averageVOutside,2)))*normalisedMassFlowRate/volumes.at(i);
 	}
 
 	// todo: set drain terms for the other domain

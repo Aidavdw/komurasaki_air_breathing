@@ -136,6 +136,17 @@ std::pair<double, double> Domain::GetCellSizes(const CellIndex cellPos) const
 	return std::make_pair(xSizeOut, ySizeOut);
 }
 
+double Domain::GetCellVolume(const CellIndex cix) const
+{
+	double cellDX = cellLengths[0].GetAt(cix);
+	double cellDR = cellLengths[1].GetAt(cix);
+	double cellR = localCellCenterPositions[1].GetAt(cix);
+	double rInner = cellR - 0.5*cellDR;
+	double rOuter = cellR + 0.5*cellDR;
+	double volume = cellDX * M_PI * (pow(rOuter, 2) - pow(rInner, 2));
+	return volume;
+}
+
 void Domain::CopyFieldQuantitiesToBuffer(const EFieldQuantityBuffer from, const EFieldQuantityBuffer to)
 {
 	rho.CopyToBuffer(from, to);
