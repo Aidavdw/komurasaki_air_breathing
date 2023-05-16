@@ -2,7 +2,7 @@
 #include <stdexcept>
 
 // Decides how this domain will be initialised
-enum EInitialisationMethod
+enum class EInitialisationMethod
 {
 	ZERO,						// Every value will be set to 0
 	AMBIENT_CONDITIONS,			// Propagate the values set in SimCase, and make this domain fit those.
@@ -11,7 +11,7 @@ enum EInitialisationMethod
 };
 
 // Determines how the flow will interact with the boundary of the domain.
-enum EBoundaryCondition
+enum class EBoundaryCondition
 {
 	NOT_SET,
 	SLIP, // slip-wall boundary condition (impermeable but not imposing zero velocity at the wall).
@@ -22,7 +22,8 @@ enum EBoundaryCondition
 };
 
 
-/*	Note about the definition of coordinate systems along the boundaries!
+/*  Represents a face on a rectangle; either a position, or a direction from that face, pointing towards the centre of the rectangle.
+ *	Note about the definition of coordinate systems along the boundaries!
  *	Positive axes are defined to ensure that a right-handed coordinate system is maintained and that the normals of the boundary-local coordinate systems always point inwards.
  *
  *				    TOP
@@ -36,8 +37,7 @@ enum EBoundaryCondition
  *				  BOTTOM
  *		 
  */
-
-enum EBoundaryLocation
+enum EFace
 {
 	LEFT,
 	RIGHT,
@@ -45,7 +45,7 @@ enum EBoundaryLocation
 	BOTTOM
 };
 
-inline std::string LocationToString(const EBoundaryLocation location)
+inline std::string LocationToString(const EFace location)
 {
 	switch (location)
 	{
@@ -58,7 +58,7 @@ inline std::string LocationToString(const EBoundaryLocation location)
 	}
 }
 
-inline EBoundaryLocation Opposite(const EBoundaryLocation location)
+inline EFace Opposite(const EFace location)
 {
 	switch (location)
 	{

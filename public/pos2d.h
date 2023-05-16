@@ -7,10 +7,10 @@ struct Position
 	Position() :
 		x(0),
 		y(0),
-		upDirection(EBoundaryLocation::TOP)
+		upDirection(EFace::TOP)
 	{}
 
-	Position(const double x, const double y, const EBoundaryLocation upDirection) :
+	Position(const double x, const double y, const EFace upDirection) :
 		x(x),
 		y(y),
 		upDirection(upDirection)
@@ -19,13 +19,13 @@ struct Position
 	Position(const double x, const double y) :
 	x(x),
 	y(y),
-	upDirection(EBoundaryLocation::TOP)
+	upDirection(EFace::TOP)
 	{}
 
 	double x;
 	double y;
 
-	EBoundaryLocation upDirection; // useful for when using rotating reference frames. Determines what is up.
+	EFace upDirection; // useful for when using rotating reference frames. Determines what is up.
 
 	// Returns the distance between {0,0} and this position (when considering it as a vector).
 	inline double Distance() const;

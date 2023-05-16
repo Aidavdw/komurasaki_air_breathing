@@ -9,7 +9,7 @@
 
 
 
-FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const EBeamProfile beamProfile, const double freeLength, const double fixedLength, const double dt, const EBoundaryLocation upDirection) :
+FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const EBeamProfile beamProfile, const double freeLength, const double fixedLength, const double dt, const EFace upDirection) :
 	fixedNodes(amountOfFixedNodes),
 	dt(dt),
 	beamProfile_(beamProfile)

@@ -18,7 +18,7 @@ struct CellIndex
 		upDirection(TOP)
 	{}
 
-	CellIndex(const int x,const int y, const EBoundaryLocation upDirection) :
+	CellIndex(const int x,const int y, const EFace upDirection) :
 		x(x),
 		y(y),
 		upDirection(upDirection)
@@ -26,7 +26,7 @@ struct CellIndex
 
 	int x;
 	int y;
-	EBoundaryLocation upDirection; // useful for when using rotating reference frames. Determines what is up.
+	EFace upDirection; // useful for when using rotating reference frames. Determines what is up.
 
 	inline int& operator [] (const int axis)
 	{

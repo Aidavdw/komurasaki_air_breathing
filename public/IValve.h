@@ -9,13 +9,13 @@ class IValve
 {
 public:
 	virtual ~IValve() = default;
-	IValve(Domain* intoDomain, Domain* outOfDomain, const EBoundaryLocation boundary, double positionAlongBoundary);
+	IValve(Domain* intoDomain, Domain* outOfDomain, const EFace boundary, double positionAlongBoundary);
 
 
 
 
 protected:
-	EBoundaryLocation boundary_;			// which side of the domain the valve is attached to
+	EFace boundary_;			// which side of the domain the valve is attached to
 	double positionAlongBoundary_;
 	Domain* outOfDomain_;				// the domain that the valve sinks out of
 	Domain* intoDomain_;					// The domain that the valve creates a source into.

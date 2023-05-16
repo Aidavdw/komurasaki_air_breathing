@@ -17,7 +17,7 @@
 #define DAMPING_C3 0.0007
 #define SAMPLING_DEPTH_FOR_OUT_OF_DOMAIN 2
 
-ReedValve::ReedValve(Domain* intoDomain, Domain* outOfDomain, const EBoundaryLocation boundary, const double positionAlongBoundary, const int amountOfFreeSections, const double lengthOfFreeSection, const int amountOfFixedNodes, const double lengthOfFixedSections, const EBeamProfile beamProfile, const bool bMirrored) :
+ReedValve::ReedValve(Domain* intoDomain, Domain* outOfDomain, const EFace boundary, const double positionAlongBoundary, const int amountOfFreeSections, const double lengthOfFreeSection, const int amountOfFixedNodes, const double lengthOfFixedSections, const EBeamProfile beamProfile, const bool bMirrored) :
 	IValve(intoDomain, outOfDomain, boundary, positionAlongBoundary),
 	bMirrored(bMirrored),
 	amountOfFixedNodes(amountOfFixedNodes),
@@ -116,7 +116,7 @@ void ReedValve::OnRegister()
 	
 }
 
-void ReedValve::SetSourceCellIndices(std::vector<CellIndex>& sourceCellIndicesOut, const EBoundaryLocation boundary, double positionAlongBoundary, const double lengthOfFreeSection, const double lengthOfFixedSections) const
+void ReedValve::SetSourceCellIndices(std::vector<CellIndex>& sourceCellIndicesOut, const EFace boundary, double positionAlongBoundary, const double lengthOfFreeSection, const double lengthOfFixedSections) const
 {
 	// calculate the 'starting position' based on the position along the boundary as provided, offsetting with the hole size etc.
 	double posAlongBoundaryStart = positionAlongBoundary + lengthOfFixedSections + lengthOfFreeSection * (1 - HOLE_FACTOR);

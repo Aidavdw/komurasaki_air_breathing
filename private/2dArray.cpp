@@ -166,17 +166,17 @@ bool TwoDimensionalArray::HasDiagonalGrainsOnly(const int kernelSize) const
 	return true;
 }
 
-std::pair<int, int> TwoDimensionalArray::GetIndexFromIndexOnBoundary(const EBoundaryLocation boundary, const int indexOnBoundary) const
+std::pair<int, int> TwoDimensionalArray::GetIndexFromIndexOnBoundary(const EFace boundary, const int indexOnBoundary) const
 {
 	switch (boundary)
 	{
-	case EBoundaryLocation::LEFT:
+	case EFace::LEFT:
 		return std::make_pair(0, indexOnBoundary);
-	case EBoundaryLocation::RIGHT:
+	case EFace::RIGHT:
 		return std::make_pair(nX - 1, indexOnBoundary);
-	case EBoundaryLocation::BOTTOM:
+	case EFace::BOTTOM:
 		return std::make_pair(indexOnBoundary, 0);
-	case EBoundaryLocation::TOP:
+	case EFace::TOP:
 		return std::make_pair(indexOnBoundary, nY - 1);
 	default:
 		throw std::logic_error("FlattenIndexOnBoundary is not implemented for this boundary location.");

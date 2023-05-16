@@ -36,8 +36,8 @@ Domain::Domain(const std::string& name, SimCase* simCase, const Position& positi
 
 }
 
-std::pair<EBoundaryLocation, double> Domain::GetLocationAlongBoundaryInAdjacentDomain(
-	const EBoundaryLocation boundaryInThisDomain, const double positionAlongBoundaryInThisDomain) const
+std::pair<EFace, double> Domain::GetLocationAlongBoundaryInAdjacentDomain(
+	const EFace boundaryInThisDomain, const double positionAlongBoundaryInThisDomain) const
 {
 	/* As it's the complement boundary, the orientation of the coordinate frame is switched too. Since the lengths of the domains and hence their boundaries are exactly the same, we can just subtract.
 	 *							
@@ -50,7 +50,7 @@ std::pair<EBoundaryLocation, double> Domain::GetLocationAlongBoundaryInAdjacentD
 	 *	
 	 */
 
-	EBoundaryLocation complement = Opposite(boundaryInThisDomain);
+	EFace complement = Opposite(boundaryInThisDomain);
 	double totalLength = (boundaryInThisDomain == TOP || boundaryInThisDomain== BOTTOM) ? size[1] : size[0];
 	double posInOther = totalLength - positionAlongBoundaryInThisDomain;
 
@@ -62,7 +62,7 @@ std::pair<EBoundaryLocation, double> Domain::GetLocationAlongBoundaryInAdjacentD
 	return std::make_pair(complement, posInOther);
 }
 
-void Domain::SetBoundaryType(const EBoundaryLocation location, const EBoundaryCondition type)
+void Domain::SetBoundaryType(const EFace location, const EBoundaryCondition type)
 {
 	if (type == EBoundaryCondition::CONNECTED)
 	{
@@ -72,7 +72,7 @@ void Domain::SetBoundaryType(const EBoundaryLocation location, const EBoundaryCo
 	boundaries[location] = Boundary(type);
 }
 
-void Domain::ConnectBoundary(const EBoundaryLocation location, Domain* otherDomain)
+void Domain::ConnectBoundary(const EFace location, Domain* otherDomain)
 {
 	Boundary& thisBoundary = boundaries.at(location);
 	// Validate the boundary on this domain 
@@ -112,7 +112,7 @@ int Domain::GetTotalAmountOfCells() const
 	return amountOfCells[0] * amountOfCells[1];
 }
 
-CellIndex Domain::GetOriginIndexOfBoundary(const EBoundaryLocation boundary) const
+CellIndex Domain::GetOriginIndexOfBoundary(const EFace boundary) const
 {
 	switch (boundary)
 	{
@@ -178,7 +178,7 @@ void Domain::UpdateGhostCells()
 	// These can all be parallelised!
 	for (const auto& it : boundaries)
 	{
-		const EBoundaryLocation location = it.first();
+		const EFace location = it.first();
 		const Boundary& boundary = it.second;
 
 		// Note that the below functions all work in relative coordinate frames.
@@ -234,11 +234,11 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 			const double hBottom = (eBottom + p.MUSCLBuffer[BOTTOM].GetAt(xIdx,yIdx))/rho.MUSCLBuffer[BOTTOM].GetAt(xIdx,yIdx);
 
 			// Now, for every face, determine which flux scheme to use based on whether or not it is critical (sonic), and perform the flux transfer.
-			EBoundaryLocation faces[4] = {LEFT, RIGHT, TOP, BOTTOM}; // indexes for sides ---- 0: right; 1: left; 2: top; 3: down;
+			EFace faces[4] = {LEFT, RIGHT, TOP, BOTTOM}; // indexes for sides ---- 0: right; 1: left; 2: top; 3: down;
 			EulerContinuity fluxSplit[4]; // These here contain 4 terms for the euler equations. They all represent the flux of those variables at each side of the cell.
 			for (int sideIndex = 0; sideIndex < 4; sideIndex++)
 			{
-				EBoundaryLocation face = faces[sideIndex]; // Easier to debug and read, just a map of sideIndex. Note that enum decays into int.
+				EFace face = faces[sideIndex]; // Easier to debug and read, just a map of sideIndex. Note that enum decays into int.
 				CellIndex rf; // The position in the MUSCL buffer where the relevant values are stored.
 				// the fluxes for the cells that are 'backwards' in the positive axis are therefore by definition equal to the
 
@@ -263,7 +263,7 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 
 				// Get the left- and right bound fluxes at the specific face we're considering now.
 				EulerContinuity continuityInNegativeDirection, continuityPositiveDirection;
-				const EBoundaryLocation anti = Opposite(face);
+				const EFace anti = Opposite(face);
 				continuityInNegativeDirection = EulerContinuity(rho.MUSCLBuffer[anti].GetAt(rf), u.MUSCLBuffer[anti].GetAt(rf), v.MUSCLBuffer[anti].GetAt(rf), eLeft, hLeft, p.MUSCLBuffer[anti].GetAt(rf));
 				continuityPositiveDirection = EulerContinuity(rho.MUSCLBuffer[face].GetAt(rf), u.MUSCLBuffer[face].GetAt(rf), v.MUSCLBuffer[face].GetAt(rf), eRight, hRight, p.MUSCLBuffer[face].GetAt(rf));
 
@@ -292,7 +292,7 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 			// Check that all the fluxSplits are actually filled.
 			for (int i = 0; i < 4; i++)
 			{
-				const EBoundaryLocation face = static_cast<EBoundaryLocation>(i);
+				const EFace face = static_cast<EFace>(i);
 				if (IsCloseToZero(fluxSplit[i].density))
 					throw std::logic_error("Density is zero for flux split of face" + LocationToString(face));
 				if (IsCloseToZero(fluxSplit[i].u))
@@ -439,7 +439,7 @@ void Domain::CacheCellSizes()
 	}
 }
 
-void Domain::PopulateSlipConditionGhostCells(const EBoundaryLocation boundary)
+void Domain::PopulateSlipConditionGhostCells(const EFace boundary)
 {
 	CellIndex ghostOrigin = GetOriginIndexOfBoundary(boundary);
 	auto extent = GetGhostDimensions(boundary);
@@ -471,7 +471,7 @@ void Domain::PopulateSlipConditionGhostCells(const EBoundaryLocation boundary)
 	}
 }
 
-void Domain::PopulateNoSlipConditionGhostCells(const EBoundaryLocation boundary)
+void Domain::PopulateNoSlipConditionGhostCells(const EFace boundary)
 {
 	// This almost entirely a copy-paste from Domain::PopulateSlipConditionGhostCells(), but now v is also flipped!
 	CellIndex ghostOrigin = GetOriginIndexOfBoundary(boundary);
@@ -504,7 +504,7 @@ void Domain::PopulateNoSlipConditionGhostCells(const EBoundaryLocation boundary)
 	}
 }
 
-void Domain::PopulateConnectedGhostCells(const EBoundaryLocation boundary)
+void Domain::PopulateConnectedGhostCells(const EFace boundary)
 {
 	/*
 	 * Consider this slice for two connected domains. In this example, there are 2 ghost cells, and the domain is 1 cell thick in the axis that it is not connected to.
@@ -612,7 +612,7 @@ bool Domain::ValidateCellIndex(const CellIndex cellIndex, const bool bAllowGhost
 	return true;
 }
 
-std::pair<int, int> Domain::GetGhostDimensions(EBoundaryLocation boundary)
+std::pair<int, int> Domain::GetGhostDimensions(EFace boundary)
 {
 	// Note that these sorta flip the coordinate system!
 	switch (boundary)

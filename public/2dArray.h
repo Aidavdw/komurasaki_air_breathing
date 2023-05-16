@@ -37,7 +37,7 @@ struct TwoDimensionalArray
 
 
 	/* Getters for index */
-	std::pair<int, int> GetIndexFromIndexOnBoundary(const EBoundaryLocation boundary, const int indexOnBoundary) const;
+	std::pair<int, int> GetIndexFromIndexOnBoundary(const EFace boundary, const int indexOnBoundary) const;
 
 	/* Getters for actual values */
 

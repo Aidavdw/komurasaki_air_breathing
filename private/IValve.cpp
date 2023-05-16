@@ -1,7 +1,7 @@
 #include "IValve.h"
 #include <stdexcept>
 
-IValve::IValve(Domain* intoDomain, Domain* outOfDomain, const EBoundaryLocation boundary, double positionAlongBoundary) :
+IValve::IValve(Domain* intoDomain, Domain* outOfDomain, const EFace boundary, double positionAlongBoundary) :
     boundary_(boundary),
     positionAlongBoundary_(positionAlongBoundary),
     outOfDomain_(outOfDomain),

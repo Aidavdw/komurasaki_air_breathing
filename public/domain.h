@@ -25,7 +25,7 @@ struct Domain
 	Position position = {0,0};						// the coordinate of the most bottom left point for the domains.
 	double size[2] = {0,0};								// The total extents of the domain
 	int amountOfCells[2] = {0,0};						// total amount of cells in the axis direction. This includes the ghost cells.
-	std::map<EBoundaryLocation, Boundary> boundaries;	// Left, right, bottom, and up boundaries.
+	std::map<EFace, Boundary> boundaries;	// Left, right, bottom, and up boundaries.
 	MeshSpacing meshSpacing[2];							// How the grid spacing looks; first in x-direction, then in y-direction.
 	int nGhost;											// How many ghost cells are generated on each side.
 
@@ -43,18 +43,18 @@ struct Domain
 	// returns the cell indices that this position is in.
 	CellIndex InvertPositionToIndex(const Position pos) const;
 	CellIndex InvertPositionToIndex(const Position pos, Position& distanceFromCenter) const;
-	std::pair<EBoundaryLocation, double> GetLocationAlongBoundaryInAdjacentDomain(const EBoundaryLocation boundaryInThisDomain, const double positionAlongBoundaryInThisDomain) const;
+	std::pair<EFace, double> GetLocationAlongBoundaryInAdjacentDomain(const EFace boundaryInThisDomain, const double positionAlongBoundaryInThisDomain) const;
 
-	Position PositionAlongBoundaryToCoordinate(const EBoundaryLocation boundary, const double positionAlongBoundary, const double depth) const;
+	Position PositionAlongBoundaryToCoordinate(const EFace boundary, const double positionAlongBoundary, const double depth) const;
 
 
-	void SetBoundaryType(const EBoundaryLocation location, const EBoundaryCondition type);
-	void ConnectBoundary(const EBoundaryLocation location, Domain* otherDomain);
+	void SetBoundaryType(const EFace location, const EBoundaryCondition type);
+	void ConnectBoundary(const EFace location, Domain* otherDomain);
 
 	int GetTotalAmountOfCells() const;
-	CellIndex GetOriginIndexOfBoundary(const EBoundaryLocation boundary) const;
+	CellIndex GetOriginIndexOfBoundary(const EFace boundary) const;
 	// Gets the dimensions of the part of the ghost cells as described in the GhostOrigin reference frame.
-	std::pair<int,int> GetGhostDimensions(EBoundaryLocation boundary);
+	std::pair<int,int> GetGhostDimensions(EFace boundary);
 
 	// Shorthand function to get the cell sizes at a certain position.
 	std::pair<double, double> GetCellSizes(const CellIndex cellPos) const;
@@ -83,11 +83,11 @@ private:
 	// Caches the domain dimensions, and asves them in cellLengths and localCellCenterPositions.
 	void CacheCellSizes();
 
-	void PopulateSlipConditionGhostCells(const EBoundaryLocation boundary);
-	void PopulateNoSlipConditionGhostCells(const EBoundaryLocation boundary);
-	void PopulateConnectedGhostCells(const EBoundaryLocation boundary);
-	void PopulateSupersonicInletGhostCells(const EBoundaryLocation boundary);
-	void PopulateSupersonicOutletGhostCells(const EBoundaryLocation boundary);
+	void PopulateSlipConditionGhostCells(const EFace boundary);
+	void PopulateNoSlipConditionGhostCells(const EFace boundary);
+	void PopulateConnectedGhostCells(const EFace boundary);
+	void PopulateSupersonicInletGhostCells(const EFace boundary);
+	void PopulateSupersonicOutletGhostCells(const EFace boundary);
 
 	bool ValidateCellIndex(const CellIndex cellIndex, const bool bAllowGhostCells) const;
 };
