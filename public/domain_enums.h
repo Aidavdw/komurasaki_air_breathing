@@ -45,6 +45,19 @@ enum EBoundaryLocation
 	BOTTOM
 };
 
+inline std::string LocationToString(const EBoundaryLocation location)
+{
+	switch (location)
+	{
+	case LEFT: return {"Left"};
+	case RIGHT: return {"Right"};
+	case TOP: return {"Top"};
+	case BOTTOM: return {"Bottom"};
+	default:
+		return {"Unknown location"};
+	}
+}
+
 inline EBoundaryLocation Opposite(const EBoundaryLocation location)
 {
 	switch (location)

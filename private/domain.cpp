@@ -216,8 +216,7 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 	{
 		for (int yIdx = 0; yIdx < amountOfCells[1]; yIdx++)
 		{
-			// These here contain 4 terms for the euler equations. They all represent the flux of those variables at each side of the cell.
-			EulerContinuity leftFlux, rightFlux, upFlux, downFlux;
+			
 			
 			// rho, u, v and p's MUSCL values are stored in their respective buffers. the other variables are not, but they can be calculated directly from the state values in those buffers. So, do this for energy and enthalpy.
 			double gamma = SpecificHeatRatio();
@@ -235,9 +234,8 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 			const double hBottom = (eBottom + p.MUSCLBuffer[BOTTOM].GetAt(xIdx,yIdx))/rho.MUSCLBuffer[BOTTOM].GetAt(xIdx,yIdx);
 
 			// Now, for every face, determine which flux scheme to use based on whether or not it is critical (sonic), and perform the flux transfer.
-			// indexes for sides ---- 0: right; 1: left; 2: top; 3: down;
-			EBoundaryLocation faces[4] = {LEFT, RIGHT, TOP, BOTTOM};
-			EulerContinuity fluxSplit[4];
+			EBoundaryLocation faces[4] = {LEFT, RIGHT, TOP, BOTTOM}; // indexes for sides ---- 0: right; 1: left; 2: top; 3: down;
+			EulerContinuity fluxSplit[4]; // These here contain 4 terms for the euler equations. They all represent the flux of those variables at each side of the cell.
 			for (int sideIndex = 0; sideIndex < 4; sideIndex++)
 			{
 				EBoundaryLocation face = faces[sideIndex]; // Easier to debug and read, just a map of sideIndex. Note that enum decays into int.
@@ -249,9 +247,9 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 				 * Hence, for flow in the right direction, take the flux in the right direction at right face, and the left face; right face is stored at i,j normally, and for the one on the left face use the value for the previous cell (identical).
 				 *	
 				 *									|	cell (xIdx, yIdx)	|
-				 *		musclRight(xIdx - 1, yIdx) -|-->				  --|--> musclRight(xIdx, yIdx)
+				 *		musclRight(xIdx - 1, yIdx) -|-->				  --|--> musclRight(xIdx, yIdx) (positive)
 				 *									|						|
-				 *		musclLeft(xIdx -1, yIdx) <--|--					 <--|-- musclLeft(xIdx, yIdx)
+				 *		musclLeft(xIdx -1, yIdx) <--|--					 <--|-- musclLeft(xIdx, yIdx) (negative)
 				 *									|						|
 				 *
 				 */
@@ -264,28 +262,21 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 					rf = CellIndex(xIdx, yIdx - 1);
 
 				// Get the left- and right bound fluxes at the specific face we're considering now.
-				EulerContinuity continuityInLeftDirection, continuityInRightDirection;
-				if (face == LEFT || face == RIGHT) // horizontal flux
-				{
-					continuityInLeftDirection = EulerContinuity(rho.MUSCLBuffer[LEFT].GetAt(rf), u.MUSCLBuffer[LEFT].GetAt(rf), v.MUSCLBuffer[LEFT].GetAt(rf), eLeft, hLeft, p.MUSCLBuffer[LEFT].GetAt(rf));
-					continuityInRightDirection = EulerContinuity(rho.MUSCLBuffer[RIGHT].GetAt(rf), u.MUSCLBuffer[RIGHT].GetAt(rf), v.MUSCLBuffer[RIGHT].GetAt(rf), eRight, hRight, p.MUSCLBuffer[RIGHT].GetAt(rf));
-				}
-				else //face == TOP || face == BOTTOM, vertical flux
-				{
-					continuityInLeftDirection = EulerContinuity(rho.MUSCLBuffer[LEFT].GetAt(rf), u.MUSCLBuffer[LEFT].GetAt(rf), v.MUSCLBuffer[LEFT].GetAt(rf), E.MUSCLBuffer[LEFT].GetAt(rf), H.MUSCLBuffer[LEFT].GetAt(rf), p.MUSCLBuffer[LEFT].GetAt(rf));
-					continuityInRightDirection = EulerContinuity(rho.MUSCLBuffer[RIGHT].GetAt(rf), u.MUSCLBuffer[RIGHT].GetAt(rf), v.MUSCLBuffer[RIGHT].GetAt(rf), E.MUSCLBuffer[RIGHT].GetAt(rf), H.MUSCLBuffer[RIGHT].GetAt(rf), p.MUSCLBuffer[RIGHT].GetAt(rf));
-				}
+				EulerContinuity continuityInNegativeDirection, continuityPositiveDirection;
+				const EBoundaryLocation anti = Opposite(face);
+				continuityInNegativeDirection = EulerContinuity(rho.MUSCLBuffer[anti].GetAt(rf), u.MUSCLBuffer[anti].GetAt(rf), v.MUSCLBuffer[anti].GetAt(rf), eLeft, hLeft, p.MUSCLBuffer[anti].GetAt(rf));
+				continuityPositiveDirection = EulerContinuity(rho.MUSCLBuffer[face].GetAt(rf), u.MUSCLBuffer[face].GetAt(rf), v.MUSCLBuffer[face].GetAt(rf), eRight, hRight, p.MUSCLBuffer[face].GetAt(rf));
 
 				// Set the flux split for this side (declared above in the array).
 				if (v.MUSCLBuffer[RIGHT].GetAt(rf) > speedOfSound)
 				{
 					// It's sonic, use Hanel.
-					fluxSplit[face] = HanelFluxSplitting(continuityInLeftDirection, continuityInRightDirection, gamma, solverSettings.entropyFix);
+					fluxSplit[face] = HanelFluxSplitting(continuityInNegativeDirection, continuityPositiveDirection, gamma, solverSettings.entropyFix);
 				}
 				else
 				{
 					// It's subsonic, use AUSM_DV.
-					fluxSplit[face] = AUSMDVFluxSplitting(continuityInLeftDirection, continuityInRightDirection, gamma, solverSettings.AUSMSwitchBias, solverSettings.entropyFix);
+					fluxSplit[face] = AUSMDVFluxSplitting(continuityInNegativeDirection, continuityPositiveDirection, gamma, solverSettings.AUSMSwitchBias, solverSettings.entropyFix);
 				}
 
 				// If it's a vertical flux, then the u and v are in the local reference frame, and hence they must be inverted.
@@ -296,6 +287,22 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 					fluxSplit[face].v = buf;
 				}
 			}
+
+#ifdef _DEBUG
+			// Check that all the fluxSplits are actually filled.
+			for (int i = 0; i < 4; i++)
+			{
+				const EBoundaryLocation face = static_cast<EBoundaryLocation>(i);
+				if (IsCloseToZero(fluxSplit[i].density))
+					throw std::logic_error("Density is zero for flux split of face" + LocationToString(face));
+				if (IsCloseToZero(fluxSplit[i].u))
+					throw std::logic_error("v is zero for flux split of face" + LocationToString(face));
+				if (IsCloseToZero(fluxSplit[i].v))
+					throw std::logic_error("Density is zero for flux split of face" + LocationToString(face));
+				if (IsCloseToZero(fluxSplit[i].e))
+					throw std::logic_error("energy is zero for flux split of face" + LocationToString(face));
+			}
+#endif
 
 			// Total accumulation is what goes in - what goes out
 			const CellIndex currentCell(xIdx, yIdx);

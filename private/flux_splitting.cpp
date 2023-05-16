@@ -3,9 +3,36 @@
 #include <algorithm>
 #include <cmath>
 
+#include "AuxFunctions.h"
+
 EulerContinuity HanelFluxSplitting(const EulerContinuity& l, const EulerContinuity& r,
                                    const double gamma, const double entropyFix)
 {
+#ifdef _DEBUG
+    if (IsCloseToZero(l.density))
+        throw std::logic_error("Density is zero in hanel flux splitting for l term");
+    if (IsCloseToZero(l.u))
+        throw std::logic_error("u is zero in hanel flux splitting for l term");
+    if (IsCloseToZero(l.v))
+        throw std::logic_error("v is zero in hanel flux splitting for l term");
+    if (IsCloseToZero(l.p))
+        throw std::logic_error("p is zero in hanel flux splitting for l term");
+    if (IsCloseToZero(l.h))
+        throw std::logic_error("h is zero in hanel flux splitting for l term");
+
+    if (IsCloseToZero(r.density))
+        throw std::logic_error("Density is zero in hanel flux splitting for l term");
+    if (IsCloseToZero(r.u))
+        throw std::logic_error("u is zero in hanel flux splitting for l term");
+    if (IsCloseToZero(r.v))
+        throw std::logic_error("v is zero in hanel flux splitting for l term");
+    if (IsCloseToZero(r.p))
+        throw std::logic_error("p is zero in hanel flux splitting for l term");
+    if (IsCloseToZero(r.h))
+        throw std::logic_error("h is zero in hanel flux splitting for l term");
+}
+#endif
+    
     const double alphaLPartial=l.p/l.density;
     const double alphaRPartial=r.p/r.density;
     const double alphaL=2*alphaLPartial/(alphaLPartial+alphaRPartial);
