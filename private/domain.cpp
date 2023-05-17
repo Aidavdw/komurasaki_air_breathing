@@ -38,6 +38,9 @@ Domain::Domain(const std::string& name, SimCase* simCase, const Position& positi
 
 CellIndex Domain::InvertPositionToIndex(const Position pos, Position& distanceFromCenterOut) const
 {
+	// Do a bisection between centre positions on both axes until the distance in steps is equal to one.
+	// todo: implement are more efficient method than bisection.
+	
 	
 }
 

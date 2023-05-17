@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <limits>
 #include <utility>
+#include <vector>
 
 #include "pos2d.h"
 
@@ -11,3 +12,4 @@ bool IsCloseToZero(const double x, const double tolerance=std::numeric_limits<do
 
 std::pair<Position, Position> ExtrudeAlongNormal(const Position startPos, const Position endPos, const double depth);
 
+std::pair<size_t, size_t> FindIndexOfValueByBisection(const std::vector<double>& field, const double valueToFind);
