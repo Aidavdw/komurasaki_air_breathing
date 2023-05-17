@@ -148,7 +148,7 @@ double Domain::GetCellVolume(const CellIndex cix) const
 {
 	double cellDX = cellLengths[0].GetAt(cix);
 	double cellDR = cellLengths[1].GetAt(cix);
-	double cellR = localCellCenterPositions[1].GetAt(cix);
+	double cellR = localCellCenterPositions[1].at(cix.y);
 	double rInner = cellR - 0.5*cellDR;
 	double rOuter = cellR + 0.5*cellDR;
 	double volume = cellDX * M_PI * (pow(rOuter, 2) - pow(rInner, 2));
@@ -361,7 +361,7 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 			const double density = rho.currentTimeStep.GetAt(currentCell);
 			const double xVel = u.currentTimeStep.GetAt(currentCell);
 			const double yVel = v.currentTimeStep.GetAt(currentCell);
-			const double yc = localCellCenterPositions[1].GetAt(currentCell);
+			const double yc = localCellCenterPositions[1].at(currentCell.y);
 			const double enthalpy = H.currentTimeStep.GetAt(currentCell);
 			
 			rho.flux(xIdx,yIdx) += density * yVel / yc * dt;
@@ -473,8 +473,8 @@ void Domain::CacheCellSizes()
 		{
 			cellLengths[0](xIdx,yIdx) = lengths[0].at(xIdx);
 			cellLengths[1](xIdx,yIdx) = lengths[1].at(yIdx);
-			localCellCenterPositions[0](xIdx, yIdx) = centerPositions[0].at(xIdx);
-			localCellCenterPositions[1](xIdx, yIdx) = centerPositions[1].at(yIdx);
+			localCellCenterPositions[0].at(xIdx) = centerPositions[0].at(xIdx);
+			localCellCenterPositions[1].at(yIdx) = centerPositions[1].at(yIdx);
 		}
 	}
 }

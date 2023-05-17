@@ -107,7 +107,7 @@ void InitialiseDomainFromChapmanJougetDetonationSolution(Domain* domain, const C
     // As the solution is 1D, the solution is the same across all the y - coordinates, and is only different for x coordinates. Hence, iterate over the x- coordinates and set it immediately for all y coordinates.
     for (int xIndex = 0; xIndex < domain->size[0]; xIndex++)
     {
-        double xPos = domain->localCellCenterPositions[0].GetAt(xIndex,0);
+        double xPos = domain->localCellCenterPositions[0].at(xIndex);
         CellValues cellValues = sol.FieldPropertiesAtPosition(xPos, gamma, tubeRadius);
         
         for (int yIndex = 0; yIndex < domain->size[1]; yIndex++)
