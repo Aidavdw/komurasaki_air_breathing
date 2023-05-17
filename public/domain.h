@@ -46,6 +46,8 @@ struct Domain
 		Position blank;
 		return InvertPositionToIndex(pos, blank);
 	}
+
+	// returns the cell indices that this position is in. Also sets how far from the centre it is by reference.
 	CellIndex InvertPositionToIndex(const Position pos, Position& distanceFromCenterOut) const;
 	std::pair<EFace, double> GetLocationAlongBoundaryInAdjacentDomain(const EFace boundaryInThisDomain, const double positionAlongBoundaryInThisDomain) const;
 
@@ -62,7 +64,7 @@ struct Domain
 
 	// Shorthand function to get the cell sizes at a certain position.
 	std::pair<double, double> GetCellSizes(const CellIndex cellPos) const;
-	double GetCellVolume(const CellIndex cellPos) const;
+	double GetCellVolume(const CellIndex cix) const;
 	double GetLengthOfSide(const EFace face) const; // Small auxiliary function that returns size[0] or size[1].
 
 	void CopyFieldQuantitiesToBuffer(const EFieldQuantityBuffer from, const EFieldQuantityBuffer to);

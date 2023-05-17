@@ -2,6 +2,7 @@
 #include "sim_case.h"
 #include <stdexcept>
 #include <cassert>
+#include <ios>
 
 #include "euler_container.h"
 #include "flux_splitting.h"
@@ -38,9 +39,35 @@ Domain::Domain(const std::string& name, SimCase* simCase, const Position& positi
 
 CellIndex Domain::InvertPositionToIndex(const Position pos, Position& distanceFromCenterOut) const
 {
+	CellIndex out;
 	// Do a bisection between centre positions on both axes until the distance in steps is equal to one.
 	// todo: implement are more efficient method than bisection.
-	
+	{
+		const size_t leftFromIndex = FindIndexLeftOfValueByBisection(localCellCenterPositions[0], pos.x);
+		if (IsCloserToLeftThanToRight(pos.x, localCellCenterPositions[0].at(leftFromIndex), localCellCenterPositions[0].at(leftFromIndex+1 )))
+		{
+			out.x = leftFromIndex;
+			distanceFromCenterOut.x = pos.x - localCellCenterPositions[0].at(leftFromIndex);
+		}
+		else
+		{
+			out.x= leftFromIndex + 1;
+			distanceFromCenterOut.x = pos.x - localCellCenterPositions[0].at(leftFromIndex + 1);
+		}
+	}
+	{
+		const size_t leftFromIndex = FindIndexLeftOfValueByBisection(localCellCenterPositions[1], pos.y);
+		if (IsCloserToLeftThanToRight(pos.y, localCellCenterPositions[0].at(leftFromIndex), localCellCenterPositions[0].at(leftFromIndex+1 )))
+		{
+			out.y = leftFromIndex;
+			distanceFromCenterOut.y = pos.y - localCellCenterPositions[0].at(leftFromIndex);
+		}
+		else
+		{
+			out.y= leftFromIndex + 1;
+			distanceFromCenterOut.y = pos.y - localCellCenterPositions[0].at(leftFromIndex + 1);
+		}
+	}
 	
 }
 

@@ -24,7 +24,7 @@ std::pair<Position, Position> ExtrudeAlongNormal(const Position startPos, const 
     return std::make_pair(extrudedStartPos, extrudedEndPosEndPos);
 }
 
-std::pair<size_t, size_t> FindIndexOfValueByBisection(const std::vector<double>& field, const double valueToFind)
+size_t FindIndexLeftOfValueByBisection(const std::vector<double>& field, const double valueToFind)
 {
 #ifdef _DEBUG
     assert(!field.empty());
@@ -73,7 +73,7 @@ std::pair<size_t, size_t> FindIndexOfValueByBisection(const std::vector<double>&
             else
                 l = c;
         }
-        else // lValue < rValue
+        else // lValue > rValue
         {
             if (valueToFind > cValue)
                 r = c;
@@ -81,7 +81,41 @@ std::pair<size_t, size_t> FindIndexOfValueByBisection(const std::vector<double>&
                 l = c;
         }
     }
+        return l;
 
-    // The cell is between l and r!
-    return std::make_pair(l, r);
+}
+
+bool IsCloserToLeftThanToRight(const double valueToFind, const double lValue, const double rValue)
+{
+    bool bLeftLowerThanRight;
+    if (lValue < rValue)
+    {
+        bLeftLowerThanRight = true;
+        // Ensure that the value to find is actually between the lValue and the rValue. This assumes the field is ever increasing (in either direction), and hence the values at the borders are the highest.
+        if (valueToFind < lValue || valueToFind > rValue)
+            throw std::range_error("Value to find is outside of the extremes of the input vector.");
+    }
+    else // lValue < rValue
+        {
+        bLeftLowerThanRight = false;
+        if (valueToFind < rValue || valueToFind > lValue)
+            throw std::range_error("Value to find is outside of the extremes of the input vector.");
+        }
+    
+    // See which of two points it is closer to
+    double avg = (lValue + rValue)/2;
+    if (bLeftLowerThanRight) // lValue < rValue
+        {
+        if (valueToFind < avg)
+            return true;
+        else
+            return false;
+        }
+    else // lValue > rValue
+        {
+        if (valueToFind > avg)
+            return true;
+        else
+            return false;
+        }
 }
