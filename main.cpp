@@ -116,20 +116,6 @@ int main()
             domain.CopyFieldQuantitiesToBuffer(NEXT_TIME_STEP, CURRENT_TIME_STEP);
         }
 
-        /* UPDATE SOLID NODES WITH LAST RUNGE-KUTTA SOLUTION */
-        if (SOLID_ON==1)
-        {
-            for (int k = 0; k < N_VALVE; ++k)
-            {
-                for (int i = 0; i < N_DOF; ++i)
-                {
-                    U0_DOF[k][i] = U1_DOF[k][i];
-                    U1_DOF[k][i] = U2_DOF[k][i];
-                    U2_DOF[k][i] = U2_DOF_K[k][i];
-                }
-            }
-        }
-
         /* EXPORT SEVERAL FLUID-RELATED PARAMETERS */
         p_wall = 0.0, mfr_intake = 0.0, p_tube = 0.0, rho_tube = 0.0;
         // for (int xIndex = NGHOST; xIndex < NYtot[dom_low]-NGHOST; ++xIndex)

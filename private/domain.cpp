@@ -36,6 +36,11 @@ Domain::Domain(const std::string& name, SimCase* simCase, const Position& positi
 
 }
 
+CellIndex Domain::InvertPositionToIndex(const Position pos, Position& distanceFromCenterOut) const
+{
+	
+}
+
 std::pair<EFace, double> Domain::GetLocationAlongBoundaryInAdjacentDomain(
 	const EFace boundaryInThisDomain, const double positionAlongBoundaryInThisDomain) const
 {

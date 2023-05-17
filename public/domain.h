@@ -41,8 +41,12 @@ struct Domain
 	TwoDimensionalArray localCellCenterPositions[2];		// The location of the cell relative to where the domain is anchored. To get global position, add with Domain.position.
 
 	// returns the cell indices that this position is in.
-	CellIndex InvertPositionToIndex(const Position pos) const;
-	CellIndex InvertPositionToIndex(const Position pos, Position& distanceFromCenter) const;
+	CellIndex InvertPositionToIndex(const Position pos) const
+	{
+		Position blank;
+		return InvertPositionToIndex(pos, blank);
+	}
+	CellIndex InvertPositionToIndex(const Position pos, Position& distanceFromCenterOut) const;
 	std::pair<EFace, double> GetLocationAlongBoundaryInAdjacentDomain(const EFace boundaryInThisDomain, const double positionAlongBoundaryInThisDomain) const;
 
 	Position PositionAlongBoundaryToCoordinate(const EFace boundary, const double positionAlongBoundary, const double depth) const;
