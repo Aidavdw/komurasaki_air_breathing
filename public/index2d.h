@@ -6,8 +6,8 @@
 struct CellIndex
 {
 	CellIndex() :
-		x(NAN),
-		y(NAN),
+		x(0),
+		y(0),
 		upDirection(TOP)
 	{}
 

@@ -47,12 +47,12 @@ CellIndex Domain::InvertPositionToIndex(const Position pos, Position& distanceFr
 		const size_t leftFromIndex = FindIndexLeftOfValueByBisection(localCellCenterPositions[0], pos.x);
 		if (IsCloserToLeftThanToRight(pos.x, localCellCenterPositions[0].at(leftFromIndex), localCellCenterPositions[0].at(leftFromIndex+1 )))
 		{
-			out.x = leftFromIndex;
+			out.x = static_cast<int>(leftFromIndex);
 			distanceFromCenterOut.x = pos.x - localCellCenterPositions[0].at(leftFromIndex);
 		}
 		else
 		{
-			out.x= leftFromIndex + 1;
+			out.x = static_cast<int>(leftFromIndex) + 1;
 			distanceFromCenterOut.x = pos.x - localCellCenterPositions[0].at(leftFromIndex + 1);
 		}
 	}
@@ -60,12 +60,12 @@ CellIndex Domain::InvertPositionToIndex(const Position pos, Position& distanceFr
 		const size_t leftFromIndex = FindIndexLeftOfValueByBisection(localCellCenterPositions[1], pos.y);
 		if (IsCloserToLeftThanToRight(pos.y, localCellCenterPositions[0].at(leftFromIndex), localCellCenterPositions[0].at(leftFromIndex+1 )))
 		{
-			out.y = leftFromIndex;
+			out.y = out.x = static_cast<int>(leftFromIndex);
 			distanceFromCenterOut.y = pos.y - localCellCenterPositions[0].at(leftFromIndex);
 		}
 		else
 		{
-			out.y= leftFromIndex + 1;
+			out.y = static_cast<int>(leftFromIndex) + 1;
 			distanceFromCenterOut.y = pos.y - localCellCenterPositions[0].at(leftFromIndex + 1);
 		}
 	}
