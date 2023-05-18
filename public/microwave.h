@@ -18,7 +18,7 @@ struct ChapmanJougetDetonationSolution
         postExpansion(postExpansion)
     {
 
-    };
+    }
 
     int iters_performed = 0;            // The amount of iterations performed solving the Chapman-Jouget equation before this solution was achieved.
 

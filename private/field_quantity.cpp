@@ -56,9 +56,9 @@ double FieldQuantity::GetInterpolatedValueAtPosition(const Position& atPosition,
 		
 #ifdef _DEBUG
 	// Check if it's between the value of cells that it's interpolating from as a sanity check.
-	double highestVal = std::max(buffer.GetAt(horizontalInterpolateTarget), buffer.GetAt(verticalInterpolateTarget), buffer.GetAt(cellIndex));
+	double highestVal = std::max({buffer.GetAt(horizontalInterpolateTarget), buffer.GetAt(verticalInterpolateTarget), buffer.GetAt(cellIndex)});
 	assert(interpolatedValue < highestVal);
-	double lowestVal = std::min(buffer.GetAt(horizontalInterpolateTarget), buffer.GetAt(verticalInterpolateTarget), buffer.GetAt(cellIndex));
+	double lowestVal = std::min({buffer.GetAt(horizontalInterpolateTarget), buffer.GetAt(verticalInterpolateTarget), buffer.GetAt(cellIndex)});
 	assert(interpolatedValue > lowestVal);
 #endif
 	

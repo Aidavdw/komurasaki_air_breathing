@@ -21,6 +21,9 @@ public:
 	int N_DOF;									// The amount of degrees of freedom for the FEM system.
 	int n_active;
 
+	double materialDensity = 4400.0; // The density of the material. todo: remove hardcode.
+	double youngsModulus = 110.0E9;   // Young modulus (of TiAl alloy) todo: remove hardcode.
+
 	double dt;									// Time step used to assemble the newmark matrices.
 	
 	std::vector<Position> nodePositionsRelativeToRoot;	// The current positions of the nodes, in a local coordinate space.
@@ -74,7 +77,7 @@ protected:
 	void AssembleGlobalMassMatrix(TwoDimensionalArray& matrixOut) const;
 	void AssembleGlobalStiffnessMatrix(TwoDimensionalArray& matrixOut) const;
 
-	std::vector<double> GetDOFVector() const;
+	std::vector<int> GetDOFVector() const;
 	
 
 	// Build Damping matrix based on Rayleigh's damping model. ALPHA and BETA factors (respectively of M and K) should be specified by the user. These coefficients can be known from experiment.
@@ -85,7 +88,7 @@ protected:
 
 	void NewmarkSolve(std::vector<double> &u2Out, const TwoDimensionalArray &R1Cholesky, const TwoDimensionalArray &R2, const TwoDimensionalArray &R3, const std::vector<double> &load, const std::vector<double> &u0, const std::vector<double> &u1) const;
 
-	static TwoDimensionalArray CholeskyDecomposition(const TwoDimensionalArray& matrix, const std::vector<double>& DOFVector);
+	static TwoDimensionalArray CholeskyDecomposition(const TwoDimensionalArray& matrix, const std::vector<int>& DOFVector);
 	static void GetDeflectionVectorFromPositions(std::vector<double>& deflectionVectorOut, const std::vector<Position>& positions);
 };
 

@@ -44,7 +44,8 @@ struct RuntimeParameters
 	int numberOfTimeStepsBetweenDataExport = 10;
 };
 
-struct SimCase {
+class SimCase {
+public:
 	SimCase(const double simulationDuration, const double dt);
 	
 	RuntimeParameters runtimeParameters;

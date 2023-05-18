@@ -2,7 +2,7 @@
 #include <cmath>
 #include <stdexcept>
 
-BeamSection::BeamSection(const double length, const double width[2], const double thickness[2], const double density, const double youngsModulus, const EBeamProfile beamProfile, const bool bIsFixed, const int leftNodeIndex) :
+BeamSection::BeamSection(const double length, const std::pair<double,double> width, const std::pair<double,double> thickness, const double density, const double youngsModulus, const EBeamProfile beamProfile, const bool bIsFixed, const int leftNodeIndex) :
 	leftNodeIndex(leftNodeIndex),
 	rightNodeIndex(leftNodeIndex+1),
 	beamProfile(beamProfile),
@@ -14,10 +14,10 @@ BeamSection::BeamSection(const double length, const double width[2], const doubl
 {
 	// idea for refactor, place left- and right variables into little structs that represent surface properties? Right now the 2 element array works too I guess.
 
-	b[0] = width[0];
-	b[1] = width[1];
-	h[0] = thickness[0];
-	h[1] = thickness[1];
+	b[0] = width.first;
+	b[1] = width.second;
+	h[0] = thickness.first;
+	h[1] = thickness.second;
 
 	crossSectionalArea[0] = h[0] * b[0];
 	crossSectionalArea[1] = h[1] * b[1];

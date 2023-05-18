@@ -1,7 +1,8 @@
 #include "microwave.h"
 #include "domain.h"
-#include <math.h>
+#include <cmath>
 #include <stdexcept>
+#include "AuxFunctions.h"
 
 
 double eval_msd_function(double x, double c)
@@ -17,9 +18,6 @@ double eval_msd_deriv(double x, double c)
 ChapmanJougetDetonationSolution SolveChapmanJougetDetonationProblem(const double temperatureAmbient, const double pressureAmbient, const double ETA, const double S0, const double idealGasConstant, const double GAMMA, const double lengthOfCombustionTube, const double RadiusOfCombustionTube, const double convergenceThreshold)
 {
     CellValues postExpansion;           // The values of the flow after the expansion
-
-    // todo: This value was defined in main.c, not sure where it came from. Move to different scope?
-    const static int M_PI = 4.0 * atan(1.0);
     const static int MAX_ITERS = 200;
 
     double rho0 = pressureAmbient / (idealGasConstant * temperatureAmbient); // Ambient density
@@ -80,22 +78,12 @@ ChapmanJougetDetonationSolution SolveChapmanJougetDetonationProblem(const double
     postExpansion.v = 0;
     postExpansion.E = postExpansion.p / (GAMMA - 1.0) + 0.5 * postExpansion.rho * (pow(postExpansion.u, 2) + pow(postExpansion.v, 2)); // since u & v are 0, these terms drop out entirely.
     postExpansion.H = (postExpansion.E + postExpansion.p) / postExpansion.rho;
-
-
-
     ChapmanJougetDetonationSolution solution = ChapmanJougetDetonationSolution(postExpansion);
     solution.m_msd = Mnext;
     solution.m1 = m1;
     // Computing position of expansion wave front and rear
     solution.l_exp = (lengthOfCombustionTube / Mnext / a0) * a2;
     solution.detonation_velocity = Mnext * a0;
-
-    // printf("\nMean Microwave Power is: %f W/m^2.\n",Sd);
-    //printf("Detonation velocity is: %f m/s (M_MSD = %f).\n", Mnext * a0, Mnext);
-    //printf("Ambient conditions are: \nP0 = %f Pa, \nRHO0 = %f, \na0 = %f.", P0, rho0, a0);
-    //printf("Post-MSD conditions are: \nM1 = %f, \nP1 = %f Pa, \nU1 = %f m/s, \nRHO1 = %f.\n", *m1, *p1, *u1, *rho1);
-    //printf("Post-expansion conditions are: \nP2 = %f Pa, \nRHO2 = %f, \na2 = %f.\n", *p2, *rho2, a2);
-    //printf("Tube length is %f m. The tail of the expansion region is at %f m.\n", L_TUBE, *l_exp);
 
     return solution;
 }

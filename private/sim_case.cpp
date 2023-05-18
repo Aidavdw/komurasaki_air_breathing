@@ -92,10 +92,12 @@ void SimCase::ApplyInitialConditionsToDomains()
 			domain.SetToAmbientConditions(ambientConditions.temperature, ambientConditions.staticPressure, ambientConditions.u, ambientConditions.v);
 			break;
 		case EInitialisationMethod::FROM_CHAPMAN_JOUGET_SOLUTION:
-			// TODO: Move logic for determining tube length and radius to this level to allow for standing-up rockets too.
-			const double tubeLength = domain.size[0];
-			auto detonationConditions = SolveChapmanJougetDetonationProblem(ambientConditions.temperature, ambientConditions.staticPressure, chapmanJougetInitialConditionParameters.ETA, chapmanJougetInitialConditionParameters.S0, chapmanJougetInitialConditionParameters.idealGasConstant, chapmanJougetInitialConditionParameters.gamma, tubeLength, domain.size[1]);
-			InitialiseDomainFromChapmanJougetDetonationSolution(&domain, detonationConditions, chapmanJougetInitialConditionParameters.gamma);
+			{
+				// TODO: Move logic for determining tube length and radius to this level to allow for standing-up rockets too.
+				const double tubeLength = domain.size[0];
+				ChapmanJougetDetonationSolution detonationConditions = SolveChapmanJougetDetonationProblem(ambientConditions.temperature, ambientConditions.staticPressure, chapmanJougetInitialConditionParameters.ETA, chapmanJougetInitialConditionParameters.S0, chapmanJougetInitialConditionParameters.idealGasConstant, chapmanJougetInitialConditionParameters.gamma, tubeLength, domain.size[1]);
+				InitialiseDomainFromChapmanJougetDetonationSolution(&domain, detonationConditions, chapmanJougetInitialConditionParameters.gamma);
+			}
 		default:
 			throw std::logic_error("The provided type of initialisation method is not (yet) implemented.");
 		}

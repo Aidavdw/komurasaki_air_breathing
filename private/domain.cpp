@@ -31,8 +31,8 @@ Domain::Domain(const std::string& name, SimCase* simCase, const Position& positi
 	H = FieldQuantity(this, amountOfCells[0], amountOfCells[1], 0, nGhost);
 
 	// todo: change how this is done, because right now the length & resolution need to be input twice. Maybe make a proxy constructor?
-	meshSpacing[0] = MeshSpacing(meshSpacingArg[0]);
-	meshSpacing[1] = MeshSpacing(meshSpacingArg[1]);
+	meshSpacing[0] = MeshSpacing(meshSpacingArg.first);
+	meshSpacing[1] = MeshSpacing(meshSpacingArg.second);
 
 	CacheCellSizes();
 
@@ -69,7 +69,8 @@ CellIndex Domain::InvertPositionToIndex(const Position pos, Position& distanceFr
 			distanceFromCenterOut.y = pos.y - localCellCenterPositions[0].at(leftFromIndex + 1);
 		}
 	}
-	
+
+	return out;
 }
 
 std::pair<EFace, double> Domain::GetLocationAlongBoundaryInAdjacentDomain(
@@ -242,7 +243,7 @@ void Domain::UpdateGhostCells()
 	// These can all be parallelised!
 	for (const auto& it : boundaries)
 	{
-		const EFace location = it.first();
+		const EFace location = it.first;
 		const Boundary& boundary = it.second;
 
 		// Note that the below functions all work in relative coordinate frames.

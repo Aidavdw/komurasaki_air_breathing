@@ -4,7 +4,7 @@
 
 #include "AuxFunctions.h"
 
-TwoDimensionalArray::TwoDimensionalArray(const int sizeX, const int sizeY, const double initialValue = 0) :
+TwoDimensionalArray::TwoDimensionalArray(const int sizeX, const int sizeY, const double initialValue) :
 	nX(sizeX),
 	nY(sizeY)
 {

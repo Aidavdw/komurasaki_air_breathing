@@ -5,6 +5,10 @@
 
 #include "domain.h"
 
+IValve::~IValve()
+{
+}
+
 IValve::IValve(Domain* intoDomain, Domain* outOfDomain, const EFace boundary, double positionAlongBoundary) :
     boundary_(boundary),
     positionAlongBoundary_(positionAlongBoundary),

@@ -17,7 +17,7 @@ FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountO
 	freeNodes = amountOfFreeSections + 1;
 	amountOfNodes = freeNodes + amountOfFixedNodes;
 	N_DOF = N_DOF_PER_NODE * amountOfNodes;
-	n_active(freeNodes*N_DOF_PER_NODE);
+	n_active = freeNodes*N_DOF_PER_NODE;
 
 	CreateBeamSections();
 	nodePositionsRelativeToRoot.emplace_back(0,0);
@@ -136,7 +136,7 @@ void FemDeformation::CreateBeamSections()
 			// TODO: Right now, all nodes are exactly equidistant, and the same size. Make this variable?
 			length = freeLength / freeNodes;
 			
-			BeamSection beamSection = BeamSection(length, {leftWidth, rightWidth}, {leftThickness, rightThickness}, density, youngsModulus, beamProfile_, bIsFixed, nodeIndex );
+			BeamSection beamSection = BeamSection(length, {leftWidth, rightWidth}, {leftThickness, rightThickness}, materialDensity, youngsModulus, beamProfile_, bIsFixed, nodeIndex );
 			beamSections.emplace_back(beamSection);
 			
 		}
@@ -245,10 +245,10 @@ void FemDeformation::AssembleNewmarkMatrix(TwoDimensionalArray& R1CholeskyOut, T
 	#endif
 }
 
-std::vector<double> FemDeformation::GetDOFVector() const
+std::vector<int> FemDeformation::GetDOFVector() const
 {
 	int dofIndex = 0;
-	std::vector<double> DOFVector(freeNodes, 0);
+	std::vector<int> DOFVector(freeNodes, 0);
 	for (int i = fixedNodes; i < amountOfNodes; ++i)
 	{
 		for (int j = 0; j < N_DOF_PER_NODE; ++j)
@@ -272,7 +272,7 @@ void FemDeformation::GetDeflectionVectorFromPositions(std::vector<double>& defle
 }
 
 /* Given a symmetric positive definite matrix M (size NxN) (should be checked by user), this function computes the Cholesky decomposition of this matrix and fills a matrix L (that should be allocated and initialized by the user) so that A = L*LT (LT is the transpose matrix of L). The output L matrix is a superior triangular matrix. */
-TwoDimensionalArray FemDeformation::CholeskyDecomposition(const TwoDimensionalArray& matrix, const std::vector<double>& DOFVector)
+TwoDimensionalArray FemDeformation::CholeskyDecomposition(const TwoDimensionalArray& matrix, const std::vector<int>& DOFVector)
 {
 	#ifdef _DEBUG
 	// Technically, the matrix m ust be positive-definite, which is a subset of symmetric matrices where all the local determinants are positive. However, testing that is relatively costly for a big matrix and its a big long algorithm, so it's left out- this is just to catch the obvious cases anyway!
@@ -329,7 +329,7 @@ void FemDeformation::NewmarkSolve(std::vector<double>& u2Out, const TwoDimension
 	assert(R2.nX == R3.nX);
 	#endif
 	
-	const std::vector<double> activeDof = GetDOFVector();
+	const std::vector<int> activeDof = GetDOFVector();
 	double sum;
 	std::vector<double> b = load;
 	
@@ -389,7 +389,7 @@ void FemDeformation::SolveCholeskySystem(std::vector<double> &deflectionVectorOu
 	
 	deflectionVectorOut.resize(load.size());
 	std::fill(deflectionVectorOut.begin(), deflectionVectorOut.end(), 0);
-	std::vector<double> DOFVector = GetDOFVector();
+	std::vector<int> DOFVector = GetDOFVector();
 
 
 	// First step : Forward substitution starting from first index

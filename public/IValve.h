@@ -14,7 +14,7 @@ class Domain;
 class IValve
 {
 public:
-	virtual ~IValve() = default;
+	virtual ~IValve();
 	IValve(Domain* intoDomain, Domain* outOfDomain, const EFace boundary, double positionAlongBoundary);
 
 
