@@ -11,7 +11,7 @@ SimCase::SimCase(const double simulationDuration, const double dt) :
 	totalSimulationTimeStepCount = (int)(1 + simulationDuration / dt);  // Number of time steps
 }
 
-void SimCase::RegisterValve(const IValve& valve)
+void SimCase::InsertValve(const IValve& valve)
 {
 	// Create a new one by copy.
 	valves.push_back(valve);

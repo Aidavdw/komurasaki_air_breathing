@@ -30,6 +30,7 @@ Domain::Domain(const std::string& name, SimCase* simCase, const Position& positi
 	T = FieldQuantity(this, amountOfCells[0], amountOfCells[1], 0, nGhost);
 	H = FieldQuantity(this, amountOfCells[0], amountOfCells[1], 0, nGhost);
 
+	// todo: change how this is done, because right now the length & resolution need to be input twice. Maybe make a proxy constructor?
 	meshSpacing[0] = MeshSpacing(meshSpacingArg[0]);
 	meshSpacing[1] = MeshSpacing(meshSpacingArg[1]);
 

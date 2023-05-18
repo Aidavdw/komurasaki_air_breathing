@@ -53,7 +53,6 @@ struct Domain
 
 	Position PositionAlongBoundaryToCoordinate(const EFace boundary, const double positionAlongBoundary, const double depth) const;
 
-
 	void SetBoundaryType(const EFace location, const EBoundaryCondition type);
 	void ConnectBoundary(const EFace location, Domain* otherDomain);
 
@@ -68,9 +67,6 @@ struct Domain
 	double GetLengthOfSide(const EFace face) const; // Small auxiliary function that returns size[0] or size[1].
 
 	void CopyFieldQuantitiesToBuffer(const EFieldQuantityBuffer from, const EFieldQuantityBuffer to);
-
-	//todo: implement output in format of CellQuantities
-	//CellValues GetValuesInCell(const int xIdx, const int yIdx);
 
 	// Sets all the cells to some given ambient conditions.
 	void SetToAmbientConditions(const double temperatureSet, const double pSet, const double uSet, const double vSet);

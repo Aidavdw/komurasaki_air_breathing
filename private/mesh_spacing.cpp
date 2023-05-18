@@ -54,6 +54,10 @@ void MeshSpacing::FitSpacingToParameters()
 	if (valuesProvided > (3 - requiredParameterCount))
 		throw std::logic_error("The spacing type is overconstrained! More parameters need to be left unset.");
 
+	// Early exit if constant spacing, no need to solve stuff.
+	if (spacingType == CONSTANT)
+		return;
+
 	auto meshSpacingType = spacingType;
 	// Create a lambda with the given parameters always filled in, and the others as inputs
 	std::vector<double> knowns = { left, right, double(amountOfElements) };

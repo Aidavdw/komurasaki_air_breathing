@@ -11,7 +11,8 @@ struct SolverSettings
 	double MUSCLBias							= 1.0/3;	// MUSCL bias coefficient between upwind and downwind differences;
 	EFluxLimiterType fluxLimiterType			= EFluxLimiterType::MIN_MOD; // The type of flux limiting that will be used in the flux splitting.
 	double entropyFix							= 0.125;  // Parameter for entropy fix in AUSM-DV scheme
-	int rungeKuttaOrder							= 4;		
+	int rungeKuttaOrder							= 4;
+	int nGhost							= 2;
 };
 
 // Represents the conditions far outside of the domain. Is used to initialise the system.
@@ -58,11 +59,7 @@ struct SimCase {
 	double dt;
 	int totalSimulationTimeStepCount;			// The total amount of time steps that are in this simulation.
 
-	// Reed valve setup
-	int numberOfReedValves = 0;
-	//double reed_valve_total_length = 0.; // Total length of the reed valve, with the fixed part and the flexible part combined.
-
-	void RegisterValve(const IValve& valve);
+	void InsertValve(const IValve& valve);
 
 	Domain* AddDomain(const int id, const std::string name, const Position& position, const std::pair<double, double> sizeArg, const std::
 	                  pair<int, int> amountOfCellsArg, const std::pair<MeshSpacing, MeshSpacing> meshSpacingArg, const EInitialisationMethod
@@ -70,6 +67,8 @@ struct SimCase {
 
 	void ConnectBoundaries(const int domainOneIdx, const EFace domainOneLocation, const int domainTwoIdx, const EFace domainTwoLocation);
 	void ConnectBoundaries(const std::string domainOneName, const EFace domainOneLocation, const std::string domainTwoName, const EFace domainTwoLocation);
+
+	//todo: add proxy inserter for (reed) valves so that it doesn't need to be constructed so awkwardly.
 
 	void ApplyInitialConditionsToDomains();
 

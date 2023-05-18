@@ -6,10 +6,8 @@
 #include <iostream>
 
 #include "sim_case.h"
-//#include "case_det_tube.cpp" // Temporary hard-code of specific case implementation
+#include "case_det_tube.cpp" // Temporary hard-code of specific case implementation
 #include <chrono>
-
-#include "microwave.h"
 #include "reed_valve.h"
 
 
@@ -21,8 +19,8 @@ int main()
     std::time_t timeAtStartOfProgram = std::time(0);
 
     // INITIALIZE CASE
-    SimCase simCase();
-    //LoadCase(&simCase);
+    SimCase simCase(2, 0.01);
+    LoadExampleCaseWithoutReedValves(&simCase);
 
     /* DISPLAY INFORMATION ON TERMINAL */
     //std::cout << "Total length of the simulation is " << TSIM << "s, with dt = " << DT << " ms (" << simCase.totalSimulationTimeStepCount << " steps)." << std::endl;
@@ -33,22 +31,14 @@ int main()
     //export_parameters(NDOMAIN,TSIM,DT,XSTART,YSTART,XLENGTH,YLENGTH,N_VALVE,N_FEM,NXtot,NYtot,NGHOST,N_EXPORT,W_FORMAT,PAR_FILENAME);
 
 
-    /* INITIAL CONDITIONS BASED ON MICROWAVE DETONATION THEORY */
-    ChapmanJougetDetonationSolution initialDetonationSolution = SolveChapmanJougetDetonationProblem(T0, P0, ETA, S0, R, GAMMA, L_TUBE, R0);
-    std::cout << "Chapman-Jouget Detonation solution for initial conditions found after " << initialDetonationSolution.iters_performed << " iterations." << std::endl;
-
-    // Todo: make actual thing that handles how reed valves etc are chosen
-    ReedValve reedValve = ReedValve();
-    simCase.RegisterValve(reedValve);
-
-
+    
     /* INITIAL CONDITIONS ON DOMAINS */
     simCase.ApplyInitialConditionsToDomains();
     std::cout << "Initial conditions applied." << std::endl;
     
     /* TIME LOOP VARIABLES */
     double CFL=0;                        // For display of CFL
-    double SIM_TIME_LOOP;                // To monitor real time between two exports
+    // To monitor real time between two exports
     double total_mfr = 0.0, total_pfr = 0.0;
 
 
@@ -203,7 +193,8 @@ int main()
 
             // COUNTING TIME BETWEEN ITERATIONS
             clock_gettime(CLOCK_REALTIME,&end_time_loop);
-            SIM_TIME_LOOP = (end_time_loop.tv_sec - start_time_loop.tv_sec)+(end_time_loop.tv_nsec - start_time_loop.tv_nsec)/1E9;
+            double SIM_TIME_LOOP = (end_time_loop.tv_sec - start_time_loop.tv_sec) + (end_time_loop.tv_nsec - start_time_loop.
+                tv_nsec) / 1E9;
             printf("Iteration %d (%.1f %%)... Max. CFL at t=%.5f sec is: %f. \n[completed in %f sec]\n",timeStepNumber,(double)(timeStepNumber)/Ntstep*100.0,DT*timeStepNumber,CFL,SIM_TIME_LOOP);
             clock_gettime(CLOCK_REALTIME,&start_time_loop);
 
