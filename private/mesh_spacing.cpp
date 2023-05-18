@@ -1,4 +1,6 @@
 #include "mesh_spacing.h"
+
+#include <cassert>
 #include <stdexcept>
 #include <functional>
 #include "AuxFunctions.h"
@@ -49,14 +51,20 @@ void MeshSpacing::FitSpacingToParameters()
 		throw std::logic_error("Fitting this type of mesh spacing to parameters has not yet been implemented.");
 	}
 
-	if (valuesProvided < (3 - requiredParameterCount))
+	if (valuesProvided < requiredParameterCount)
 		throw std::logic_error("The spacing type is underconstrained! More parameters need to be set.");
-	if (valuesProvided > (3 - requiredParameterCount))
+	if (valuesProvided > requiredParameterCount)
 		throw std::logic_error("The spacing type is overconstrained! More parameters need to be left unset.");
 
-	// Early exit if constant spacing, no need to solve stuff.
-	if (spacingType == EMeshSpacingType::CONSTANT)
+	// todo: remove this bypass and fix spacing
+	// Bypass for constant spacing
+	if (spacingType == EMeshSpacingType::CONSTANT && amountOfElements != 0)
+	{
+		left = length/amountOfElements;
+		right = length/amountOfElements;
 		return;
+	}
+		
 
 	auto meshSpacingType = spacingType;
 	// Create a lambda with the given parameters always filled in, and the others as inputs
@@ -95,6 +103,11 @@ void MeshSpacing::FitSpacingToParameters()
 	std::vector<double> funcLoc;
 	double funcVal;
 	solver.Optimize(&funcLoc, &funcVal);
+
+#ifdef _DEBUG
+	assert(funcLoc.size() == 3);
+#endif
+	
 
 }
 

@@ -7,14 +7,17 @@ void LoadExampleCaseWithoutReedValves(SimCase* simCase) {
 	// Reed valve settings
 	//simCase->reed_valve_total_length = L_V + L_FIX;
 
-	// Domains
 	const double lengthOfTube = 0.5;
 	const double heightOfTube = 0.028;
+	MeshSpacing constantMeshSpacing = MeshSpacing(EMeshSpacingType::CONSTANT, lengthOfTube, 50, 0, 0);
+
+	// Domains
+
 	Domain* tube = simCase->AddDomain(1,
 	                                  "Tube",
 	                                  {lengthOfTube/2,heightOfTube/2},
 	                                  {lengthOfTube,heightOfTube},
-	                                  {MeshSpacing(EMeshSpacingType::CONSTANT, lengthOfTube, 50, 0, 0), MeshSpacing(EMeshSpacingType::CONSTANT, lengthOfTube, 50, 0, 0) },
+	                                  {constantMeshSpacing, constantMeshSpacing },
 	                                  EInitialisationMethod::FROM_CHAPMAN_JOUGET_SOLUTION,
 	                                  simCase->solverSettings.nGhost
 	);
