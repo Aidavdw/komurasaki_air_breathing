@@ -14,7 +14,7 @@ double eval_msd_deriv(double x, double c)
     return -c / pow(x, 2) * (0.5 * sqrt(c / x + 1) + 0.5 * sqrt(c / x)) - 1;
 }
 
-ChapmanJougetDetonationSolution SolveChapmanJougetDetonationProblem(const double T0, const double P0, const double ETA, const double S0, const double R_ideal, const double GAMMA, const double L_TUBE, const double RadiusOfCombustionTube, const double convergenceThreshold)
+ChapmanJougetDetonationSolution SolveChapmanJougetDetonationProblem(const double temperatureAmbient, const double pressureAmbient, const double ETA, const double S0, const double idealGasConstant, const double GAMMA, const double lengthOfCombustionTube, const double RadiusOfCombustionTube, const double convergenceThreshold)
 {
     CellValues postExpansion;           // The values of the flow after the expansion
 
@@ -22,8 +22,8 @@ ChapmanJougetDetonationSolution SolveChapmanJougetDetonationProblem(const double
     const static int M_PI = 4.0 * atan(1.0);
     const static int MAX_ITERS = 200;
 
-    double rho0 = P0 / (R_ideal * T0); // Ambient density
-    double a0 = sqrt(GAMMA * R_ideal * T0); // Ambient speed of sound
+    double rho0 = pressureAmbient / (idealGasConstant * temperatureAmbient); // Ambient density
+    double a0 = sqrt(GAMMA * idealGasConstant * temperatureAmbient); // Ambient speed of sound
     double Sd = ETA * S0 / (M_PI * RadiusOfCombustionTube * RadiusOfCombustionTube); // Mean power density
 
     //printf("Microwave surface power density is: %f MW/cm^2.\n",Sd/1.0E6/100.0/100.0);
@@ -66,7 +66,7 @@ ChapmanJougetDetonationSolution SolveChapmanJougetDetonationProblem(const double
     double m1 = (pow(Mnext, 2) - 1.0) / (1.0 + GAMMA * pow(Mnext, 2));
 
     // Post-detonation conditions, immediately behind the detonation front (subscript 1). These are required for calculating the plateau conditions, and afterwards discarded. The calculation of the values behind the shockwave is x-location dependent, and is defined in ChapmanJougetDetonationSolution::FieldPropertiesAtPosition()
-    double p1 = (1.0 + GAMMA * pow(Mnext, 2)) / (GAMMA + 1) * P0;
+    double p1 = (1.0 + GAMMA * pow(Mnext, 2)) / (GAMMA + 1) * pressureAmbient;
     double u1 = a0 * Mnext * (pow(Mnext, 2.0) - 1.0) / pow(Mnext, 2.0) / (GAMMA + 1.0);
     double rho1 = (1.0 + GAMMA) * pow(Mnext, 2) / (1.0 + GAMMA * pow(Mnext, 2)) * rho0;
 
@@ -75,7 +75,7 @@ ChapmanJougetDetonationSolution SolveChapmanJougetDetonationProblem(const double
     postExpansion.p = pow(1.0 - 0.5 * (GAMMA - 1) * (m1), 2.0 * GAMMA / (GAMMA - 1)) * (p1);
     postExpansion.rho = pow((1.0 - 0.5 * (GAMMA - 1) * (m1)), 2.0 / (GAMMA - 1)) * (rho1);
     double a2 = (1.0 - 0.5 * (GAMMA - 1.0) * (m1)) / (GAMMA + 1.0) * (pow(Mnext, 2) * GAMMA + 1.0) / pow(Mnext, 2) * Mnext * a0;
-    postExpansion.T = postExpansion.p / (postExpansion.rho * R_ideal);
+    postExpansion.T = postExpansion.p / (postExpansion.rho * idealGasConstant);
     postExpansion.u = 0;
     postExpansion.v = 0;
     postExpansion.E = postExpansion.p / (GAMMA - 1.0) + 0.5 * postExpansion.rho * (pow(postExpansion.u, 2) + pow(postExpansion.v, 2)); // since u & v are 0, these terms drop out entirely.
@@ -87,7 +87,7 @@ ChapmanJougetDetonationSolution SolveChapmanJougetDetonationProblem(const double
     solution.m_msd = Mnext;
     solution.m1 = m1;
     // Computing position of expansion wave front and rear
-    solution.l_exp = (L_TUBE / Mnext / a0) * a2;
+    solution.l_exp = (lengthOfCombustionTube / Mnext / a0) * a2;
     solution.detonation_velocity = Mnext * a0;
 
     // printf("\nMean Microwave Power is: %f W/m^2.\n",Sd);

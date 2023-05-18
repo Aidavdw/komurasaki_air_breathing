@@ -9,7 +9,6 @@ SimCase::SimCase(const double simulationDuration, const double dt) :
 	dt(dt)
 {
 	totalSimulationTimeStepCount = (int)(1 + simulationDuration / dt);  // Number of time steps
-	runtimeParameters = RuntimeParameters(totalSimulationTimeStepCount);
 }
 
 void SimCase::RegisterValve(const IValve& valve)
@@ -22,7 +21,7 @@ void SimCase::RegisterValve(const IValve& valve)
 Domain* SimCase::AddDomain(const int id, const std::string name)
 {
 	//todo: Handle creation of domains, and linking them here.
-	//auto it = domains.insert({ id, Domain(name) });
+	auto it = domains.emplace({ id, Domain(name) });
 	domainIDS.insert({ name, id });
 	return &it.first->second;
 }
@@ -70,7 +69,7 @@ void SimCase::ConnectBoundaries(const std::string domainOneName, const EFace dom
 	ConnectBoundaries(domainOneIdx, domainOneLocation, domainTwoIdx, domainTwoLocation);
 }
 
-void SimCase::ApplyInitialConditions()
+void SimCase::ApplyInitialConditionsToDomains()
 {
 	// Setting the initial values for all the cells in the domains.
 	for (auto& domainIter : domains)

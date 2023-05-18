@@ -43,7 +43,6 @@
     <ClInclude Include="public\muscl.h" />
     <ClInclude Include="public\pos2d.h" />
     <ClInclude Include="public\reed_valve.h" />
-    <ClInclude Include="public\runtime_parameters.h" />
     <ClInclude Include="public\sim_case.h" />
     <ClInclude Include="public\IValve.h" />
     <ClInclude Include="redundant\colors.h" />
@@ -69,7 +68,6 @@
     <ClCompile Include="private\muscl.cpp" />
     <ClCompile Include="private\pos2d.cpp" />
     <ClCompile Include="private\reed_valve.cpp" />
-    <ClCompile Include="private\runtime_parameters.cpp" />
     <ClCompile Include="private\sim_case.cpp" />
     <ClCompile Include="private\IValve.cpp" />
     <ClCompile Include="redundant\main.c" />

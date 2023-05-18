@@ -21,16 +21,13 @@ int main()
     std::time_t timeAtStartOfProgram = std::time(0);
 
     // INITIALIZE CASE
-    SimCase simCase;
+    SimCase simCase();
     //LoadCase(&simCase);
 
-    /* CREATE OUTPUT FOLDER */
-    make_dir(OUT_FOLDERNAME);
-
     /* DISPLAY INFORMATION ON TERMINAL */
-    std::cout << "Total length of the simulation is " << TSIM << "s, with dt = " << DT << " ms (" << simCase.totalSimulationTimeStepCount << " steps)." << std::endl;
-    std::cout << "CFL will be displayed every " << simCase.runtimeParameters.numberOfIterationsBetweenCFLLog << "timesteps (" << simCase.runtimeParameters.numberOfIterationsBetweenCFLLog * DT*1000 <<"ms)." << std::endl;
-    std::cout << "Field properties will be exported every " << simCase.runtimeParameters.numberOfIterationsBetweenDataExport << "timesteps (" << simCase.runtimeParameters.numberOfIterationsBetweenDataExport * DT*1000 <<"ms)." << std::endl;
+    //std::cout << "Total length of the simulation is " << TSIM << "s, with dt = " << DT << " ms (" << simCase.totalSimulationTimeStepCount << " steps)." << std::endl;
+    //std::cout << "CFL will be displayed every " << simCase.runtimeParameters.numberOfIterationsBetweenCFLLog << "timesteps (" << simCase.runtimeParameters.numberOfIterationsBetweenCFLLog * DT*1000 <<"ms)." << std::endl;
+    //std::cout << "Field properties will be exported every " << simCase.runtimeParameters.numberOfIterationsBetweenDataExport << "timesteps (" << simCase.runtimeParameters.numberOfIterationsBetweenDataExport * DT*1000 <<"ms)." << std::endl;
 
     /* EXPORT PARAMETERS REQUIRED FOR POST-PROCESSING AND SOLUTION RECONSTRUCTION */
     //export_parameters(NDOMAIN,TSIM,DT,XSTART,YSTART,XLENGTH,YLENGTH,N_VALVE,N_FEM,NXtot,NYtot,NGHOST,N_EXPORT,W_FORMAT,PAR_FILENAME);
@@ -46,7 +43,7 @@ int main()
 
 
     /* INITIAL CONDITIONS ON DOMAINS */
-    simCase.ApplyInitialConditions();
+    simCase.ApplyInitialConditionsToDomains();
     std::cout << "Initial conditions applied." << std::endl;
     
     /* TIME LOOP VARIABLES */
