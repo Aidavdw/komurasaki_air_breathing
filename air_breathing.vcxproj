@@ -27,17 +27,11 @@
     <ClInclude Include="public\domain.h" />
     <ClInclude Include="public\domain_enums.h" />
     <ClInclude Include="public\euler_container.h" />
+    <ClInclude Include="public\example_cases.h" />
     <ClInclude Include="public\fem_deformation.h" />
     <ClInclude Include="public\field_quantity.h" />
     <ClInclude Include="public\gradient_descent.h" />
     <ClInclude Include="public\index2d.h" />
-    <ClInclude Include="public\legacy\ausm.h" />
-    <ClInclude Include="public\legacy\bound_cond.h" />
-    <ClInclude Include="public\legacy\export.h" />
-    <ClInclude Include="public\legacy\fem_model.h" />
-    <ClInclude Include="public\legacy\functions.h" />
-    <ClInclude Include="public\legacy\muscl.h" />
-    <ClInclude Include="public\legacy\parameters.h" />
     <ClInclude Include="public\mesh_spacing.h" />
     <ClInclude Include="public\microwave.h" />
     <ClInclude Include="public\muscl.h" />
@@ -45,8 +39,6 @@
     <ClInclude Include="public\reed_valve.h" />
     <ClInclude Include="public\sim_case.h" />
     <ClInclude Include="public\IValve.h" />
-    <ClInclude Include="redundant\colors.h" />
-    <ClInclude Include="redundant\initial.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -142,7 +134,6 @@
       <SDLCheck>true</SDLCheck>
       <LinkCompiled>true</LinkCompiled>
     </ClCompile>
-    <ClCompile Include="redundant\main.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="public\flux_splitting.h" />
