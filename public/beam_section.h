@@ -7,8 +7,9 @@ enum EBeamProfile
 };
 
 // Represents the properties of a beam section in a fem simulation. Note that it does not say anything about its deformation state- these are all just constant properties.
-struct BeamSection
+class BeamSection
 {
+public:
 	BeamSection(const double length, const double width[2], const double thickness[2], const double density, const double youngsModulus, const EBeamProfile beamProfile, const bool bIsFixed, const int leftNodeIndex);
 
 	int leftNodeIndex;

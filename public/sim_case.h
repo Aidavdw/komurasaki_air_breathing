@@ -2,7 +2,8 @@
 #include "domain.h"
 #include <map>
 
-struct IValve;
+// forward declarations
+class IValve;
 
 // Changes the behaviour of how the solver works.
 struct SolverSettings

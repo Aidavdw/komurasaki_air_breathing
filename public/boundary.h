@@ -1,7 +1,8 @@
 ﻿#pragma once
 #include "domain_enums.h"
 
-struct Domain;
+// Forward declarations
+class Domain;
 
 // Describes a boundary that a domain has four of (considering it is 2d, and all domains are rectangular
 struct Boundary

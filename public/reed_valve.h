@@ -5,7 +5,8 @@
 #include "index2d.h"
 #include "IValve.h"
 
-struct FieldQuantity;
+// forward declarations
+class FieldQuantity;
 
 // A reed valve that can bend under the loads, letting in more or less air.
 class ReedValve : public IValve

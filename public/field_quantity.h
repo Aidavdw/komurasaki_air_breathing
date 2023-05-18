@@ -4,8 +4,9 @@
 #include "index2d.h"
 #include "muscl.h"
 
+// Forward Declarations
 struct Position;
-struct Domain;
+class Domain;
 
 enum EFieldQuantityBuffer
 {
@@ -16,8 +17,9 @@ enum EFieldQuantityBuffer
 };
 
 // Thin wrapper around a 2d array with doubles, representing a value over an entire domain (in a grid). It is implemented as a flattened 2d array.
-struct FieldQuantity
+class FieldQuantity
 {
+public:
 	FieldQuantity() :
 		domain(nullptr),
 		nGhostCells(0)

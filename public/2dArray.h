@@ -4,8 +4,9 @@
 #include "index2d.h"
 
 // Thin wrapper around a 2d array with doubles, representing a value over an entire domain (in a grid). It is implemented as a flattened 2d array.
-struct TwoDimensionalArray
+class TwoDimensionalArray
 {
+public:
 	TwoDimensionalArray() = default;
 
 	TwoDimensionalArray(const int sizeX, const int sizeY, const double initialValue = 0);
@@ -64,7 +65,7 @@ struct TwoDimensionalArray
 	// const operator overloaded getter. Note that does does not allow setting.
 	inline double GetAt(const CellIndex& cellIndex) const
 	{
-		return data[(cellIndex)+((cellIndex.y)*nX)];
+		return data[(cellIndex.x)+((cellIndex.y)*nX)];
 	}
 
 	// operator overloaded accessor

@@ -6,7 +6,8 @@
 #include "field_quantity.h"
 #include "index2d.h"
 
-struct Domain;
+// forward declarations
+class Domain;
 
 
 //Abstract class that represents a valve that lets air from one domain into another.

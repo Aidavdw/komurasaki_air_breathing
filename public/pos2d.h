@@ -1,6 +1,7 @@
 #pragma once
 #include <stdexcept>
 #include "domain_enums.h"
+
 // Really simple wrapper that represents a position in a domain
 struct Position
 {

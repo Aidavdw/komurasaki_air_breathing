@@ -1,8 +1,9 @@
 #pragma once
 #include <vector>
-
 #include "AuxFunctions.h"
-struct Domain;
+
+// forward declarations
+class Domain;
 
 
 enum EMeshSpacingType

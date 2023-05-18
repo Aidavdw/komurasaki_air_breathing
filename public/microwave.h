@@ -7,6 +7,8 @@
 
 #pragma once
 #include "cell_values_container.h"
+
+// forward declarations
 class Domain;
 
 // Represents a solution to a 1-d Chapman-Jouget detonation problem
