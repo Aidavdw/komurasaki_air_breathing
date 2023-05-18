@@ -1,7 +1,6 @@
 #pragma once
 #include "domain.h"
 #include <map>
-#include "runtime_parameters.h"
 
 struct IValve;
 
@@ -25,6 +24,17 @@ struct AmbientConditions
 	double u = 0;
 };
 
+// The vales that are used if an initial condition is calculated using Chapman Jouget theory.
+struct ChapmanJougetInitialConditionParameters
+{
+	double S0          = 2000.0E3;   // Total microwave beam power (W)
+	double ETA         = 1.0;        // Energy absorption coefficient
+
+	// Note that these are fixed, not calculated.
+	double gamma	   = 1.4;
+	double idealGasConstant = 287.0;
+};
+
 // Contains parameters related to the runtime; how the simulation is run, and reported back to the user.
 struct RuntimeParameters
 {
@@ -38,6 +48,7 @@ struct SimCase {
 	RuntimeParameters runtimeParameters;
 	SolverSettings solverSettings;
 	AmbientConditions ambientConditions;
+	ChapmanJougetInitialConditionParameters chapmanJougetInitialConditionParameters;
 
 	std::map<int, Domain> domains; // The domains that are part of this SimCase
 	std::map<std::string, int> domainIDS;
@@ -53,7 +64,9 @@ struct SimCase {
 
 	void RegisterValve(const IValve& valve);
 
-	Domain* AddDomain(const int id, const std::string name);
+	Domain* AddDomain(const int id, const std::string name, const Position& position, const std::pair<double, double> sizeArg, const std::
+	                  pair<int, int> amountOfCellsArg, const std::pair<MeshSpacing, MeshSpacing> meshSpacingArg, const EInitialisationMethod
+	                  initialisationMethod, const int ghostCellDepth);
 
 	void ConnectBoundaries(const int domainOneIdx, const EFace domainOneLocation, const int domainTwoIdx, const EFace domainTwoLocation);
 	void ConnectBoundaries(const std::string domainOneName, const EFace domainOneLocation, const std::string domainTwoName, const EFace domainTwoLocation);

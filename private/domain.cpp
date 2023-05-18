@@ -8,7 +8,7 @@
 #include "flux_splitting.h"
 
 
-Domain::Domain(const std::string& name, SimCase* simCase, const Position& position, const double sizeArg[2], const int amountOfCellsArg[2], const MeshSpacing meshSpacingArg[2], const EInitialisationMethod initialisationMethod, const int ghostCellDepth) :
+Domain::Domain(const std::string& name, SimCase* simCase, const Position& position, const std::pair<double, double> sizeArg, const std::pair<int,int> amountOfCellsArg, const std::pair<MeshSpacing, MeshSpacing> meshSpacingArg, const EInitialisationMethod initialisationMethod, const int ghostCellDepth) :
 	name(name),
 	simCase(simCase),
 	initialisationMethod(initialisationMethod),
@@ -16,10 +16,10 @@ Domain::Domain(const std::string& name, SimCase* simCase, const Position& positi
 	nGhost(ghostCellDepth)
 {
 	// Not a very pretty way to do this, but initialiser lists appear to break when using c style arrays
-	size[0] = sizeArg[0];
-	size[1] = sizeArg[1];
-	amountOfCells[0] = amountOfCellsArg[0];
-	amountOfCells[1] = amountOfCellsArg[1];
+	size[0] = sizeArg.first;
+	size[1] = sizeArg.second;
+	amountOfCells[0] = amountOfCellsArg.first;
+	amountOfCells[1] = amountOfCellsArg.second;
 
 	// Initialising the field quantities with the given dimension
 	rho = FieldQuantity(this, amountOfCells[0], amountOfCells[1], 0, nGhost);
@@ -206,14 +206,18 @@ void Domain::CopyFieldQuantitiesToBuffer(const EFieldQuantityBuffer from, const 
 	H.CopyToBuffer(from, to);
 }
 
-void Domain::SetToAmbientConditions(const double temperatureSet, const double pSet, const double uSet, const double vSet, const double R_ideal, const double gamma)
+void Domain::SetToAmbientConditions(const double temperatureSet, const double pSet, const double uSet, const double vSet)
 {
 	T.currentTimeStep.SetAllToValue(temperatureSet);
 	p.currentTimeStep.SetAllToValue(pSet);
 	u.currentTimeStep.SetAllToValue(uSet);
 	v.currentTimeStep.SetAllToValue(vSet);
 
-	const double rhoSet = pSet / (temperatureSet * R_ideal);
+	// Since it's uniform, gamma and ideal gas constant are the same everywhere
+	const double gamma = SpecificHeatRatio();
+	const double R = GasConstant();
+
+	const double rhoSet = pSet / (temperatureSet * R);
 	const double ESet = pSet / (gamma - 1.0) + 0.5 * rhoSet * (pow(uSet, 2) + pow(vSet, 2));
 	const double HSet = (ESet + pSet) / rhoSet;
 	rho.currentTimeStep.SetAllToValue(rhoSet);

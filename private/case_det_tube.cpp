@@ -13,7 +13,7 @@ void LoadCase(SimCase* simCase) {
 	simCase->reed_valve_total_length = L_V + L_FIX;
 
 	// Domains
-	Domain* tube = simCase->AddDomain(1, "Tube");
+	Domain* tube = simCase->AddDomain(1, "Tube", TODO, TODO, TODO, TODO, TODO, TODO);
 	tube->XSTART = 0;
 	tube->YSTART = 0;
 	tube->XLENGTH = L_TUBE;
@@ -24,7 +24,7 @@ void LoadCase(SimCase* simCase) {
 	tube->SetBoundaryType(EFace::TOP, EBoundaryCondition::SLIP);
 	tube->SetBoundaryType(EFace::BOTTOM, EBoundaryCondition::SLIP);
 	
-	Domain* ambient = simCase->AddDomain(2, "Ambient");
+	Domain* ambient = simCase->AddDomain(2, "Ambient", TODO, TODO, TODO, TODO, TODO, TODO);
 	ambient->XSTART = L_TUBE;
 	ambient->YSTART = 0;
 	ambient->XLENGTH = L_TUBE;
