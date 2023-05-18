@@ -499,22 +499,26 @@ void ValidateAxisInput(const int axis)
 void Domain::CacheCellSizes()
 {
 	// Apologies if this function is a little hard to wrap your head around, but this saves a lot of performance pain and repeated code.
-	// First put it in just arrays, since the different axis are independent of eachother.
-	std::vector<double> lengths[2] = { {size[0], 0}, {size[1], 0} };
-	std::vector<double> centerPositions[2] = { {size[0], 0}, {size[1], 0} };
+	// Since the different axis are independent of eachother, they can be determined individually first. Then, it can be saved for the entire thing.
+	std::vector<double> lengths[2];
+	lengths[0] = std::vector<double>(amountOfCells[0], 0);
+	lengths[1] = std::vector<double>(amountOfCells[1], 0);
+	std::vector<double> centerPositions[2];
+	centerPositions[0] = std::vector<double>(amountOfCells[0], 0);
+	centerPositions[1] = std::vector<double>(amountOfCells[1], 0);
 	// do it for both axes, which are iterates as meshSpacing[axis]
 	for (int axis = 0; axis < 2; axis++)
 	{
 		// As the spacing in the y-direction is not dependent on the x position and vice versa, they can be pre-calculated, and later just populated.
 		double previousPosition = 0;
-		for (int i = 0; i < size[axis]; i++)
+		for (int i = 0; i < amountOfCells[axis]; i++)
 		{
 			// Get the length of the current cell
 			double cellLength = 0;
 			switch (meshSpacing[axis].spacingType)
 			{
 			case EMeshSpacingType::CONSTANT:
-				cellLength = cellLength / size[axis];
+				cellLength = meshSpacing[axis].left;
 				break;
 			case EMeshSpacingType::LINEAR:
 				break;
