@@ -99,6 +99,39 @@ std::pair<EFace, double> Domain::GetLocationAlongBoundaryInAdjacentDomain(
 	return std::make_pair(complement, posInOther);
 }
 
+Position Domain::PositionAlongBoundaryToCoordinate(const EFace boundary, const double positionAlongBoundary,
+	const double depth) const
+{
+
+	/* Once again, the coordinate system
+	* 
+	*				    TOP
+	*		 + -- > --- > --- > --- +
+	*	L	 |			|			|	R
+	*	E	/\			\/			\/	I
+	*	F	 | ->				 <- |	G
+	*	T	/\          /\			\/	H
+	*		 |          |			|	T
+	*		 + -- < --- < --- < --- +
+	*				  BOTTOM
+	*		 
+	*/
+
+	switch (boundary)
+	{
+	case BOTTOM:
+		return {size[0] - positionAlongBoundary, depth};
+	case TOP:
+		return {positionAlongBoundary, size[1] - depth};
+	case LEFT:
+		return {depth, positionAlongBoundary};
+	case RIGHT:
+		return {size[0] - depth, size[1] - positionAlongBoundary};
+	default:
+			throw std::logic_error("PositionAlongBoundaryToCoordinate is not implemented for this face.");
+	}
+}
+
 void Domain::SetBoundaryType(const EFace location, const EBoundaryCondition type)
 {
 	if (type == EBoundaryCondition::CONNECTED)
