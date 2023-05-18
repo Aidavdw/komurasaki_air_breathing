@@ -182,7 +182,7 @@ void ReedValve::UpdateValveState()
 	// TODO: Right now creates & destroys them every time. Possible optimisation would be to cache them?
 	std::vector<double> forcesOnNodes; // The forces on each node in the local vertical (y positive!) direction.
 	std::vector<double> newDeflection; // The solution to the FEM will be here. it goes [x_node1, y_node1, x_node2, y_node2, (...)]
-	CalculateForceOnNodesFromPressure(forcesOnNodes, RUNGE_KUTTA);
+	CalculateForceOnNodesFromPressure(forcesOnNodes, EFieldQuantityBuffer::RUNGE_KUTTA);
 	CalculateAerodynamicDamping(forcesOnNodes);
 	fem_.CalculateNewDeflections(newDeflection, forcesOnNodes);
 	fem_.UpdatePositions(newDeflection);
@@ -202,9 +202,9 @@ void ReedValve::FillBuffer()
 		return;
 	}
 
-	double averagePressureIntoDomain = GetAverageFieldQuantityAroundValve(intoDomain_->p, CURRENT_TIME_STEP, true);
-	double averagePressureOutOfDomain = GetAverageFieldQuantityAroundValve(outOfDomain_->p, CURRENT_TIME_STEP, true);
-	double averageDensityOutOfDomain = GetAverageFieldQuantityAroundValve(outOfDomain_->rho, CURRENT_TIME_STEP, false);
+	double averagePressureIntoDomain = GetAverageFieldQuantityAroundValve(intoDomain_->p, EFieldQuantityBuffer::CURRENT_TIME_STEP, true);
+	double averagePressureOutOfDomain = GetAverageFieldQuantityAroundValve(outOfDomain_->p, EFieldQuantityBuffer::CURRENT_TIME_STEP, true);
+	double averageDensityOutOfDomain = GetAverageFieldQuantityAroundValve(outOfDomain_->rho, EFieldQuantityBuffer::CURRENT_TIME_STEP, false);
 
 #ifdef _DEBUG
 	if (averagePressureIntoDomain < 0 || averagePressureOutOfDomain < 0 || averageDensityOutOfDomain < 0 )
@@ -280,8 +280,8 @@ void ReedValve::FillBuffer()
 		sinkCellTotalVolume += volSink;
 	}
 
-	double averageUOutside = GetAverageFieldQuantityAroundValve(outOfDomain_->u, CURRENT_TIME_STEP, false);
-	double averageVOutside = GetAverageFieldQuantityAroundValve(outOfDomain_->v, CURRENT_TIME_STEP, false);
+	double averageUOutside = GetAverageFieldQuantityAroundValve(outOfDomain_->u, EFieldQuantityBuffer::CURRENT_TIME_STEP, false);
+	double averageVOutside = GetAverageFieldQuantityAroundValve(outOfDomain_->v, EFieldQuantityBuffer::CURRENT_TIME_STEP, false);
 	
 	for (size_t i = 0; i < sourceTermBuffer_.size(); i++)
 	{
@@ -328,7 +328,7 @@ void ReedValve::SetInitialConditions()
 	// TODO: Right now creates & destroys them every time. Possible optimisation would be to cache them?
 	std::vector<double> forcesOnNodes;
 	std::vector<double> newDeflection; // Name based on florian's code, still need to actually figure out what it means...
-	CalculateForceOnNodesFromPressure(forcesOnNodes, CURRENT_TIME_STEP);
+	CalculateForceOnNodesFromPressure(forcesOnNodes, EFieldQuantityBuffer::CURRENT_TIME_STEP);
 	fem_.SolveCholeskySystem(newDeflection, forcesOnNodes);
 	fem_.UpdatePositions(newDeflection);
 
@@ -420,7 +420,7 @@ void ReedValve::CalculateAerodynamicDamping(std::vector<double> &forceVectorOut)
 
 double ReedValve::FukanariReferenceArea() const
 {
-	if (beamProfile_ != STRAIGHT_DOUBLE_TAPERED)
+	if (beamProfile_ != EBeamProfile::STRAIGHT_DOUBLE_TAPERED)
 	{
 		throw std::logic_error("Fukanari's reference area is only confirmed for straight double tapered reed valves. Maybe the difference is small, but this is for your information. Ignore this message if you know what you're doing.");
 	}

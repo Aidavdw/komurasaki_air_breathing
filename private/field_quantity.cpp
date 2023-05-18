@@ -20,10 +20,10 @@ FieldQuantity::FieldQuantity(Domain* domain, const int sizeX, const int sizeY, c
 	rungeKuttaBuffer = TwoDimensionalArray(sizeX + nGhostCells, sizeY + nGhostCells, initialValue);
 	flux = TwoDimensionalArray(sizeX + nGhostCells, sizeY + nGhostCells, initialValue);
 
-	bufferMap.insert({ CURRENT_TIME_STEP, currentTimeStep });
-	bufferMap.insert({ RUNGE_KUTTA, rungeKuttaBuffer });
-	bufferMap.insert({ NEXT_TIME_STEP, nextTimeStepBuffer });
-	bufferMap.insert({ FLUX, flux });
+	bufferMap.insert({ EFieldQuantityBuffer::CURRENT_TIME_STEP, currentTimeStep });
+	bufferMap.insert({ EFieldQuantityBuffer::RUNGE_KUTTA, rungeKuttaBuffer });
+	bufferMap.insert({ EFieldQuantityBuffer::NEXT_TIME_STEP, nextTimeStepBuffer });
+	bufferMap.insert({ EFieldQuantityBuffer::FLUX, flux });
 }
 
 void FieldQuantity::SetAllToValue(const double value, const EFieldQuantityBuffer bufferToWriteTo)

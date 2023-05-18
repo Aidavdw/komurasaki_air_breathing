@@ -100,13 +100,13 @@ void InitialiseDomainFromChapmanJougetDetonationSolution(Domain* domain, const C
         
         for (int yIndex = 0; yIndex < domain->size[1]; yIndex++)
         {
-            domain->rho.SetAllToValue(cellValues.rho, CURRENT_TIME_STEP);
-            domain->u.SetAllToValue(cellValues.u, CURRENT_TIME_STEP);
-            domain->v.SetAllToValue(cellValues.v, CURRENT_TIME_STEP);
-            domain->p.SetAllToValue(cellValues.p, CURRENT_TIME_STEP);
-            domain->E.SetAllToValue(cellValues.E, CURRENT_TIME_STEP);
-            domain->T.SetAllToValue(cellValues.T, CURRENT_TIME_STEP);
-            domain->E.SetAllToValue(cellValues.E, CURRENT_TIME_STEP);
+            domain->rho.SetAllToValue(cellValues.rho, EFieldQuantityBuffer::CURRENT_TIME_STEP);
+            domain->u.SetAllToValue(cellValues.u, EFieldQuantityBuffer::CURRENT_TIME_STEP);
+            domain->v.SetAllToValue(cellValues.v, EFieldQuantityBuffer::CURRENT_TIME_STEP);
+            domain->p.SetAllToValue(cellValues.p, EFieldQuantityBuffer::CURRENT_TIME_STEP);
+            domain->E.SetAllToValue(cellValues.E, EFieldQuantityBuffer::CURRENT_TIME_STEP);
+            domain->T.SetAllToValue(cellValues.T, EFieldQuantityBuffer::CURRENT_TIME_STEP);
+            domain->E.SetAllToValue(cellValues.E, EFieldQuantityBuffer::CURRENT_TIME_STEP);
         }
     }
 }

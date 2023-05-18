@@ -55,7 +55,7 @@ void MeshSpacing::FitSpacingToParameters()
 		throw std::logic_error("The spacing type is overconstrained! More parameters need to be left unset.");
 
 	// Early exit if constant spacing, no need to solve stuff.
-	if (spacingType == CONSTANT)
+	if (spacingType == EMeshSpacingType::CONSTANT)
 		return;
 
 	auto meshSpacingType = spacingType;

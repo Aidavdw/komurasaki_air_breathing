@@ -87,7 +87,7 @@ int main()
         for (auto& domainIter : simCase.domains)
         {
             Domain& domain = domainIter.second;
-            domain.CopyFieldQuantitiesToBuffer(NEXT_TIME_STEP, CURRENT_TIME_STEP);
+            domain.CopyFieldQuantitiesToBuffer(EFieldQuantityBuffer::NEXT_TIME_STEP, EFieldQuantityBuffer::CURRENT_TIME_STEP);
         }
 
         // todo: export flow data of domains

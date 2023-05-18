@@ -126,7 +126,7 @@ void FemDeformation::CreateBeamSections()
 			// Handling how the free element is created based on the selected profile.
 			switch (beamProfile_)
 			{
-			case STRAIGHT_DOUBLE_TAPERED:
+			case EBeamProfile::STRAIGHT_DOUBLE_TAPERED:
 				rightWidth = rootWidth + (tipWidth - rootWidth)*ratioCovered;
 				rightThickness = rootThickness + (tipThickness - rootThickness)*ratioCovered;
 				break;

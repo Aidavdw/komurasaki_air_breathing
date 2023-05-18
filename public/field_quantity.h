@@ -8,7 +8,7 @@
 struct Position;
 class Domain;
 
-enum EFieldQuantityBuffer
+enum class EFieldQuantityBuffer
 {
 	CURRENT_TIME_STEP,			// The field that physically represents the value
 	RUNGE_KUTTA,				// to be used for runge kutta iteration. A temporary buffer.

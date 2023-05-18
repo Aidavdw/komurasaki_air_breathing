@@ -18,7 +18,7 @@ void SimCase::InsertValve(const IValve& valve)
 	valves.back().OnRegister();
 }
 
-Domain* SimCase::AddDomain(const int id, const std::string name, const Position& position, const std::pair<double, double> sizeArg, const std::pair<int,int> amountOfCellsArg, const std::pair<MeshSpacing, MeshSpacing> meshSpacingArg, const EInitialisationMethod initialisationMethod, const int ghostCellDepth)
+Domain* SimCase::AddDomain(const int id, const std::string name, const Position& position, const std::pair<double, double> sizeArg, const std::pair<MeshSpacing, MeshSpacing> meshSpacingArg, const EInitialisationMethod initialisationMethod, const int ghostCellDepth)
 {
 	// Ensure it doesn't have the same name or id
 	if (domainIDS.count(name) > 0)
@@ -33,7 +33,7 @@ Domain* SimCase::AddDomain(const int id, const std::string name, const Position&
 	
 	
 	//todo: switch this to an emplace constructor so that it doesn't have to be copied over
-	auto newDomain = Domain(name, this, position, sizeArg, amountOfCellsArg, meshSpacingArg, initialisationMethod, ghostCellDepth);
+	auto newDomain = Domain(name, this, position, sizeArg, meshSpacingArg, initialisationMethod, ghostCellDepth);
 	auto it = domains.insert({id, newDomain});
 	domainIDS.insert({ name, id });
 	return &it.first->second;

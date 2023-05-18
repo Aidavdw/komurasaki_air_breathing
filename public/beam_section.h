@@ -2,7 +2,7 @@
 #include <utility>
 
 // Describes what the beam looks like; is it straight? is it double tapered?
-enum EBeamProfile
+enum class EBeamProfile
 {
 	STRAIGHT_DOUBLE_TAPERED // Has variable width (b) and variable thickness/height (h). Is exactly straight.
 };

@@ -8,7 +8,7 @@
 #include "flux_splitting.h"
 
 
-Domain::Domain(const std::string& name, SimCase* simCase, const Position& position, const std::pair<double, double> sizeArg, const std::pair<int,int> amountOfCellsArg, const std::pair<MeshSpacing, MeshSpacing> meshSpacingArg, const EInitialisationMethod initialisationMethod, const int ghostCellDepth) :
+Domain::Domain(const std::string& name, SimCase* simCase, const Position& position, const std::pair<double, double> sizeArg, const std::pair<MeshSpacing, MeshSpacing> meshSpacingArg, const EInitialisationMethod initialisationMethod, const int ghostCellDepth) :
 	name(name),
 	simCase(simCase),
 	initialisationMethod(initialisationMethod),
@@ -18,8 +18,8 @@ Domain::Domain(const std::string& name, SimCase* simCase, const Position& positi
 	// Not a very pretty way to do this, but initialiser lists appear to break when using c style arrays
 	size[0] = sizeArg.first;
 	size[1] = sizeArg.second;
-	amountOfCells[0] = amountOfCellsArg.first;
-	amountOfCells[1] = amountOfCellsArg.second;
+	amountOfCells[0] = meshSpacingArg.first.amountOfElements;
+	amountOfCells[1] = meshSpacingArg.second.amountOfElements;
 
 	// Initialising the field quantities with the given dimension
 	rho = FieldQuantity(this, amountOfCells[0], amountOfCells[1], 0, nGhost);
@@ -317,10 +317,10 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 #endif
 	
 
-	rho.PopulateMUSCLBuffers(RUNGE_KUTTA, solverSettings.MUSCLBias, solverSettings.fluxLimiterType);
-	u.PopulateMUSCLBuffers(RUNGE_KUTTA, solverSettings.MUSCLBias, solverSettings.fluxLimiterType);
-	v.PopulateMUSCLBuffers(RUNGE_KUTTA, solverSettings.MUSCLBias, solverSettings.fluxLimiterType);
-	p.PopulateMUSCLBuffers(RUNGE_KUTTA, solverSettings.MUSCLBias, solverSettings.fluxLimiterType);
+	rho.PopulateMUSCLBuffers(EFieldQuantityBuffer::RUNGE_KUTTA, solverSettings.MUSCLBias, solverSettings.fluxLimiterType);
+	u.PopulateMUSCLBuffers(EFieldQuantityBuffer::RUNGE_KUTTA, solverSettings.MUSCLBias, solverSettings.fluxLimiterType);
+	v.PopulateMUSCLBuffers(EFieldQuantityBuffer::RUNGE_KUTTA, solverSettings.MUSCLBias, solverSettings.fluxLimiterType);
+	p.PopulateMUSCLBuffers(EFieldQuantityBuffer::RUNGE_KUTTA, solverSettings.MUSCLBias, solverSettings.fluxLimiterType);
 
 	// Do flux splitting on all the faces. Use hanel if flow is sonic in either cell, ausm_dv if not.
 	for (int xIdx = 0; xIdx < amountOfCells[0]; xIdx++)

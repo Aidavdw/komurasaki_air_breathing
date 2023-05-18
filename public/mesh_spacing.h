@@ -6,7 +6,7 @@
 class Domain;
 
 
-enum EMeshSpacingType
+enum class EMeshSpacingType
 {
 	CONSTANT, // Ignores everything, just assumes that all the cells are equally sized and distributed over the domain.
 	LINEAR, // Scales the cells linearly from the left to the right. Ignores the centre parameter.
