@@ -29,7 +29,7 @@ struct Position
 	EFace upDirection; // useful for when using rotating reference frames. Determines what is up.
 
 	// Returns the distance between {0,0} and this position (when considering it as a vector).
-	inline double Distance() const;
+	double Distance() const;
 
 	inline double& operator [] (int axis)
 	{

@@ -46,22 +46,7 @@
     <ClCompile Include="private\AuxFunctions.cpp" />
     <ClCompile Include="private\beam_section.cpp" />
     <ClCompile Include="private\boundary.cpp" />
-    <ClCompile Include="private\cell_values_container.cpp" />
-    <ClCompile Include="private\domain.cpp" />
-    <ClCompile Include="private\euler_container.cpp" />
-    <ClCompile Include="private\fem_deformation.cpp" />
-    <ClCompile Include="private\field_quantity.cpp" />
-    <ClCompile Include="private\flux_splitting.cpp" />
-    <ClCompile Include="private\gradient_descent.cpp" />
-    <ClCompile Include="private\index2d.cpp" />
-    <ClCompile Include="private\mesh_spacing.cpp" />
-    <ClCompile Include="private\microwave.cpp" />
-    <ClCompile Include="private\muscl.cpp" />
-    <ClCompile Include="private\pos2d.cpp" />
-    <ClCompile Include="private\reed_valve.cpp" />
-    <ClCompile Include="private\sim_case.cpp" />
-    <ClCompile Include="private\IValve.cpp" />
-    <ClCompile Include="public\case_det_tube.cpp">
+    <ClCompile Include="private\example_cases.cpp">
       <RuntimeLibrary>MultiThreadedDebugDll</RuntimeLibrary>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <Optimization>Disabled</Optimization>
@@ -134,6 +119,21 @@
       <SDLCheck>true</SDLCheck>
       <LinkCompiled>true</LinkCompiled>
     </ClCompile>
+    <ClCompile Include="private\cell_values_container.cpp" />
+    <ClCompile Include="private\domain.cpp" />
+    <ClCompile Include="private\euler_container.cpp" />
+    <ClCompile Include="private\fem_deformation.cpp" />
+    <ClCompile Include="private\field_quantity.cpp" />
+    <ClCompile Include="private\flux_splitting.cpp" />
+    <ClCompile Include="private\gradient_descent.cpp" />
+    <ClCompile Include="private\index2d.cpp" />
+    <ClCompile Include="private\mesh_spacing.cpp" />
+    <ClCompile Include="private\microwave.cpp" />
+    <ClCompile Include="private\muscl.cpp" />
+    <ClCompile Include="private\pos2d.cpp" />
+    <ClCompile Include="private\reed_valve.cpp" />
+    <ClCompile Include="private\sim_case.cpp" />
+    <ClCompile Include="private\IValve.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="public\flux_splitting.h" />

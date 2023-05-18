@@ -6,7 +6,7 @@
 #include <iostream>
 
 #include "sim_case.h"
-#include "case_det_tube.cpp" // Temporary hard-code of specific case implementation
+#include "example_cases.h" // Temporary hard-code of specific case implementation
 #include <chrono>
 #include "reed_valve.h"
 

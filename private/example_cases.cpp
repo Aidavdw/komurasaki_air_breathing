@@ -1,8 +1,8 @@
-// This file defines the case for a det_tube
+#include "example_cases.h"
 #include "domain.h"
 #include "sim_case.h"
 
-
+// Thisdefines the case for a det_tube
 void LoadExampleCaseWithoutReedValves(SimCase* simCase) {
 	// Reed valve settings
 	//simCase->reed_valve_total_length = L_V + L_FIX;

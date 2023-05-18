@@ -1,6 +1,8 @@
 ﻿#include "AuxFunctions.h"
 #include <cassert>
 
+#include "pos2d.h"
+
 
 bool IsCloseToZero(const double x, const double tolerance)
 {
