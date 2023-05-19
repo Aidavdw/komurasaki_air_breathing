@@ -501,12 +501,10 @@ void Domain::CacheCellSizes()
 {
 	// Apologies if this function is a little hard to wrap your head around, but this saves a lot of performance pain and repeated code.
 	// Since the different axis are independent of eachother, they can be determined individually first. Then, it can be saved for the entire thing.
-	std::vector<double> lengths[2];
-	lengths[0] = std::vector<double>(amountOfCells[0], 0);
-	lengths[1] = std::vector<double>(amountOfCells[1], 0);
-	std::vector<double> centerPositions[2];
-	centerPositions[0] = std::vector<double>(amountOfCells[0], 0);
-	centerPositions[1] = std::vector<double>(amountOfCells[1], 0);
+	cellLengths[0] = std::vector<double>(amountOfCells[0], 0);
+	cellLengths[1] = std::vector<double>(amountOfCells[1], 0);
+	localCellCenterPositions[0] = std::vector<double>(amountOfCells[0], 0);
+	localCellCenterPositions[1] = std::vector<double>(amountOfCells[1], 0);
 	// do it for both axes, which are iterates as meshSpacing[axis]
 	for (int axis = 0; axis < 2; axis++)
 	{
@@ -528,23 +526,10 @@ void Domain::CacheCellSizes()
 				throw std::logic_error("Populating domain dimensions is not implemented for this mesh spacing type.");
 			}
 			
-			lengths[axis][i] = cellLength;
+			cellLengths[axis][i] = cellLength;
 			// Note that centerPositions[i-1] cannot be used here, because this stores the center positions. On top of it, it would not be defined for the first iteration.
-			centerPositions[axis][i] = previousPosition + 0.5 * cellLength;
+			localCellCenterPositions[axis][i] = previousPosition + 0.5 * cellLength;
 			previousPosition += cellLength;
-		}
-	}
-
-	// Set the x-spacing for all y cells with this x coordinate (and vice versa) as they are independent!
-	for (int xIdx = 0; xIdx < size[0]; xIdx++)
-	{
-		for (int yIdx = 0; yIdx < size[1]; yIdx++)
-		{
-			// LEFT OFF DEBUGGING HERE: need to add ghost cells to 2DArray, and also set cell sizes as constant for 
-			cellLengths[0].at(xIdx) = lengths[0].at(xIdx);
-			cellLengths[1].at(xIdx) = lengths[1].at(yIdx);
-			localCellCenterPositions[0].at(xIdx) = centerPositions[0].at(xIdx);
-			localCellCenterPositions[1].at(yIdx) = centerPositions[1].at(yIdx);
 		}
 	}
 }
