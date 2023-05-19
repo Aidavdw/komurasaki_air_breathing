@@ -32,7 +32,8 @@ try // Easy way to display exceptions.
     //std::cout << "Field properties will be exported every " << simCase.runtimeParameters.numberOfIterationsBetweenDataExport << "timesteps (" << simCase.runtimeParameters.numberOfIterationsBetweenDataExport * DT*1000 <<"ms)." << std::endl;
     
     /* INITIAL CONDITIONS ON DOMAINS */
-    simCase.ApplyInitialConditionsToDomains();
+    simCase.ApplyInitialConditionsToDomainsAndValves();
+    
     std::cout << "Initial conditions applied." << std::endl;
     
     std::cout << "Starting time loop." << std::endl;
@@ -84,6 +85,8 @@ try // Easy way to display exceptions.
             {
                 valve.EmptyBuffer();
             }
+
+            // todo: Put nextTimeStep buffer values into RungeKutta buffer.
         } /* END OF THE RUNGE-KUTTA LOOP */
         
         // Take the 'next time step' solution of the last runge-kutta iteration as the solution for the new time step.

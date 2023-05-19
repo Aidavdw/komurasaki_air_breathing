@@ -71,7 +71,7 @@ public:
 
 	//todo: add proxy inserter for (reed) valves so that it doesn't need to be constructed so awkwardly.
 
-	void ApplyInitialConditionsToDomains();
+	void ApplyInitialConditionsToDomainsAndValves();
 
 };
 

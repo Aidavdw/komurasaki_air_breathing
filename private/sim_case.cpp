@@ -80,7 +80,7 @@ void SimCase::ConnectBoundaries(const std::string domainOneName, const EFace dom
 	ConnectBoundaries(domainOneIdx, domainOneLocation, domainTwoIdx, domainTwoLocation);
 }
 
-void SimCase::ApplyInitialConditionsToDomains()
+void SimCase::ApplyInitialConditionsToDomainsAndValves()
 {
 	// Setting the initial values for all the cells in the domains.
 	for (auto& domainIter : domains)
