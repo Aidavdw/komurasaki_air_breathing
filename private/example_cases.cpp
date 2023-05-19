@@ -38,6 +38,6 @@ void LoadExampleCaseWithoutReedValves(SimCase* simCase) {
 	ambient->SetBoundaryType(EFace::BOTTOM, EBoundaryCondition::SLIP);
 
 	// Alternative way: simCase->ConnectBoundaries(1, EBoundaryLocation::RIGHT, 2, EBoundaryLocation::LEFT);
-	simCase->ConnectBoundaries("Tube", EFace::RIGHT, "Ambient", EFace::LEFT);
+	simCase->ConnectBoundaries("Tube", EFace::RIGHT, "ambient", EFace::LEFT);
 }
 
