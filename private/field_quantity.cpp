@@ -109,7 +109,7 @@ double& FieldQuantity::operator()(const int xIdx, const int yIdx, const EFieldQu
 #endif
 		
 	auto& buf = bufferMap.at(buffer);
-	return buf[GetFlattenedIndex(xIdx, yIdx)];
+	return buf(xIdx, yIdx);
 }
 
 inline int FieldQuantity::GetFlattenedIndex(const int xIdx, const int yIdx) const

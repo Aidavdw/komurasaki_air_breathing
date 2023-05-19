@@ -14,6 +14,8 @@ public:
 	int nX = 0; // Amount of fields in the x-direction, not counting ghost cells.
 	int nY = 0; // Amount of fields in the y-direction, not counting ghost cells.
 
+	//todo: TwoDimensionalArray needs to be made aware of its ghostcells.
+
 	// Sets all the values in the field to this value.
 	void SetAllToValue(const double value);
 
@@ -66,12 +68,6 @@ public:
 	inline double GetAt(const CellIndex& cellIndex) const
 	{
 		return data[(cellIndex.x)+((cellIndex.y)*nX)];
-	}
-
-	// operator overloaded accessor
-	inline double& operator [] (int flattenedIndex)
-	{
-		return data[flattenedIndex];
 	}
 
 private:

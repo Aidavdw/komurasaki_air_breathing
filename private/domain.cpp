@@ -315,7 +315,8 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 	if (E.flux.IsFilledWithZeroes())
 		throw std::logic_error("E delta buffer is non-empty");
 #endif
-	
+
+	//todo: investigate how this works if the cells are not equally sized; how does accumulation work in the ghost cells?
 
 	rho.PopulateMUSCLBuffers(EFieldQuantityBuffer::RUNGE_KUTTA, solverSettings.MUSCLBias, solverSettings.fluxLimiterType);
 	u.PopulateMUSCLBuffers(EFieldQuantityBuffer::RUNGE_KUTTA, solverSettings.MUSCLBias, solverSettings.fluxLimiterType);
@@ -536,11 +537,11 @@ void Domain::CacheCellSizes()
 	}
 
 	// Set the x-spacing for all y cells with this x coordinate (and vice versa) as they are independent!
-	//int otherAxis = (axis == 0) ? 1 : 0;
 	for (int xIdx = 0; xIdx < size[0]; xIdx++)
 	{
 		for (int yIdx = 0; yIdx < size[1]; yIdx++)
 		{
+			// LEFT OFF DEBUGGING HERE: need to add ghost cells to 2darray, and also set cell sizes as constant for 
 			cellLengths[0](xIdx,yIdx) = lengths[0].at(xIdx);
 			cellLengths[1](xIdx,yIdx) = lengths[1].at(yIdx);
 			localCellCenterPositions[0].at(xIdx) = centerPositions[0].at(xIdx);
