@@ -38,7 +38,7 @@ public:
 	FieldQuantity T;							// Temperature
 	FieldQuantity H;							// enthalpy ?
 
-	TwoDimensionalArray cellLengths[2];					// The length of each cell. todo: make into vector<double>
+	std::vector<double> cellLengths[2];					// The length of each cell.
 	std::vector<double> localCellCenterPositions[2];		// The location of the cell relative to where the domain is anchored. To get global position, add with Domain.position.
 
 	// returns the cell indices that this position is in.

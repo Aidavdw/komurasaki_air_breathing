@@ -22,6 +22,7 @@ int main()
     SimCase simCase(2, 0.01);
     LoadExampleCaseWithoutReedValves(&simCase);
 
+
     /* DISPLAY INFORMATION ON TERMINAL */
     auto timeAtStartOfCalculations = std::chrono::system_clock::now();
     std::cout << "Total length of the simulation is " << simCase.simulationDuration << "s, with dt = " << simCase.dt/1000 << " ms (" << simCase.totalSimulationTimeStepCount << " steps)." << std::endl;

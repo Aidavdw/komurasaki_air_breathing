@@ -208,8 +208,8 @@ std::pair<double, double> Domain::GetCellSizes(const CellIndex cellPos) const
 
 double Domain::GetCellVolume(const CellIndex cix) const
 {
-	double cellDX = cellLengths[0].GetAt(cix);
-	double cellDR = cellLengths[1].GetAt(cix);
+	double cellDX = cellLengths[0].at(cix.x);
+	double cellDR = cellLengths[1].at(cix.y);
 	double cellR = localCellCenterPositions[1].at(cix.y);
 	double rInner = cellR - 0.5*cellDR;
 	double rOuter = cellR + 0.5*cellDR;
@@ -528,7 +528,6 @@ void Domain::CacheCellSizes()
 				throw std::logic_error("Populating domain dimensions is not implemented for this mesh spacing type.");
 			}
 			
-
 			lengths[axis][i] = cellLength;
 			// Note that centerPositions[i-1] cannot be used here, because this stores the center positions. On top of it, it would not be defined for the first iteration.
 			centerPositions[axis][i] = previousPosition + 0.5 * cellLength;
@@ -541,9 +540,9 @@ void Domain::CacheCellSizes()
 	{
 		for (int yIdx = 0; yIdx < size[1]; yIdx++)
 		{
-			// LEFT OFF DEBUGGING HERE: need to add ghost cells to 2darray, and also set cell sizes as constant for 
-			cellLengths[0](xIdx,yIdx) = lengths[0].at(xIdx);
-			cellLengths[1](xIdx,yIdx) = lengths[1].at(yIdx);
+			// LEFT OFF DEBUGGING HERE: need to add ghost cells to 2DArray, and also set cell sizes as constant for 
+			cellLengths[0].at(xIdx) = lengths[0].at(xIdx);
+			cellLengths[1].at(xIdx) = lengths[1].at(yIdx);
 			localCellCenterPositions[0].at(xIdx) = centerPositions[0].at(xIdx);
 			localCellCenterPositions[1].at(yIdx) = centerPositions[1].at(yIdx);
 		}

@@ -289,7 +289,7 @@ void ReedValve::FillBuffer()
 		{
 			const CellIndex& cix = sourceCellsIndices_.at(i);
 			double normalisedMassFlowRate = totalMassFlowRate * sourceCellVolumes.at(i) / sourceCellTotalVolume; // normalised mass flow rate
-			const double cellDx = intoDomain_->cellLengths[0].GetAt(cix);
+			const double cellDx = intoDomain_->cellLengths[0].at(cix.x);
 			const double cellR = intoDomain_->localCellCenterPositions[1].at(cix.y);
 			double outerSurfaceArea = (2.0*M_PI*cellR*cellDx);
 			double volumeFlowRate = normalisedMassFlowRate/averageDensityOutOfDomain/outerSurfaceArea;
@@ -304,7 +304,7 @@ void ReedValve::FillBuffer()
 		{
 			const CellIndex& cix = sinkCellsIndices_.at(i);
 			double normalisedMassFlowRate = totalMassFlowRate * sinkCellVolumes.at(i) / sinkCellTotalVolume; // normalised mass flow rate
-			const double cellDx = intoDomain_->cellLengths[0].GetAt(cix);
+			const double cellDx = intoDomain_->cellLengths[0].at(cix.x);
 			const double cellR = intoDomain_->localCellCenterPositions[1].at(cix.y);
 			double outerSurfaceArea = (2.0*M_PI*cellR*cellDx);
 			double volumeFlowRate = normalisedMassFlowRate/averageDensityOutOfDomain/outerSurfaceArea;
