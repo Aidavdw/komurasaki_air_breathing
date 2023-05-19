@@ -9,12 +9,11 @@ class TwoDimensionalArray
 public:
 	TwoDimensionalArray() = default;
 
-	TwoDimensionalArray(const int sizeX, const int sizeY, const double initialValue = 0);
+	TwoDimensionalArray(const int sizeX, const int sizeY, const int nGhostCells, const double initialValue = 0);
 
 	int nX = 0; // Amount of fields in the x-direction, not counting ghost cells.
 	int nY = 0; // Amount of fields in the y-direction, not counting ghost cells.
-
-	//todo: TwoDimensionalArray needs to be made aware of its ghostcells.
+	int nGhostCells = 0; // The amount of ghostCells in this two-dimensional array. If zero, considered as just a 2d array.
 
 	// Sets all the values in the field to this value.
 	void SetAllToValue(const double value);
@@ -40,37 +39,23 @@ public:
 
 
 	/* Getters for index */
+	//todo: replace by CellIndex
 	std::pair<int, int> GetIndexFromIndexOnBoundary(const EFace boundary, const int indexOnBoundary) const;
+	
+	// todo: check for the overhead of calling this with two numbers. Might be that the compiler doesnt pick up on it, and that [][] is actually faster.
+	/* operator () overloads for get/setter: with pair of ints, cellIndex, and a special one for accessing ghostCells. */
+	inline double& operator () (const int xIdx, const int yIdx)							{ return data_[(xIdx + nGhostCells) + ((yIdx + 2*nGhostCells) * nX)]; }
+	inline double& operator () (const CellIndex& cellIndex)								{ return operator()(cellIndex.x, cellIndex.y); }
+	inline double& GetReferenceIncludingGhostCells(const int xIdx, const int yIdx)		{ return data_[(xIdx) + ((yIdx) * nX)]; }
+	inline double& GetReferenceIncludingGhostCells(const CellIndex& cellIndex)			{ return GetReferenceIncludingGhostCells(cellIndex.x, cellIndex.y); }
 
-	/* Getters for actual values */
-
-	// operator overloaded accessor. This can be used for setting values.
-	inline double& operator () (int xIdx, int yIdx)
-	{
-		// todo: check for the overhead of calling this with two numbers. Might be that the compiler doesnt pick up on it, and that [][] is actually faster.
-		return data[(xIdx) + ((yIdx) * nX)];
-	}
-
-	// operator overloaded accessor. This can be used for setting values.
-	inline double& operator () (const CellIndex& cellIndex)
-	{
-		// todo: check for the overhead of calling this with two numbers. Might be that the compiler doesnt pick up on it, and that [][] is actually faster.
-		return data[(cellIndex.x)+((cellIndex.y)*nX)];
-	}
-
-	// const operator overloaded getter. Note that does does not allow setting.
-	inline double GetAt(int xIdx, int yIdx) const
-	{
-		return data[(xIdx)+((yIdx)*nX)];
-	}
-
-	// const operator overloaded getter. Note that does does not allow setting.
-	inline double GetAt(const CellIndex& cellIndex) const
-	{
-		return data[(cellIndex.x)+((cellIndex.y)*nX)];
-	}
+	/* operator () overloads for const getter: with pair of ints, cellIndex, and a special one for accessing ghostCells. */
+	inline double GetAt(const int xIdx, const int yIdx) const					{ return data_[(xIdx + nGhostCells) + ((yIdx + 2*nGhostCells) * nX)]; }
+	inline double GetAt(const CellIndex& cellIndex) const						{ return GetAt(cellIndex.x, cellIndex.y); }
+	inline double GetIncludingGhostCells(const int xIdx, const int yIdx) const	{ return data_[(xIdx) + ((yIdx) * nX)]; }
+	inline double GetIncludingGhostCells(const CellIndex& cellIndex) const		{ return GetIncludingGhostCells(cellIndex.x, cellIndex.y); }
 
 private:
-	std::vector<double> data;				// The actual value of this field quantity. Access using (), don't manually index!
+	std::vector<double> data_;				// The actual value of this field quantity. Access using (), don't manually index!
 };
 

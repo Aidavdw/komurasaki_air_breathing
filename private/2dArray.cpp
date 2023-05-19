@@ -4,27 +4,28 @@
 
 #include "AuxFunctions.h"
 
-TwoDimensionalArray::TwoDimensionalArray(const int sizeX, const int sizeY, const double initialValue) :
+TwoDimensionalArray::TwoDimensionalArray(const int sizeX, const int sizeY, const int nGhostCells, const double initialValue) :
 	nX(sizeX),
-	nY(sizeY)
+	nY(sizeY),
+	nGhostCells(nGhostCells)
 {
-	Resize(sizeX, sizeY, initialValue);
+	Resize(sizeX + 2*nGhostCells, sizeY + 2*nGhostCells, initialValue);
 }
 
 void TwoDimensionalArray::SetAllToValue(const double value)
 {
-	for (double& i : data)
+	for (double& i : data_)
 		i = value;
 }
 
 void TwoDimensionalArray::Resize(const int sizeX, const int sizeY, const double initialValue)
 {
-	data = std::vector<double>((sizeX) * (sizeY), initialValue);
+	data_ = std::vector<double>((sizeX) * (sizeY), initialValue);
 }
 
 TwoDimensionalArray TwoDimensionalArray::Transpose() const
 {
-	auto T = TwoDimensionalArray(nY, nX);
+	auto T = TwoDimensionalArray(nY, nX, nGhostCells);
 
 	for (int xIdx = 0; xIdx < nX; xIdx++)
 	{
@@ -40,7 +41,7 @@ TwoDimensionalArray TwoDimensionalArray::Transpose() const
 bool TwoDimensionalArray::IsFilledWithZeroes() const
 {
 	double sum = 0;
-	for (const auto& val : data)
+	for (const auto& val : data_)
 		sum += val;
 
 	return (sum < 0.001);
@@ -50,7 +51,7 @@ bool TwoDimensionalArray::IsEmpty() const
 {
 	if (nX == 0 || nY == 0)
 		return true;
-	return data.empty();
+	return data_.empty();
 }
 bool TwoDimensionalArray::IsSquare() const
 {
@@ -193,5 +194,5 @@ void TwoDimensionalArray::ElementWiseCopy(const TwoDimensionalArray& from, TwoDi
 	
 	// Needs to be a static function, because it's using the private data variable.
 	for (size_t i = 0; i < (from.nX*from.nY); i++)
-		to.data[i] = from.data[i];
+		to.data_[i] = from.data_[i];
 }

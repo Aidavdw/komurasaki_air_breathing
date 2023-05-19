@@ -224,7 +224,7 @@ void FemDeformation::AssembleNewmarkMatrix(TwoDimensionalArray& R1CholeskyOut, T
 	R3Out.Resize(N_DOF, N_DOF);
 
 	// We will do a cholesky decomposition + transposition on R1, so separate it for now.
-	TwoDimensionalArray R1PreProcessing(N_DOF,N_DOF);
+	TwoDimensionalArray R1PreProcessing(N_DOF,N_DOF, 0);
 	for (int i = 0; i < N_DOF; ++i)
 	{
 		for (int j = 0; j < N_DOF; ++j)
@@ -283,7 +283,7 @@ TwoDimensionalArray FemDeformation::CholeskyDecomposition(const TwoDimensionalAr
 	// This is a variation on the Cholesky-Crout algorithm?
 	//const int activeDegreesOfFreedom = freeNodes * N_DOF_PER_NODE; <- the original thing, but should work like this too.
 	const int activeDegreesOfFreedom = matrix.nX;
-	TwoDimensionalArray out(matrix.nX, matrix.nX);
+	TwoDimensionalArray out(matrix.nX, matrix.nX, 0);
 	for (int i = 0; i < activeDegreesOfFreedom; ++i)
 	{
 		out(i,i) = matrix.GetAt(DOFVector[i],DOFVector[i]);

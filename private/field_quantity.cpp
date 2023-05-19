@@ -16,9 +16,9 @@ FieldQuantity::FieldQuantity(Domain* domain, const int sizeX, const int sizeY, c
 	nX_(sizeX),
 	nY_(sizeY)
 {
-	currentTimeStep = TwoDimensionalArray(sizeX + 2 * nGhostCells, sizeY + 2 * nGhostCells, initialValue);
-	rungeKuttaBuffer = TwoDimensionalArray(sizeX + 2 * nGhostCells, sizeY + 2 * nGhostCells, initialValue);
-	flux = TwoDimensionalArray(sizeX + 2 * nGhostCells, sizeY + 2 * nGhostCells, initialValue);
+	currentTimeStep = TwoDimensionalArray(sizeX, sizeY, nGhostCells, initialValue);
+	rungeKuttaBuffer = TwoDimensionalArray(sizeX, sizeY, nGhostCells, initialValue);
+	flux = TwoDimensionalArray(sizeX, sizeY, nGhostCells, initialValue);
 
 	bufferMap.insert({ EFieldQuantityBuffer::CURRENT_TIME_STEP, currentTimeStep });
 	bufferMap.insert({ EFieldQuantityBuffer::RUNGE_KUTTA, rungeKuttaBuffer });
