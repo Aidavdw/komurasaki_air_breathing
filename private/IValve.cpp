@@ -80,21 +80,21 @@ void IValve::AddBufferTermsToSourceCells(const EFieldQuantityBuffer buffer)
 
 #endif
 
-    TwoDimensionalArray& rhom = intoDomain_->rho.bufferMap.at(buffer);
-    TwoDimensionalArray& um = intoDomain_->u.bufferMap.at(buffer);
-    TwoDimensionalArray& vm = intoDomain_->v.bufferMap.at(buffer);
-    TwoDimensionalArray& pm = intoDomain_->p.bufferMap.at(buffer);
-    TwoDimensionalArray& em = intoDomain_->E.bufferMap.at(buffer);
-    TwoDimensionalArray& tm = intoDomain_->T.bufferMap.at(buffer);
-    TwoDimensionalArray& hm = intoDomain_->H.bufferMap.at(buffer);
+    TwoDimensionalArray& rhom = *intoDomain_->rho.bufferMap.at(buffer);
+    TwoDimensionalArray& um = *intoDomain_->u.bufferMap.at(buffer);
+    TwoDimensionalArray& vm = *intoDomain_->v.bufferMap.at(buffer);
+    TwoDimensionalArray& pm = *intoDomain_->p.bufferMap.at(buffer);
+    TwoDimensionalArray& em = *intoDomain_->E.bufferMap.at(buffer);
+    TwoDimensionalArray& tm = *intoDomain_->T.bufferMap.at(buffer);
+    TwoDimensionalArray& hm = *intoDomain_->H.bufferMap.at(buffer);
 
-    TwoDimensionalArray& rhos = intoDomain_->rho.bufferMap.at(buffer);
-    TwoDimensionalArray& us = intoDomain_->u.bufferMap.at(buffer);
-    TwoDimensionalArray& vs = intoDomain_->v.bufferMap.at(buffer);
-    TwoDimensionalArray& ps = intoDomain_->p.bufferMap.at(buffer);
-    TwoDimensionalArray& es = intoDomain_->E.bufferMap.at(buffer);
-    TwoDimensionalArray& ts = intoDomain_->T.bufferMap.at(buffer);
-    TwoDimensionalArray& hs = intoDomain_->H.bufferMap.at(buffer);
+    TwoDimensionalArray& rhos = *intoDomain_->rho.bufferMap.at(buffer);
+    TwoDimensionalArray& us = *intoDomain_->u.bufferMap.at(buffer);
+    TwoDimensionalArray& vs = *intoDomain_->v.bufferMap.at(buffer);
+    TwoDimensionalArray& ps = *intoDomain_->p.bufferMap.at(buffer);
+    TwoDimensionalArray& es = *intoDomain_->E.bufferMap.at(buffer);
+    TwoDimensionalArray& ts = *intoDomain_->T.bufferMap.at(buffer);
+    TwoDimensionalArray& hs = *intoDomain_->H.bufferMap.at(buffer);
     
     for (size_t i = 0; i < sourceCellsIndices_.size(); i++)
     {
@@ -128,12 +128,12 @@ void IValve::AddBufferTermsToSourceCells(const EFieldQuantityBuffer buffer)
             throw std::logic_error("sink term is not initialised.");
 #endif
 
-        rhom(cixSink) = sinkTerms.density;
-        um(cixSink) = sinkTerms.u;
-        vm(cixSink) = sinkTerms.v;
-        pm(cixSink) = sinkTerms.p;
-        em(cixSink) = sinkTerms.e;
-        hm(cixSink) = sinkTerms.h;
+        rhos(cixSink) = sinkTerms.density;
+        us(cixSink) = sinkTerms.u;
+        vs(cixSink) = sinkTerms.v;
+        ps(cixSink) = sinkTerms.p;
+        es(cixSink) = sinkTerms.e;
+        hs(cixSink) = sinkTerms.h;
 
         //todo: set temperature based on the other values of state
         tm(cixSink) = 0;

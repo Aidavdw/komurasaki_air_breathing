@@ -55,9 +55,9 @@ void ReedValve::CalculateForceOnNodesFromPressure(std::vector<double>& forceVect
 #ifdef _DEBUG
 	assert(intoDomain_);
 	// Reading from a pressure field, so pressure cannot be 0 (possibly unset)
-	if (intoDomain_->p.bufferMap.at(bufferName).IsFilledWithZeroes())
+	if (intoDomain_->p.bufferMap.at(bufferName)->IsFilledWithZeroes())
 		throw std::logic_error("intoDomain's pressure field is not initialised.");
-	if (outOfDomain_->p.bufferMap.at(bufferName).IsFilledWithZeroes())
+	if (outOfDomain_->p.bufferMap.at(bufferName)->IsFilledWithZeroes())
 		throw std::logic_error("outOfDomain's pressure field is not initialised.");
 #endif
 	
@@ -373,7 +373,7 @@ double ReedValve::GetAverageFieldQuantityAroundValve(const FieldQuantity& fieldQ
 
 	// Determine the total sum of all those cells
 	double totalSum = 0;
-	const TwoDimensionalArray& buffer = fieldQuantity.bufferMap.at(bufferName);
+	const TwoDimensionalArray& buffer = *fieldQuantity.bufferMap.at(bufferName);
 	for (int xIdx = boundingBoxCells[0].x; xIdx < boundingBoxCells[1].x; xIdx++)
 	{
 		for (int yIdx = boundingBoxCells[0].y; yIdx < boundingBoxCells[1].y; yIdx++)
