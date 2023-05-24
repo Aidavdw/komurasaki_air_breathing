@@ -25,7 +25,7 @@
 #include "initial.h"     // Initial conditions suitable for each case
 #include "legacy/muscl.h"       // MUSCL interpolation
 #include "legacy/ausm.h"        // AUSM scheme
-#include "microwave.h"   // Microwave heating and MSD theory
+#include "microwave_orig.h"   // Microwave heating and MSD theory
 #include "legacy/export.h"      // Export functions
 #include "legacy/bound_cond.h"  // Boundary conditions
 #include "legacy/fem_model.h"   // FEM model of the reed valve

@@ -3,7 +3,7 @@ Depending on the case name, initial conditions are specified for all the domains
 */
 
 // This function has been replaced.
-void apply_initial_conditions(char *sim_case, int ndom, int *nx, int *ny, double ***x, double ***rho, double ***u, double ***v, double ***p, double ***E, double ***T, double ***H, int nghost, double m_msd, double p1, double u1, double rho1, double m1, double p2, double rho2, double l_exp, double l_tube, double t0, double p0, double m0, double r, double gamma)
+void apply_initial_conditions(const char *sim_case, const int ndom, const int *nx, const int *ny, const double ***x, double ***rho, double ***u, double ***v, double ***p, double ***E, double ***T, double ***H, const int nghost, double m_msd, double p1, double u1, double rho1, double m1, double p2, double rho2, double l_exp, double l_tube, double t0, double p0, double m0, double r, double gamma)
 {
     /* not used:
     * m_msd
