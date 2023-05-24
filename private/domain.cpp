@@ -372,10 +372,22 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 					rf = CellIndex(xIdx, yIdx - 1);
 
 				// Get the left- and right bound fluxes at the specific face we're considering now.
-				EulerContinuity continuityInNegativeDirection, continuityPositiveDirection;
+				EulerContinuity continuityInNegativeDirection;
 				const EFace anti = Opposite(face);
-				continuityInNegativeDirection = EulerContinuity(rho.MUSCLBuffer[anti].GetAt(rf), u.MUSCLBuffer[anti].GetAt(rf), v.MUSCLBuffer[anti].GetAt(rf), eLeft, hLeft, p.MUSCLBuffer[anti].GetAt(rf));
-				continuityPositiveDirection = EulerContinuity(rho.MUSCLBuffer[face].GetAt(rf), u.MUSCLBuffer[face].GetAt(rf), v.MUSCLBuffer[face].GetAt(rf), eRight, hRight, p.MUSCLBuffer[face].GetAt(rf));
+				continuityInNegativeDirection.density = rho.MUSCLBuffer[anti].GetAt(rf);
+				continuityInNegativeDirection.u = u.MUSCLBuffer[anti].GetAt(rf);
+				continuityInNegativeDirection.v = v.MUSCLBuffer[anti].GetAt(rf);
+				continuityInNegativeDirection.e = eLeft;
+				continuityInNegativeDirection.h = hLeft;
+				continuityInNegativeDirection.p = p.MUSCLBuffer[anti].GetAt(rf);
+				
+				EulerContinuity continuityPositiveDirection;
+				continuityPositiveDirection.density = rho.MUSCLBuffer[face].GetAt(rf);
+				continuityPositiveDirection.u = u.MUSCLBuffer[face].GetAt(rf);
+				continuityPositiveDirection.v = v.MUSCLBuffer[face].GetAt(rf);
+				continuityPositiveDirection.e = eRight;
+				continuityPositiveDirection.h = hLeft;
+				continuityPositiveDirection.p = p.MUSCLBuffer[face].GetAt(rf);
 
 				// Set the flux split for this side (declared above in the array).
 				if (v.MUSCLBuffer[RIGHT].GetAt(rf) > speedOfSound)
