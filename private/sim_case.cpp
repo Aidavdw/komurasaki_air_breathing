@@ -64,7 +64,7 @@ void SimCase::ConnectBoundaries(const int domainOneIdx, const EFace domainOneLoc
 		throw std::invalid_argument("Cannot connect two boundaries that are not the same size.");
 
 	// Can only connect if they have the same resolution
-	if (domains.at(domainOneIdx).amountOfCells[axis1] != domains.at(domainTwoIdx).amountOfCells[axis1])
+	if (domains.at(domainOneIdx).amountOfCells[axis1] != domains.at(domainTwoIdx).amountOfCells[axis2])
 		throw std::invalid_argument("Cannot connect two boundaries that do not have the same amount of cells.");
 
 	b1->boundaryType = EBoundaryCondition::CONNECTED;

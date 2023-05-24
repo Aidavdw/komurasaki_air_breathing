@@ -1,4 +1,7 @@
 #include "microwave.h"
+
+#include <cassert>
+
 #include "domain.h"
 #include <cmath>
 #include <stdexcept>
@@ -22,23 +25,24 @@ ChapmanJougetDetonationSolution SolveChapmanJougetDetonationProblem(const double
 
     double rho0 = pressureAmbient / (idealGasConstant * temperatureAmbient); // Ambient density
     double a0 = sqrt(GAMMA * idealGasConstant * temperatureAmbient); // Ambient speed of sound
-    double Sd = ETA * S0 / (M_PI * RadiusOfCombustionTube * RadiusOfCombustionTube); // Mean power density
-
-    //printf("Microwave surface power density is: %f MW/cm^2.\n",Sd/1.0E6/100.0/100.0);
-    // printf("Ionization velocity is: %f m/s.\n",4190.0*Sd/1.0E6/100.0/100.0-14.9);
-    // Constant factor for Newton-Raphson method
-    const double C = (pow(GAMMA, 2) - 1) / (2 * pow(a0, 3) * rho0) * Sd;
+    double powerDensity = ETA * S0 / (M_PI * RadiusOfCombustionTube * RadiusOfCombustionTube); // Mean power density
+    
+    const double cFactor = (pow(GAMMA, 2) - 1) / (2 * pow(a0, 3) * rho0) * powerDensity; // Constant factor for Newton-Raphson method
 
     double Mcur = 1, Mnext = 0.0;
-    //Mnext = eval_msd_function(1.0,C);
+    Mnext = eval_msd_function(1.0,cFactor);
     int iters_performed = 0;
 
-    while (fabs(Mcur - Mnext) > convergenceThreshold)
+    while (std::abs(Mcur - Mnext) > convergenceThreshold)
     {
         if (iters_performed > MAX_ITERS)
             throw std::runtime_error("Chapman-Jouget detonation took more than the maximum amount of iterations to solve. Are you sure you're doing this right?");
         Mcur = Mnext;
-        Mnext = Mcur - eval_msd_function(Mcur, C) / eval_msd_deriv(Mcur, C);
+        Mnext = Mcur - eval_msd_function(Mcur, cFactor) / eval_msd_deriv(Mcur, cFactor);
+
+#ifdef _DEBUG
+        assert(!std::isnan(Mnext));
+#endif
         iters_performed++;
     }
 
