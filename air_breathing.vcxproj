@@ -39,16 +39,16 @@
     <ClInclude Include="public\reed_valve.h" />
     <ClInclude Include="public\sim_case.h" />
     <ClInclude Include="public\IValve.h" />
-    <ClInclude Include="redundant\legacy\ausm.h" />
-    <ClInclude Include="redundant\legacy\bound_cond.h" />
-    <ClInclude Include="redundant\legacy\colors.h" />
-    <ClInclude Include="redundant\legacy\export.h" />
-    <ClInclude Include="redundant\legacy\fem_model.h" />
-    <ClInclude Include="redundant\legacy\functions.h" />
-    <ClInclude Include="redundant\legacy\initial.h" />
-    <ClInclude Include="redundant\legacy\microwave_orig.h" />
-    <ClInclude Include="redundant\legacy\muscl.h" />
-    <ClInclude Include="redundant\legacy\parameters.h" />
+    <None Include="redundant\legacy\ausm.h" />
+    <None Include="redundant\legacy\bound_cond.h" />
+    <None Include="redundant\legacy\colors.h" />
+    <None Include="redundant\legacy\export.h" />
+    <None Include="redundant\legacy\fem_model.h" />
+    <None Include="redundant\legacy\functions.h" />
+    <None Include="redundant\legacy\initial.h" />
+    <None Include="redundant\legacy\microwave_orig.h" />
+    <None Include="redundant\legacy\muscl.h" />
+    <None Include="redundant\legacy\parameters.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -144,7 +144,7 @@
     <ClCompile Include="private\reed_valve.cpp" />
     <ClCompile Include="private\sim_case.cpp" />
     <ClCompile Include="private\IValve.cpp" />
-    <ClCompile Include="redundant\legacy\old_main.c" />
+    <None Include="redundant\legacy\old_main.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="public\flux_splitting.h" />
