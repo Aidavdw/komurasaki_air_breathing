@@ -19,7 +19,7 @@
 #include <omp.h>        // For multi-processing with Open MP
 #include <sys/stat.h>   // To create directories
 
-#include "colors.h"      // Colors for use in terminal
+#include "legacy/colors.h"      // Colors for use in terminal
 #include "legacy/parameters.h"  // List of parameters specified by user
 #include "legacy/functions.h"   // General functions
 #include "initial.h"     // Initial conditions suitable for each case
@@ -31,8 +31,6 @@
 #include "legacy/fem_model.h"   // FEM model of the reed valve
 
 #include "sim_case.h"
-#include "case_det_tube.cpp" // Temporary hard-code of specific case implementation
-
 
 
 /* MAIN ROUTINE */
