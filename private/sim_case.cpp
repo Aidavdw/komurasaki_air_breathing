@@ -98,6 +98,7 @@ void SimCase::ApplyInitialConditionsToDomainsAndValves()
 				const double tubeLength = domain.size[0];
 				ChapmanJougetDetonationSolution detonationConditions = SolveChapmanJougetDetonationProblem(ambientConditions.temperature, ambientConditions.staticPressure, chapmanJougetInitialConditionParameters.ETA, chapmanJougetInitialConditionParameters.S0, chapmanJougetInitialConditionParameters.idealGasConstant, chapmanJougetInitialConditionParameters.gamma, tubeLength, domain.size[1]);
 				InitialiseDomainFromChapmanJougetDetonationSolution(&domain, detonationConditions, chapmanJougetInitialConditionParameters.gamma);
+				break;
 			}
 		default:
 			throw std::logic_error("The provided type of initialisation method is not (yet) implemented.");

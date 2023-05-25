@@ -115,13 +115,13 @@ void InitialiseDomainFromChapmanJougetDetonationSolution(Domain* domain, const C
             assert(!IsCloseToZero(cellValues.h));
             
 #endif
-            domain->rho.currentTimeStep.SetAllToValue(cellValues.density);
-            domain->u.currentTimeStep.SetAllToValue(cellValues.u);
-            domain->v.currentTimeStep.SetAllToValue(cellValues.v);
-            domain->p.currentTimeStep.SetAllToValue(cellValues.p);
-            domain->E.currentTimeStep.SetAllToValue(cellValues.e);
-            domain->T.currentTimeStep.SetAllToValue(cellValues.t);
-            domain->H.currentTimeStep.SetAllToValue(cellValues.h);
+            domain->rho.currentTimeStep(xIndex, yIndex) = cellValues.density;
+            domain->u.currentTimeStep(xIndex, yIndex) = (cellValues.u);
+            domain->v.currentTimeStep(xIndex, yIndex) = (cellValues.v);
+            domain->p.currentTimeStep(xIndex, yIndex) = (cellValues.p);
+            domain->E.currentTimeStep(xIndex, yIndex) = (cellValues.e);
+            domain->T.currentTimeStep(xIndex, yIndex) = (cellValues.t);
+            domain->H.currentTimeStep(xIndex, yIndex) = (cellValues.h);
         }
     }
 }

@@ -9,7 +9,7 @@ void LoadExampleCaseWithoutReedValves(SimCase* simCase) {
 
 	const double lengthOfTube = 0.5;
 	const double heightOfTube = 0.028;
-	MeshSpacing constantMeshSpacing = MeshSpacing(EMeshSpacingType::CONSTANT, lengthOfTube, 50, 0, 0);
+	MeshSpacing constantMeshSpacing = MeshSpacing(EMeshSpacingType::CONSTANT, lengthOfTube, 5, 0, 0);
 
 	// Domains
 
@@ -29,7 +29,7 @@ void LoadExampleCaseWithoutReedValves(SimCase* simCase) {
 	                                     "ambient",
 	                                     {lengthOfTube/2,heightOfTube/2},
 	                                     {lengthOfTube,heightOfTube},
-	                                     {MeshSpacing(EMeshSpacingType::CONSTANT, lengthOfTube, 50, 0, 0), MeshSpacing(EMeshSpacingType::CONSTANT, lengthOfTube, 50, 0, 0) },
+	                                     {constantMeshSpacing, constantMeshSpacing },
 	                                     EInitialisationMethod::AMBIENT_CONDITIONS,
 	                                     simCase->solverSettings.nGhost
 	);
