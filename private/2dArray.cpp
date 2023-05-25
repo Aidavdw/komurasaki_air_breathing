@@ -1,4 +1,6 @@
 #include "2dArray.h"
+
+#include <assert.h>
 #include <stdexcept>
 #include <cmath>
 
@@ -189,10 +191,10 @@ void TwoDimensionalArray::ElementWiseCopy(const TwoDimensionalArray& from, TwoDi
 	#ifdef _DEBUG
 	if (from.nX != to.nX || from.nY != to.nY)
 		throw std::logic_error("Cannot do element-wise copying between two TwoDimensionalArrays that are not the same size.");
-
+	assert(from.nGhostCells == to.nGhostCells);
 	#endif
 	
 	// Needs to be a static function, because it's using the private data variable.
-	for (size_t i = 0; i < (from.nX*from.nY); i++)
+	for (size_t i = 0; i < ((from.nX+from.nGhostCells)*(from.nY+from.nGhostCells)); i++)
 		to.data_[i] = from.data_[i];
 }
