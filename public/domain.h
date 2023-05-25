@@ -19,6 +19,8 @@ class Domain
 public:
 	Domain(const std::string& name, SimCase* simCase, const Position& position, const std::pair<double, double> sizeArg, const std::pair<MeshSpacing, MeshSpacing> meshSpacingArg, const EInitialisationMethod initialisationMethod, const int ghostCellDepth);
 
+	Domain(const Domain& other); // Copy constructor
+
 	std::string name;
 	SimCase* simCase;
 	EInitialisationMethod initialisationMethod;
