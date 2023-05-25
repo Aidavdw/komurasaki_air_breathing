@@ -97,12 +97,12 @@ void InitialiseDomainFromChapmanJougetDetonationSolution(Domain* domain, const C
     //Todo: Take this parameter out, so that it can also be made standing up.
     const double tubeRadius = domain->size[1]; // For now, assume a laying down tube. 
     // As the solution is 1D, the solution is the same across all the y - coordinates, and is only different for x coordinates. Hence, iterate over the x- coordinates and set it immediately for all y coordinates.
-    for (int xIndex = 0; xIndex < domain->size[0]; xIndex++)
+    for (int xIndex = 0; xIndex < domain->amountOfCells[0]; xIndex++)
     {
         double xPos = domain->localCellCenterPositions[0].at(xIndex);
         EulerContinuity cellValues = sol.FieldPropertiesAtPosition(xPos, gamma, tubeRadius);
         
-        for (int yIndex = 0; yIndex < domain->size[1]; yIndex++)
+        for (int yIndex = 0; yIndex < domain->amountOfCells[1]; yIndex++)
         {
 
 #ifdef _DEBUG
