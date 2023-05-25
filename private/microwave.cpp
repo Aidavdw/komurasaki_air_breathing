@@ -115,13 +115,13 @@ void InitialiseDomainFromChapmanJougetDetonationSolution(Domain* domain, const C
             assert(!IsCloseToZero(cellValues.h));
             
 #endif
-            domain->rho.SetAllToValue(cellValues.density, EFieldQuantityBuffer::CURRENT_TIME_STEP);
-            domain->u.SetAllToValue(cellValues.u, EFieldQuantityBuffer::CURRENT_TIME_STEP);
-            domain->v.SetAllToValue(cellValues.v, EFieldQuantityBuffer::CURRENT_TIME_STEP);
-            domain->p.SetAllToValue(cellValues.p, EFieldQuantityBuffer::CURRENT_TIME_STEP);
-            domain->E.SetAllToValue(cellValues.e, EFieldQuantityBuffer::CURRENT_TIME_STEP);
-            domain->T.SetAllToValue(cellValues.t, EFieldQuantityBuffer::CURRENT_TIME_STEP);
-            domain->H.SetAllToValue(cellValues.h, EFieldQuantityBuffer::CURRENT_TIME_STEP);
+            domain->rho.currentTimeStep.SetAllToValue(cellValues.density);
+            domain->u.currentTimeStep.SetAllToValue(cellValues.u);
+            domain->v.currentTimeStep.SetAllToValue(cellValues.v);
+            domain->p.currentTimeStep.SetAllToValue(cellValues.p);
+            domain->E.currentTimeStep.SetAllToValue(cellValues.e);
+            domain->T.currentTimeStep.SetAllToValue(cellValues.t);
+            domain->H.currentTimeStep.SetAllToValue(cellValues.h);
         }
     }
 }

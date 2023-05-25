@@ -20,43 +20,37 @@ FieldQuantity::FieldQuantity(Domain* domain, const int sizeX, const int sizeY, c
 	rungeKuttaBuffer = TwoDimensionalArray(sizeX, sizeY, nGhostCells, initialValue);
 	nextTimeStepBuffer = TwoDimensionalArray(sizeX, sizeY, nGhostCells, initialValue);
 	flux = TwoDimensionalArray(sizeX, sizeY, nGhostCells, initialValue);
-
-	bufferMap.insert({ EFieldQuantityBuffer::CURRENT_TIME_STEP, &currentTimeStep });
-	bufferMap.insert({ EFieldQuantityBuffer::RUNGE_KUTTA, &rungeKuttaBuffer });
-	bufferMap.insert({ EFieldQuantityBuffer::NEXT_TIME_STEP, &nextTimeStepBuffer });
-	bufferMap.insert({ EFieldQuantityBuffer::FLUX, &flux });
-}
-
-FieldQuantity::FieldQuantity(const FieldQuantity& other) :
-	domain(other.domain),
-	nGhostCells(other.nGhostCells),
-	nX_(other.nX_),
-	nY_(other.nY_)
-{
-	currentTimeStep = other.currentTimeStep;
-	rungeKuttaBuffer = other.rungeKuttaBuffer;
-	nextTimeStepBuffer = other.nextTimeStepBuffer;
-	flux = other.flux;
-
-	for (int i = 0; i < 4; i++)
-		MUSCLBuffer[i] = other.MUSCLBuffer[i];
-
-	bufferMap.insert({ EFieldQuantityBuffer::CURRENT_TIME_STEP, &currentTimeStep });
-	bufferMap.insert({ EFieldQuantityBuffer::RUNGE_KUTTA, &rungeKuttaBuffer });
-	bufferMap.insert({ EFieldQuantityBuffer::NEXT_TIME_STEP, &nextTimeStepBuffer });
-	bufferMap.insert({ EFieldQuantityBuffer::FLUX, &flux });
-}
-
-void FieldQuantity::SetAllToValue(const double value, const EFieldQuantityBuffer bufferToWriteTo)
-{
-	auto* buffer = bufferMap.at(bufferToWriteTo);
-	buffer->SetAllToValue(value);
 }
 
 void FieldQuantity::CopyToBuffer(const EFieldQuantityBuffer from, const EFieldQuantityBuffer to)
 {
-	TwoDimensionalArray::ElementWiseCopy(*bufferMap.at(from), *bufferMap.at(to));
+	TwoDimensionalArray::ElementWiseCopy(Buffer(from), Buffer(to));
 }
+
+TwoDimensionalArray& FieldQuantity::Buffer(const EFieldQuantityBuffer bufferName)
+{
+	switch (bufferName)
+	{
+	case EFieldQuantityBuffer::CURRENT_TIME_STEP: return currentTimeStep;
+	case EFieldQuantityBuffer::RUNGE_KUTTA: return rungeKuttaBuffer;
+	case EFieldQuantityBuffer::NEXT_TIME_STEP: return nextTimeStepBuffer;
+	case EFieldQuantityBuffer::FLUX: return flux;
+	default: throw std::logic_error("Cannot get buffer with this buffer name");
+	}
+}
+
+const TwoDimensionalArray& FieldQuantity::GetAtBufferConst(const EFieldQuantityBuffer bufferName) const
+{
+	switch (bufferName)
+	{
+	case EFieldQuantityBuffer::CURRENT_TIME_STEP: return currentTimeStep;
+	case EFieldQuantityBuffer::RUNGE_KUTTA: return rungeKuttaBuffer;
+	case EFieldQuantityBuffer::NEXT_TIME_STEP: return nextTimeStepBuffer;
+	case EFieldQuantityBuffer::FLUX: return flux;
+	default: throw std::logic_error("Cannot get buffer with this buffer name");
+	}
+}
+
 double FieldQuantity::GetInterpolatedValueAtPosition(const Position& atPosition, const EFieldQuantityBuffer bufferName) const
 {
 	Position distanceFromCellCenter;
@@ -70,7 +64,7 @@ double FieldQuantity::GetInterpolatedValueAtPosition(const Position& atPosition,
 	std::pair<double, double> xInterpolateSize = domain->GetCellSizes(horizontalInterpolateTarget);
 	std::pair<double, double> yInterpolateSize = domain->GetCellSizes(verticalInterpolateTarget);
 
-	const TwoDimensionalArray& buffer = *bufferMap.at(bufferName);
+	const TwoDimensionalArray& buffer = GetAtBufferConst(bufferName);
 	double deltaHorizontal = buffer.GetAt(horizontalInterpolateTarget) + buffer.GetAt(cellIndex) / (0.5*(cellSize.first + xInterpolateSize.first)) - buffer.GetAt(cellIndex);
 	double deltaVertical = buffer.GetAt(verticalInterpolateTarget) + buffer.GetAt(cellIndex) / (0.5*(cellSize.second + yInterpolateSize.second)) - buffer.GetAt(cellIndex);
 	double interpolatedValue = buffer.GetAt(cellIndex) + deltaHorizontal + deltaVertical;
@@ -86,12 +80,12 @@ double FieldQuantity::GetInterpolatedValueAtPosition(const Position& atPosition,
 	return interpolatedValue;
 }
 
-void FieldQuantity::PopulateMUSCLBuffers(const EFieldQuantityBuffer sourceBuffer, double MUSCLBias, const EFluxLimiterType fluxLimiterType)
+void FieldQuantity::PopulateMUSCLBuffers(const EFieldQuantityBuffer sourceBufferName, double MUSCLBias, const EFluxLimiterType fluxLimiterType)
 {
 	if (nGhostCells < 2)
 		throw std::logic_error("Cannot populate MUSCL buffers, as the amount of ghost cells is smaller than two. Because of how MUSCL has been implemented, given that c is at the edge, the sampling at p2 will be done on the ghost cells! This means that there is a soft lower limit of 2 on the amount of ghost cells.");
 	
-	const TwoDimensionalArray& source = *bufferMap.at(sourceBuffer);
+	const TwoDimensionalArray& source = GetAtBufferConst(sourceBufferName);
 	for (int xIdx = 0; xIdx < nX_; ++xIdx)
 	{
 		for (int yIdx = 0; yIdx < nY_; yIdx++)
@@ -129,7 +123,7 @@ double& FieldQuantity::operator()(const int xIdx, const int yIdx, const EFieldQu
 		throw std::logic_error("Cannot access field quantity at index" + c.ToString());
 #endif
 		
-	auto& buf = *bufferMap.at(buffer);
+	auto& buf = Buffer(buffer);
 	return buf(xIdx, yIdx);
 }
 

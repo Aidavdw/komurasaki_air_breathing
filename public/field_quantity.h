@@ -26,11 +26,7 @@ public:
 	{}
 
 	FieldQuantity(Domain* domain, const int sizeX, const int sizeY, const double initialValue = 0., const int nGhostCells=2);
-
-	FieldQuantity(const FieldQuantity& other); // Copy constructor, so that the buffer map doesn't have old pointers.
-
-	// TODO: check if this actually references the desired buffers, and does not make a new copy inline!
-	std::map<EFieldQuantityBuffer, TwoDimensionalArray*> bufferMap;
+	
 	Domain* domain;
 
 	int nGhostCells;
@@ -43,16 +39,18 @@ public:
 	// MUSCL buffers
 	TwoDimensionalArray MUSCLBuffer[4]; // index with EBoundaryLocation.
 
-	// Sets all the values in the field to this value.
-	void SetAllToValue(const double value, const EFieldQuantityBuffer bufferToWriteTo);
-
 	void CopyToBuffer(const EFieldQuantityBuffer from, const EFieldQuantityBuffer to);
+
+	TwoDimensionalArray& Buffer(const EFieldQuantityBuffer bufferName); // Gets read/write from buffer
+	const TwoDimensionalArray& GetAtBufferConst(const EFieldQuantityBuffer bufferName) const; // Gets read/write from buffer
+	
+	
 
 	// Instead of taking considering that the entire volume has one value (lumped parameter estimation), consider that the cell center has the value, and anything outside of that will be linearly interpolated between those cells.
 	double GetInterpolatedValueAtPosition(const Position& atPosition, const EFieldQuantityBuffer bufferName) const;
 
 	// Fills left/right/top/bottomFaceMUSCLBuffer variables from the given source buffer
-	void PopulateMUSCLBuffers(const EFieldQuantityBuffer sourceBuffer, const double MUSCLBias, const EFluxLimiterType fluxLimiterType);
+	void PopulateMUSCLBuffers(const EFieldQuantityBuffer sourceBufferName, const double MUSCLBias, const EFluxLimiterType fluxLimiterType);
 	
 
 	// operator overloaded accessor. Note that this is not the fastest way to set, so if possible do that directly on the 2d arrays level.

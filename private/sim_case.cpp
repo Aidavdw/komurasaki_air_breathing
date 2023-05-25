@@ -33,8 +33,9 @@ Domain* SimCase::AddDomain(const int id, const std::string name, const Position&
 	
 	
 	//todo: switch this to an emplace constructor so that it doesn't have to be copied over
-	auto newDomain = Domain(name, this, position, sizeArg, meshSpacingArg, initialisationMethod, ghostCellDepth);
-	auto it = domains.insert({id, newDomain});
+	//auto newDomain = Domain(name, this, position, sizeArg, meshSpacingArg, initialisationMethod, ghostCellDepth);
+	//auto it = domains.emplace({id, newDomain});
+	auto it = domains.emplace(std::piecewise_construct, std::forward_as_tuple(id), std::forward_as_tuple(name, this, position, sizeArg, meshSpacingArg, initialisationMethod, ghostCellDepth));
 	domainIDS.insert({ name, id });
 	return &it.first->second;
 }

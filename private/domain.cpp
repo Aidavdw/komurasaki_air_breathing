@@ -38,43 +38,6 @@ Domain::Domain(const std::string& name, SimCase* simCase, const Position& positi
 
 }
 
-Domain::Domain(const Domain& other) :
-	name(other.name),
-	simCase(other.simCase),
-	initialisationMethod(other.initialisationMethod),
-	position(other.position),
-	nGhost(other.nGhost)
-{
-	size[0] = other.size[0];
-	size[1] = other.size[1];
-	amountOfCells[0] = other.amountOfCells[0];
-	amountOfCells[1] = other.amountOfCells[1];
-
-	// Initialising the field quantities with the given dimension
-	rho = FieldQuantity(other.rho);
-	u = FieldQuantity(other.u);
-	v = FieldQuantity(other.u);
-	p = FieldQuantity(other.p);
-	E = FieldQuantity(other.E);
-	T = FieldQuantity(other.T);
-	H = FieldQuantity(other.H);
-
-	// The crucial part: change the domain pointers to now actually be *this* domain, not the old domain.
-	// Note that this will break if domain is accessed in the copy constructor
-	rho.domain = this;
-	u.domain = this;
-	v.domain = this;
-	p.domain = this;
-	E.domain = this;
-	T.domain = this;
-	H.domain = this;
-
-	meshSpacing[0] = other.meshSpacing[0];
-	meshSpacing[1] = other.meshSpacing[1];
-
-	CacheCellSizes();
-}
-
 CellIndex Domain::InvertPositionToIndex(const Position pos, Position& distanceFromCenterOut) const
 {
 	CellIndex out;

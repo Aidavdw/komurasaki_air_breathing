@@ -80,21 +80,21 @@ void IValve::AddBufferTermsToSourceCells(const EFieldQuantityBuffer buffer)
 
 #endif
 
-    TwoDimensionalArray& rhom = *intoDomain_->rho.bufferMap.at(buffer);
-    TwoDimensionalArray& um = *intoDomain_->u.bufferMap.at(buffer);
-    TwoDimensionalArray& vm = *intoDomain_->v.bufferMap.at(buffer);
-    TwoDimensionalArray& pm = *intoDomain_->p.bufferMap.at(buffer);
-    TwoDimensionalArray& em = *intoDomain_->E.bufferMap.at(buffer);
-    TwoDimensionalArray& tm = *intoDomain_->T.bufferMap.at(buffer);
-    TwoDimensionalArray& hm = *intoDomain_->H.bufferMap.at(buffer);
+    TwoDimensionalArray& rhom = intoDomain_->rho.Buffer(buffer);
+    TwoDimensionalArray& um = intoDomain_->u.Buffer(buffer);
+    TwoDimensionalArray& vm = intoDomain_->v.Buffer(buffer);
+    TwoDimensionalArray& pm = intoDomain_->p.Buffer(buffer);
+    TwoDimensionalArray& em = intoDomain_->E.Buffer(buffer);
+    TwoDimensionalArray& tm = intoDomain_->T.Buffer(buffer);
+    TwoDimensionalArray& hm = intoDomain_->H.Buffer(buffer);
 
-    TwoDimensionalArray& rhos = *intoDomain_->rho.bufferMap.at(buffer);
-    TwoDimensionalArray& us = *intoDomain_->u.bufferMap.at(buffer);
-    TwoDimensionalArray& vs = *intoDomain_->v.bufferMap.at(buffer);
-    TwoDimensionalArray& ps = *intoDomain_->p.bufferMap.at(buffer);
-    TwoDimensionalArray& es = *intoDomain_->E.bufferMap.at(buffer);
-    TwoDimensionalArray& ts = *intoDomain_->T.bufferMap.at(buffer);
-    TwoDimensionalArray& hs = *intoDomain_->H.bufferMap.at(buffer);
+    TwoDimensionalArray& rhos = intoDomain_->rho.Buffer(buffer);
+    TwoDimensionalArray& us = intoDomain_->u.Buffer(buffer);
+    TwoDimensionalArray& vs = intoDomain_->v.Buffer(buffer);
+    TwoDimensionalArray& ps = intoDomain_->p.Buffer(buffer);
+    TwoDimensionalArray& es = intoDomain_->E.Buffer(buffer);
+    TwoDimensionalArray& ts = intoDomain_->T.Buffer(buffer);
+    TwoDimensionalArray& hs = intoDomain_->H.Buffer(buffer);
     
     for (size_t i = 0; i < sourceCellsIndices_.size(); i++)
     {
