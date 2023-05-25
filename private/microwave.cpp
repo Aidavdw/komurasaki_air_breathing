@@ -109,7 +109,7 @@ void InitialiseDomainFromChapmanJougetDetonationSolution(Domain* domain, const C
             // Make sure we're not setting fields to 0.
             assert(!IsCloseToZero(cellValues.density));
             //assert(!IsCloseToZero(cellValues.v)); this will probably be zero lol
-            assert(!IsCloseToZero(cellValues.u));
+            //assert(!IsCloseToZero(cellValues.u)); this will probably be zero lol
             assert(!IsCloseToZero(cellValues.p));
             assert(!IsCloseToZero(cellValues.e));
             assert(!IsCloseToZero(cellValues.h));

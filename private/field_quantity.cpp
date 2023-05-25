@@ -27,6 +27,26 @@ FieldQuantity::FieldQuantity(Domain* domain, const int sizeX, const int sizeY, c
 	bufferMap.insert({ EFieldQuantityBuffer::FLUX, &flux });
 }
 
+FieldQuantity::FieldQuantity(const FieldQuantity& other) :
+	domain(other.domain),
+	nGhostCells(other.nGhostCells),
+	nX_(other.nX_),
+	nY_(other.nY_)
+{
+	currentTimeStep = other.currentTimeStep;
+	rungeKuttaBuffer = other.rungeKuttaBuffer;
+	nextTimeStepBuffer = other.nextTimeStepBuffer;
+	flux = other.flux;
+
+	for (int i = 0; i < 4; i++)
+		MUSCLBuffer[i] = other.MUSCLBuffer[i];
+
+	bufferMap.insert({ EFieldQuantityBuffer::CURRENT_TIME_STEP, &currentTimeStep });
+	bufferMap.insert({ EFieldQuantityBuffer::RUNGE_KUTTA, &rungeKuttaBuffer });
+	bufferMap.insert({ EFieldQuantityBuffer::NEXT_TIME_STEP, &nextTimeStepBuffer });
+	bufferMap.insert({ EFieldQuantityBuffer::FLUX, &flux });
+}
+
 void FieldQuantity::SetAllToValue(const double value, const EFieldQuantityBuffer bufferToWriteTo)
 {
 	auto* buffer = bufferMap.at(bufferToWriteTo);

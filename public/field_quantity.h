@@ -27,6 +27,8 @@ public:
 
 	FieldQuantity(Domain* domain, const int sizeX, const int sizeY, const double initialValue = 0., const int nGhostCells=2);
 
+	FieldQuantity(const FieldQuantity& other); // Copy constructor, so that the buffer map doesn't have old pointers.
+
 	// TODO: check if this actually references the desired buffers, and does not make a new copy inline!
 	std::map<EFieldQuantityBuffer, TwoDimensionalArray*> bufferMap;
 	Domain* domain;
