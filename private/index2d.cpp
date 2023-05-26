@@ -10,6 +10,17 @@ std::string CellIndex::ToString() const
 CellIndex TransformToOtherCoordinateSystem(const CellIndex& positionInOtherCoordinateSystem,
                                            const CellIndex& fromOrigin, const CellIndex& toOrigin)
 {
+    /*
+    *				    TOP
+    *		 + -- > --- > --- > --- +
+    *	L	 |			|			|	R
+    *	E	/\			\/			\/	I
+    *	F	 | ->				 <- |	G
+    *	T	/\          /\			\/	H
+    *		 |          |			|	T
+    *		 + -- < --- < --- < --- +
+    *				  BOTTOM
+    */	 
         // The order of operations is important here; First de-rotate the original coordinate system
     
      int amountOfCounterClockwiseQuarterRotations; // The amount of counterclockwise rotations that the original coordinate system has to do to align with the new one.
@@ -97,13 +108,13 @@ CellIndex TransformToOtherCoordinateSystem(const CellIndex& positionInOtherCoord
     case 0:
         break;
     case 1:
-        posInLocalDeRotatedReferenceFrame = {positionInOtherCoordinateSystem.y, positionInOtherCoordinateSystem.x};
+        posInLocalDeRotatedReferenceFrame = {-positionInOtherCoordinateSystem.y, positionInOtherCoordinateSystem.x};
         break;
     case 2:
         posInLocalDeRotatedReferenceFrame = {-positionInOtherCoordinateSystem.x, -positionInOtherCoordinateSystem.y};
         break;
     case -1:
-        posInLocalDeRotatedReferenceFrame = {-positionInOtherCoordinateSystem.y, -positionInOtherCoordinateSystem.x};
+        posInLocalDeRotatedReferenceFrame = {positionInOtherCoordinateSystem.y, -positionInOtherCoordinateSystem.x};
         break;
     default:
         throw std::logic_error("Impossible transformation in converting coordinate systems for 2 Pos objects.");

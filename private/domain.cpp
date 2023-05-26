@@ -184,6 +184,18 @@ int Domain::GetTotalAmountOfCells() const
 
 CellIndex Domain::GetOriginIndexOfBoundary(const EFace boundary) const
 {
+	/*
+	*				    TOP
+	*		 + -- > --- > --- > --- +
+	*	L	 |			|			|	R
+	*	E	/\			\/			\/	I
+	*	F	 | ->				 <- |	G
+	*	T	/\          /\			\/	H
+	*		 |          |			|	T
+	*		 + -- < --- < --- < --- +
+	*				  BOTTOM
+	*/
+	
 	switch (boundary)
 	{
 	case BOTTOM:
@@ -558,9 +570,9 @@ void Domain::PopulateSlipConditionGhostCells(const EFace boundary)
 		{
 			// Note that for the ghost cells, the relative location in the reference frame relative to the boundary is negative, and needs to be offset by -1 as well, as 0 is the first positive cell, and not the actual zero-line.
 			const int ghostY = -yLocalIdx-1;
-			const CellIndex ghostInBoundaryLocalReferenceFrame = {xLocalIdx, ghostY, boundary};
+			const CellIndex ghostInBoundaryLocalReferenceFrame = {xLocalIdx, ghostY, Opposite(boundary)};
 			const CellIndex ghostIndex = TransformToOtherCoordinateSystem(ghostInBoundaryLocalReferenceFrame, ghostOrigin, {0,0, TOP} );
-			const CellIndex sourceIndex = TransformToOtherCoordinateSystem({xLocalIdx, yLocalIdx, boundary}, ghostOrigin, {0,0, TOP});
+			const CellIndex sourceIndex = TransformToOtherCoordinateSystem({xLocalIdx, yLocalIdx, Opposite(boundary)}, ghostOrigin, {0,0, TOP});
 			
 #ifdef _DEBUG
 			assert(ValidateCellIndex(ghostIndex, true));
@@ -591,9 +603,9 @@ void Domain::PopulateNoSlipConditionGhostCells(const EFace boundary)
 		{
 			// Note that for the ghost cells, the relative location in the reference frame relative to the boundary is negative, and needs to be offset by -1 as well, as 0 is the first positive cell, and not the actual zero-line.
 			const int ghostY = -yLocalIdx-1;
-			const CellIndex ghostInBoundaryLocalReferenceFrame = {xLocalIdx, ghostY, boundary};
+			const CellIndex ghostInBoundaryLocalReferenceFrame = {xLocalIdx, ghostY, Opposite(boundary)};
 			const CellIndex ghostIndex = TransformToOtherCoordinateSystem(ghostInBoundaryLocalReferenceFrame, ghostOrigin, {0,0, TOP} );
-			const CellIndex sourceIndex = TransformToOtherCoordinateSystem({xLocalIdx, yLocalIdx, boundary}, ghostOrigin, {0,0, TOP});
+			const CellIndex sourceIndex = TransformToOtherCoordinateSystem({xLocalIdx, yLocalIdx, Opposite(boundary)}, ghostOrigin, {0,0, TOP});
 			
 #ifdef _DEBUG
 			assert(ValidateCellIndex(ghostIndex, true));

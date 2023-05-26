@@ -28,6 +28,7 @@ struct CellIndex
 	int y;
 	EFace upDirection; // useful for when using rotating reference frames. Determines what is up.
 
+	// Check if actually used?
 	inline int& operator [] (const int axis)
 	{
 		if (axis == 0)
@@ -40,6 +41,12 @@ struct CellIndex
 
 	inline CellIndex operator + (const CellIndex& other) const
 	{
+#ifdef _DEBUG
+		// Ensure that they have the same up-direction
+		if (upDirection != other.upDirection)
+			throw std::logic_error("Cannot add two positions in different coordinate frames using the + operator, you have to explicitly use PlusPositionInOtherCoordinateFrame(). This is to make it easier to catch bugs :)");
+#endif
+		
 		return { x + other.x, y+other.y };
 	}
 
