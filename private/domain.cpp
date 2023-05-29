@@ -142,41 +142,6 @@ void Domain::SetBoundaryType(const EFace location, const EBoundaryCondition type
 	boundaries[location] = Boundary(type);
 }
 
-void Domain::ConnectBoundary(const EFace location, Domain* otherDomain)
-{
-	Boundary& thisBoundary = boundaries.at(location);
-	// Validate the boundary on this domain 
-	if (thisBoundary.boundaryType != EBoundaryCondition::NOT_SET)
-		throw std::logic_error("This boundary has already been assigned another value");
-	if (thisBoundary.connectedBoundary != nullptr)
-		throw std::logic_error("This boundary has already been connected with another one!");
-
-	// Get the boundary on the other domain.
-	// Since we're only working with rectangular domains, a boundary will always connect to its opposite.
-	Boundary& otherBoundary = otherDomain->boundaries.at(Opposite(location));
-
-	// Validate the boundary on the other domain
-	if (otherBoundary.boundaryType != EBoundaryCondition::NOT_SET)
-		throw std::logic_error("This boundary has already been assigned another value");
-	if (otherBoundary.connectedBoundary != nullptr)
-		throw std::logic_error("This boundary has already been connected with another one!");
-
-	// Make sure they're the same size and have the same amount of cells. Although the size is not a numerical necessity, it's still a physical one.
-	const bool bVertical = (location == LEFT || location == RIGHT);
-	if (amountOfCells[bVertical] != otherDomain->amountOfCells[bVertical])
-		throw std::logic_error("Cannot connect two boundaries that have a different number of cells");
-	if (!IsCloseToZero(size[bVertical] - otherDomain->size[bVertical]))
-		throw std::logic_error("Cannot connect two boundaries that have a different physical size. Though numerically admissable, physically impossible.");
-	if (!(meshSpacing[bVertical] == otherDomain->meshSpacing[bVertical]))
-		throw std::logic_error("Cannot connect two boundaries that have a different spacing.");
-	
-	// All good, connect both of them.
-	thisBoundary.boundaryType = EBoundaryCondition::CONNECTED;
-	thisBoundary.connectedBoundary = &otherBoundary;
-	otherBoundary.boundaryType = EBoundaryCondition::CONNECTED;
-	otherBoundary.connectedBoundary = &thisBoundary;
-}
-
 int Domain::GetTotalAmountOfCells() const
 {
 	return amountOfCells[0] * amountOfCells[1];
@@ -666,19 +631,20 @@ void Domain::PopulateConnectedGhostCells(const EFace boundary)
 	 *					 		|	domain reference frame
 	 *					 		+ -- x
 	 */
+	Boundary& boundaryOnThisDomain = boundaries.at(boundary);
 
 	// Validate that this is in fact a connected boundary
-	if (boundaries.at(boundary).boundaryType != EBoundaryCondition::CONNECTED || boundaries.at(boundary).connectedBoundary == nullptr)
+	if (boundaryOnThisDomain.boundaryType != EBoundaryCondition::CONNECTED || boundaryOnThisDomain.connectedBoundary == nullptr)
 		throw std::logic_error("This boundary has not been connected properly.");
 
 #ifdef _DEBUG
 	// Also check the opposite boundary
-	Boundary* otherBoundary = boundaries.at(boundary).connectedBoundary;
-	if (otherBoundary->boundaryType != EBoundaryCondition::CONNECTED || otherBoundary->connectedBoundary != &boundaries.at(boundary))
+	Boundary* otherBoundary = boundaryOnThisDomain.connectedBoundary;
+	if (otherBoundary->boundaryType != EBoundaryCondition::CONNECTED || otherBoundary->connectedBoundary != &boundaryOnThisDomain)
 		throw std::logic_error("The boundary is only properly connected one way!");
 #endif
 
-	const Domain* otherDomain = boundaries.at(boundary).connectedBoundary->domain;
+	const Domain* otherDomain = boundaryOnThisDomain.connectedBoundary->domain;
 	const bool bVertical = (boundary == LEFT || boundary == RIGHT);
 
 #ifdef _DEBUG

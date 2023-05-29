@@ -55,7 +55,6 @@ public:
 	Position PositionAlongBoundaryToCoordinate(const EFace boundary, const double positionAlongBoundary, const double depth) const;
 
 	void SetBoundaryType(const EFace location, const EBoundaryCondition type);
-	void ConnectBoundary(const EFace location, Domain* otherDomain);
 
 	int GetTotalAmountOfCells() const;
 	CellIndex GetOriginIndexOfBoundary(const EFace boundary) const;
