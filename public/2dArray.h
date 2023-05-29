@@ -44,15 +44,15 @@ public:
 	
 	// todo: check for the overhead of calling this with two numbers. Might be that the compiler doesnt pick up on it, and that [][] is actually faster.
 	/* operator () overloads for get/setter: with pair of ints, cellIndex, and a special one for accessing ghostCells. */
-	inline double& operator () (const int xIdx, const int yIdx)							{ return data_[(xIdx + nGhostCells) + ((yIdx + 2*nGhostCells) * nX)]; }
+	inline double& operator () (const int xIdx, const int yIdx)							{ return data_.at((xIdx + nGhostCells) + ((yIdx + 2*nGhostCells) * nX)); }
 	inline double& operator () (const CellIndex& cellIndex)								{ return operator()(cellIndex.x, cellIndex.y); }
-	inline double& GetReferenceIncludingGhostCells(const int xIdx, const int yIdx)		{ return data_[(xIdx) + ((yIdx) * nX)]; }
+	inline double& GetReferenceIncludingGhostCells(const int xIdx, const int yIdx)		{ return data_.at((xIdx) + ((yIdx) * nX)); }
 	inline double& GetReferenceIncludingGhostCells(const CellIndex& cellIndex)			{ return GetReferenceIncludingGhostCells(cellIndex.x, cellIndex.y); }
 
 	/* operator () overloads for const getter: with pair of ints, cellIndex, and a special one for accessing ghostCells. */
-	inline double GetAt(const int xIdx, const int yIdx) const					{ return data_[(xIdx + nGhostCells) + ((yIdx + 2*nGhostCells) * nX)]; }
+	inline double GetAt(const int xIdx, const int yIdx) const					{ return data_.at((xIdx + nGhostCells) + ((yIdx + 2*nGhostCells) * nX)); }
 	inline double GetAt(const CellIndex& cellIndex) const						{ return GetAt(cellIndex.x, cellIndex.y); }
-	inline double GetIncludingGhostCells(const int xIdx, const int yIdx) const	{ return data_[(xIdx) + ((yIdx) * nX)]; }
+	inline double GetIncludingGhostCells(const int xIdx, const int yIdx) const	{ return data_.at((xIdx) + ((yIdx) * nX)); }
 	inline double GetIncludingGhostCells(const CellIndex& cellIndex) const		{ return GetIncludingGhostCells(cellIndex.x, cellIndex.y); }
 
 private:

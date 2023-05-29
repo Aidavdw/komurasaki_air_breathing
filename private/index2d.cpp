@@ -28,10 +28,10 @@ CellIndex TransformToOtherCoordinateSystem(const CellIndex& positionInOtherCoord
     // Not the most elegant way to do this, but doesn't make any assumptions on the layout of the struct in its cpp definition.
     switch (fromOrigin.upDirection)
     {
-    case TOP:
+    case TOP: // original up
         switch (toOrigin.upDirection)
         {
-            case TOP:
+            case TOP: // new one: right
                 amountOfCounterClockwiseQuarterRotations = 0;
                 break;
             case LEFT:
@@ -108,17 +108,18 @@ CellIndex TransformToOtherCoordinateSystem(const CellIndex& positionInOtherCoord
     case 0:
         break;
     case 1:
-        posInLocalDeRotatedReferenceFrame = {-positionInOtherCoordinateSystem.y, positionInOtherCoordinateSystem.x};
+        posInLocalDeRotatedReferenceFrame = {-positionInOtherCoordinateSystem.y, positionInOtherCoordinateSystem.x, toOrigin.upDirection};
         break;
     case 2:
-        posInLocalDeRotatedReferenceFrame = {-positionInOtherCoordinateSystem.x, -positionInOtherCoordinateSystem.y};
+        posInLocalDeRotatedReferenceFrame = {-positionInOtherCoordinateSystem.x, -positionInOtherCoordinateSystem.y, toOrigin.upDirection};
         break;
     case -1:
-        posInLocalDeRotatedReferenceFrame = {positionInOtherCoordinateSystem.y, -positionInOtherCoordinateSystem.x};
+        posInLocalDeRotatedReferenceFrame = {positionInOtherCoordinateSystem.y, -positionInOtherCoordinateSystem.x, toOrigin.upDirection};
         break;
     default:
         throw std::logic_error("Impossible transformation in converting coordinate systems for 2 Pos objects.");
     }
+    
 
-    return fromOrigin + posInLocalDeRotatedReferenceFrame;
+    return toOrigin + posInLocalDeRotatedReferenceFrame;
 }
