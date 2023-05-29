@@ -558,10 +558,29 @@ void Domain::CacheCellSizes()
 	}
 }
 
+// Confirmed to work!
 void Domain::PopulateSlipConditionGhostCells(const EFace boundary)
 {
-	CellIndex ghostOrigin = GetOriginIndexOfBoundary(boundary);
-	auto extent = GetGhostDimensions(boundary);
+	const CellIndex ghostOrigin = GetOriginIndexOfBoundary(boundary);
+	const auto extent = GetGhostDimensions(boundary);
+
+	/* Example of what it looks like on left face; Note that the 'Ghost' reference frame points out, relative to the face it is on.
+	 *								up	/\ 
+	 *		"Domain" reference frame	+ --> X
+	 *			
+	 *	(-2,Y)	(-1,Y)	|	(0,Y)	(1,Y)	(2,Y)
+	 *	(-2,2)	(-1,2)	|	(0,2)	(1,2)	(2,2)	
+	 *	(-2,1)	(-1,1)	|	(0,1)	(1,1)	(2,1)
+	 *	(-2,0)	(-1,0)	|	(0,0)	(1,0)	(2,0)
+	 *
+	 *											/\ X
+	 *		"Ghost" reference frame		up	<--	+ 
+	 *		
+	 *	(2,X)	(1,X)	|	(0,X)	(-1,X)	(-Y,X)
+	 *	(2,2)	(1,2)	|	(0,2)	(-1,2)	(-Y,2)
+	 *	(2,1)	(1,1)	|	(0,1)	(-1,1)	(-Y,1)
+	 *	(2,0)	(1,0)	|	(0,0)	(-1,0)	(-Y,0)
+	 */
 
 	// Generally constant in the local x-direction, so y outer loop.
 	for (int yLocalIdx = 0; yLocalIdx < extent.second; yLocalIdx++)
@@ -569,8 +588,8 @@ void Domain::PopulateSlipConditionGhostCells(const EFace boundary)
 		for (int xLocalIdx = 0; xLocalIdx < extent.first; xLocalIdx++)
 		{
 			const CellIndex ghostCellInGhostReferenceFrame = {xLocalIdx, yLocalIdx + 1, boundary}; // First define it what it is in its local reference frame. Then determine what the corresponding position is relative to the 'origin' of the entire domain. Note that for the ghost cells, the relative location in the reference frame relative to the boundary is negative, and needs to be offset by -1 as well, as 0 is the first positive cell, and not the actual zero-line.
-			const CellIndex ghostIndex = TransformToOtherCoordinateSystem(ghostCellInGhostReferenceFrame, ghostOrigin, {0,0, TOP} );
 			const CellIndex sourceCellInGhostReferenceFrame =  {xLocalIdx, -yLocalIdx, boundary};
+			const CellIndex ghostIndex = TransformToOtherCoordinateSystem(ghostCellInGhostReferenceFrame, ghostOrigin, {0,0, TOP} );
 			const CellIndex sourceIndex = TransformToOtherCoordinateSystem(sourceCellInGhostReferenceFrame, ghostOrigin, {0,0, TOP});
 			
 #ifdef _DEBUG
