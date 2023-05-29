@@ -568,11 +568,10 @@ void Domain::PopulateSlipConditionGhostCells(const EFace boundary)
 	{
 		for (int xLocalIdx = 0; xLocalIdx < extent.first; xLocalIdx++)
 		{
-			// Note that for the ghost cells, the relative location in the reference frame relative to the boundary is negative, and needs to be offset by -1 as well, as 0 is the first positive cell, and not the actual zero-line.
-			const int ghostY = -yLocalIdx-1;
-			const CellIndex ghostInBoundaryLocalReferenceFrame = {xLocalIdx, ghostY, Opposite(boundary)};
-			const CellIndex ghostIndex = TransformToOtherCoordinateSystem(ghostInBoundaryLocalReferenceFrame, ghostOrigin, {0,0, TOP} );
-			const CellIndex sourceIndex = TransformToOtherCoordinateSystem({xLocalIdx, yLocalIdx, Opposite(boundary)}, ghostOrigin, {0,0, TOP});
+			const CellIndex ghostCellInGhostReferenceFrame = {xLocalIdx, yLocalIdx + 1, boundary}; // First define it what it is in its local reference frame. Then determine what the corresponding position is relative to the 'origin' of the entire domain. Note that for the ghost cells, the relative location in the reference frame relative to the boundary is negative, and needs to be offset by -1 as well, as 0 is the first positive cell, and not the actual zero-line.
+			const CellIndex ghostIndex = TransformToOtherCoordinateSystem(ghostCellInGhostReferenceFrame, ghostOrigin, {0,0, TOP} );
+			const CellIndex sourceCellInGhostReferenceFrame =  {xLocalIdx, -yLocalIdx, boundary};
+			const CellIndex sourceIndex = TransformToOtherCoordinateSystem(sourceCellInGhostReferenceFrame, ghostOrigin, {0,0, TOP});
 			
 #ifdef _DEBUG
 			assert(ValidateCellIndex(ghostIndex, true));
