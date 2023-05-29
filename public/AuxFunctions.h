@@ -15,3 +15,5 @@ std::pair<Position, Position> ExtrudeAlongNormal(const Position startPos, const 
 size_t FindIndexLeftOfValueByBisection(const std::vector<double>& field, const double valueToFind);
 
 bool IsCloserToLeftThanToRight(const double valueToFind, const double lValue, const double rValue);
+
+int AmountOfNinetyDegreeRotationsBetweenOrientations(const EFace from, const EFace to);
