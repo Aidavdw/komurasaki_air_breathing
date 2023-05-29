@@ -82,6 +82,9 @@ void SimCase::ConnectBoundaries(const int domainOneIdx, const EFace domainOneLoc
 	b2.boundaryType = EBoundaryCondition::CONNECTED;
 	b1.connectedBoundary = &b2; // Note that these pointers are invalidated upon copying!
 	b2.connectedBoundary = &b1;
+	b1.domain = &domains.at(domainOneIdx); // Note that these pointers are invalidated upon copying!
+	b2.domain = &domains.at(domainTwoIdx);
+	
 }
 
 void SimCase::ConnectBoundaries(const std::string domainOneName, const EFace domainOneLocation, const std::string domainTwoName, const EFace domainTwoLocation)
