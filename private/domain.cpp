@@ -749,6 +749,26 @@ bool Domain::ValidateCellIndex(const CellIndex cellIndex, const bool bAllowGhost
 	return true;
 }
 
+bool Domain::AreAllBoundariesSet() const
+{
+	if (boundaries.size() < 4 || boundaries.size() > 4)
+		return false;
+	for (const auto& it : boundaries)
+	{
+		const Boundary& boundary = it.second;
+		// This could be moved into boundary.h/boundary.cpp
+		if (boundary.boundaryType == EBoundaryCondition::NOT_SET)
+			return false;
+		if (boundary.boundaryType == EBoundaryCondition::CONNECTED)
+		{
+			// Ensure the other one is also set as connected
+			if (boundary.connectedBoundary->boundaryType != EBoundaryCondition::CONNECTED)
+				return false;
+		}
+	}
+	return true;
+}
+
 std::pair<int, int> Domain::GetGhostDimensions(EFace boundary)
 {
 	// Note that these sorta flip the coordinate system!

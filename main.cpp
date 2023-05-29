@@ -24,6 +24,13 @@ try // Easy way to display exceptions.
     SimCase simCase(2, 0.01);
     LoadExampleCaseWithoutReedValves(&simCase);
 
+    // Check if domains are properly initialised
+    for (const auto& domain : simCase.domains)
+    {
+        if (!domain.second.AreAllBoundariesSet())
+            throw std::logic_error("Not all boundaries are set for domain " + domain.second.name);
+    }
+
 
     /* DISPLAY INFORMATION ON TERMINAL */
     auto timeAtStartOfCalculations = std::chrono::system_clock::now();

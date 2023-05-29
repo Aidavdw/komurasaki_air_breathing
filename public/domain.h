@@ -85,6 +85,7 @@ public:
 	void SetNextTimeStepValuesBasedOnRungeKuttaAndDeltaBuffers(const int currentRungeKuttaIter);
 
 	bool ValidateCellIndex(const CellIndex cellIndex, const bool bAllowGhostCells) const;
+	bool AreAllBoundariesSet() const; // Checks if all boundaries are set up
 	
 
 private:

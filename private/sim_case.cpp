@@ -1,4 +1,6 @@
 #include "sim_case.h"
+
+#include <algorithm>
 #include <stdexcept>
 
 #include "IValve.h"
@@ -52,11 +54,14 @@ void SimCase::ConnectBoundaries(const int domainOneIdx, const EFace domainOneLoc
 	{
 		throw std::logic_error("Right now, linking two non-opposite faces has been disabled, as this operation is not fully tested yet");
 	}
+	
+	// Check if they are already set- if so, throw error.
+	if (domains.at(domainOneIdx).boundaries.count(domainOneLocation))
+		throw std::logic_error("Cannot link boundaries, as boundary 1 has already been set.");
+	if (domains.at(domainTwoIdx).boundaries.count(domainTwoLocation))
+		throw std::logic_error("Cannot link boundaries, as boundary 2 has already been set.");
 
 	//todo: add test to see if their positions are aligned in x or y axis depending on face direction to catch more user errors.
-
-	Boundary* b1 = &domains.at(domainOneIdx).boundaries[domainOneLocation];
-	Boundary* b2 = &domains.at(domainTwoIdx).boundaries[domainTwoLocation];
 	const int axis1 = (domainOneLocation == TOP || domainOneLocation == BOTTOM) ? 0 : 1;
 	const int axis2 = (domainTwoLocation == TOP || domainTwoLocation == BOTTOM) ? 0 : 1;
 	
@@ -68,10 +73,15 @@ void SimCase::ConnectBoundaries(const int domainOneIdx, const EFace domainOneLoc
 	if (domains.at(domainOneIdx).amountOfCells[axis1] != domains.at(domainTwoIdx).amountOfCells[axis2])
 		throw std::invalid_argument("Cannot connect two boundaries that do not have the same amount of cells.");
 
-	b1->boundaryType = EBoundaryCondition::CONNECTED;
-	b2->boundaryType = EBoundaryCondition::CONNECTED;
-	b1->connectedBoundary = b2;
-	b2->connectedBoundary = b1;
+	domains.at(domainOneIdx).boundaries[domainOneLocation] = Boundary();
+	auto& b1 = domains.at(domainOneIdx).boundaries.at(domainOneLocation);
+	domains.at(domainTwoIdx).boundaries[domainTwoLocation] = Boundary();
+	auto& b2 = domains.at(domainTwoIdx).boundaries.at(domainTwoLocation);
+
+	b1.boundaryType = EBoundaryCondition::CONNECTED;
+	b2.boundaryType = EBoundaryCondition::CONNECTED;
+	b1.connectedBoundary = &b2; // Note that these pointers are invalidated upon copying!
+	b2.connectedBoundary = &b1;
 }
 
 void SimCase::ConnectBoundaries(const std::string domainOneName, const EFace domainOneLocation, const std::string domainTwoName, const EFace domainTwoLocation)
