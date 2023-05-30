@@ -199,7 +199,7 @@ int AmountOfNinetyDegreeRotationsBetweenOrientations(const EFace from, const EFa
     }
 
 #ifdef _DEBUG
-    if (amountOfCounterClockwiseQuarterRotations < 0 || amountOfCounterClockwiseQuarterRotations > 2)
+    if (amountOfCounterClockwiseQuarterRotations < -1 || amountOfCounterClockwiseQuarterRotations > 2)
         throw std::logic_error("Value uninitialised in AmountOfNinetyDegreeRotationsBetweenOrientations()");
 #endif
 

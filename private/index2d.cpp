@@ -6,7 +6,7 @@
 
 std::string CellIndex::ToString() const
 {
-    return "(x=" + std::to_string(x) + ", y=" + std::to_string(y) + "), up=" + FaceToString(upDirection);
+    return "(x=" + std::to_string(x) + ", y=" + std::to_string(y) + "), up=" + FaceToString(relativeToBoundary);
 }
 
 CellIndex TransformToOtherCoordinateSystem(const CellIndex& positionInOtherCoordinateSystem,
@@ -14,40 +14,32 @@ CellIndex TransformToOtherCoordinateSystem(const CellIndex& positionInOtherCoord
 {
     /*
     *				    TOP
+    *					/\
+    *					|
     *		 + -- > --- > --- > --- +
-    *	L	 |			|			|	R
-    *	E	/\			\/			\/	I
-    *	F	 | ->				 <- |	G
-    *	T	/\          /\			\/	H
-    *		 |          |			|	T
-    *		 + -- < --- < --- < --- +
+    *	L	 |			 			|		R
+    *	E	/\			 			/\		I
+    *	F	 | ->					|  ->	G
+    *	T	/\          /\			/\		H
+    *		 |          |			|		T
+    *		 + -- > --- > --- > --- +
     *				  BOTTOM
-    */	 
+    */
         // The order of operations is important here; First de-rotate the original coordinate system
 
-    // Express the position as what it would be if the other coordinate system was oriented in the same direction as the target one.
-    // In essence, this is doing an inverse rotation in local space.
-    CellIndex posInLocalDeRotatedReferenceFrame;
-     const int amountOfCounterClockwiseQuarterRotations = AmountOfNinetyDegreeRotationsBetweenOrientations(fromOrigin.upDirection, toOrigin.upDirection); // The amount of counterclockwise rotations that the original coordinate system has to do to align with the new one.
-
-    // Now that the rotation required is set, apply it
-    switch (amountOfCounterClockwiseQuarterRotations)
-    {
-    case 0:
-        break;
-    case 1:
-        posInLocalDeRotatedReferenceFrame = {-positionInOtherCoordinateSystem.y, positionInOtherCoordinateSystem.x, toOrigin.upDirection};
-        break;
-    case 2:
-        posInLocalDeRotatedReferenceFrame = {-positionInOtherCoordinateSystem.x, -positionInOtherCoordinateSystem.y, toOrigin.upDirection};
-        break;
-    case -1:
-        posInLocalDeRotatedReferenceFrame = {positionInOtherCoordinateSystem.y, -positionInOtherCoordinateSystem.x, toOrigin.upDirection};
-        break;
-    default:
-        throw std::logic_error("Impossible transformation in converting coordinate systems for 2 Pos objects.");
-    }
+#ifdef _DEBUG
+    if (fromOrigin.relativeToBoundary != positionInOtherCoordinateSystem.relativeToBoundary)
+        throw std::logic_error("positionInOtherCoordinate system must have the same orientation as FromOrigin!");
+#endif
     
-
-    return toOrigin + posInLocalDeRotatedReferenceFrame;
+    const bool bSameAxis = (fromOrigin.relativeToBoundary == toOrigin.relativeToBoundary || fromOrigin.relativeToBoundary == Opposite(fromOrigin.relativeToBoundary));
+    if (bSameAxis) 
+    {
+        // If their up-axis are aligned, only the origin/datum is different.
+        return {positionInOtherCoordinateSystem.x - fromOrigin.x, positionInOtherCoordinateSystem.y - fromOrigin.y, toOrigin.relativeToBoundary};
+    }
+    else // It's pointing in the other direction. Since both LEFT and RIGHT point to the positive axis (->) and TOP and BOTTOM point to the positive axis ( /\ ), any x is just y, and any y = x. No weird minuses, as the local frame is left-handed.
+    {
+        return {positionInOtherCoordinateSystem.y - fromOrigin.x, positionInOtherCoordinateSystem.x - fromOrigin.y, toOrigin.relativeToBoundary};
+    }
 }

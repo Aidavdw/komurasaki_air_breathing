@@ -8,25 +8,25 @@ struct CellIndex
 	CellIndex() :
 		x(0),
 		y(0),
-		upDirection(TOP)
+		relativeToBoundary(BOTTOM)
 	{}
 
 	
 	CellIndex(const int x,const int y) :
 		x(x),
 		y(y),
-		upDirection(TOP)
+		relativeToBoundary(BOTTOM)
 	{}
 
 	CellIndex(const int x,const int y, const EFace upDirection) :
 		x(x),
 		y(y),
-		upDirection(upDirection)
+		relativeToBoundary(upDirection)
 	{}
 
 	int x;
 	int y;
-	EFace upDirection; // useful for when using rotating reference frames. Determines what is up.
+	EFace relativeToBoundary; // useful for when using rotating reference frames. Determines what is up.
 
 	// Check if actually used?
 	inline int& operator [] (const int axis)
@@ -43,7 +43,7 @@ struct CellIndex
 	{
 #ifdef _DEBUG
 		// Ensure that they have the same up-direction
-		if (upDirection != other.upDirection)
+		if (relativeToBoundary != other.relativeToBoundary)
 			throw std::logic_error("Cannot add two positions in different coordinate frames using the + operator, you have to explicitly use PlusPositionInOtherCoordinateFrame(). This is to make it easier to catch bugs :)");
 #endif
 		
