@@ -36,10 +36,10 @@ CellIndex TransformToOtherCoordinateSystem(const CellIndex& positionInOtherCoord
     if (bSameAxis) 
     {
         // If their up-axis are aligned, only the origin/datum is different.
-        return {positionInOtherCoordinateSystem.x - fromOrigin.x, positionInOtherCoordinateSystem.y - fromOrigin.y, toOrigin.relativeToBoundary};
+        return {positionInOtherCoordinateSystem.x + fromOrigin.x, positionInOtherCoordinateSystem.y + fromOrigin.y, toOrigin.relativeToBoundary};
     }
     else // It's pointing in the other direction. Since both LEFT and RIGHT point to the positive axis (->) and TOP and BOTTOM point to the positive axis ( /\ ), any x is just y, and any y = x. No weird minuses, as the local frame is left-handed.
     {
-        return {positionInOtherCoordinateSystem.y - fromOrigin.x, positionInOtherCoordinateSystem.x - fromOrigin.y, toOrigin.relativeToBoundary};
+        return {positionInOtherCoordinateSystem.y + fromOrigin.x, positionInOtherCoordinateSystem.x + fromOrigin.y, toOrigin.relativeToBoundary};
     }
 }

@@ -287,13 +287,13 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 
 #ifdef _DEBUG
 	// Ensure that the buffers are actually empty to start with
-	if (rho.flux.IsFilledWithZeroes())
+	if (!rho.flux.IsFilledWithZeroes())
 		throw std::logic_error("rho delta buffer is non-empty");
-	if (u.flux.IsFilledWithZeroes())
+	if (!u.flux.IsFilledWithZeroes())
 		throw std::logic_error("u delta buffer is non-empty");
-	if (v.flux.IsFilledWithZeroes())
+	if (!v.flux.IsFilledWithZeroes())
 		throw std::logic_error("v delta buffer is non-empty");
-	if (E.flux.IsFilledWithZeroes())
+	if (!E.flux.IsFilledWithZeroes())
 		throw std::logic_error("E delta buffer is non-empty");
 #endif
 
@@ -677,38 +677,43 @@ void Domain::PopulateConnectedGhostCells(const EFace boundary)
 	assert(amountOfCells[bVertical] == otherDomain->amountOfCells[bVertical]);
 #endif
 
-	/* Note that the coordinate systems' origins and positive axis directions are in opposite directions.
-	 * This is both for the x coordinate and the y coordinate, as both are right-handed
-	 * 
-	 *	Domain 2		Domain 1
-	 *
-	 *  --- n - +		+ - 0 ---
-	 *			|		|
-	 *		2 	+		+   1
-	 *			|		|
-	 *		1	+		+   2
-	 *			|		|
-	 *	---	0 -	+		+ - n ---
-	 */
-
 	CellIndex ghostOrigin = GetOriginIndexOfBoundary(boundary);
 	CellIndex complementOrigin = otherDomain->GetOriginIndexOfBoundary(Opposite(boundary));
 	auto extent = GetGhostDimensions(boundary);
-	const CellIndex DomainOrigin = CellIndex(0,0,TOP);
+	const CellIndex DomainOrigin = CellIndex(0,0,TOP); // just a small const
 
 	// Generally constant in the local x-direction, so y outer loop.
 	for (int yLocalIdx = 0; yLocalIdx < extent.second; yLocalIdx++)
 	{
+		// If it's the top or right face, reverse the direction as that is how the coordinate reference frames are defined. See the drawing below.
+		/*
+		*				    TOP
+		*					/\
+		*					|
+		*		 + -- > --- > --- > --- +
+		*	L	 |			 			|		R
+		*	E	/\			 			/\		I
+		*	F	 | ->					|  ->	G
+		*	T	/\          /\			/\		H
+		*		 |          |			|		T
+		*		 + -- > --- > --- > --- +
+		*				  BOTTOM
+		*/
+		
+		int yFromGhostCellAwayFromBoundary = yLocalIdx + 1;
+		int yOfSourceCellAwayFromBoundary = -yLocalIdx;
+		if (boundary == BOTTOM || boundary == LEFT)
+		{
+			yFromGhostCellAwayFromBoundary *= -1;
+			yOfSourceCellAwayFromBoundary *= -1;
+		}
+		
 		for (int xLocalIdx = 0; xLocalIdx < extent.first; xLocalIdx++)
 		{
-			// Getting index for the ghost cell to write to
-			const CellIndex ghostCellInGhostReferenceFrame = {xLocalIdx, yLocalIdx + 1, boundary}; // First define it what it is in its local reference frame. Then determine what the corresponding position is relative to the 'origin' of the entire domain. Note that for the ghost cells, the relative location in the reference frame relative to the boundary is negative, and needs to be offset by -1 as well, as 0 is the first positive cell, and not the actual zero-line.
+			const CellIndex ghostCellInGhostReferenceFrame = {xLocalIdx, yFromGhostCellAwayFromBoundary, boundary}; // First define it what it is in its local reference frame. Then determine what the corresponding position is relative to the 'origin' of the entire domain. Note that for the ghost cells, the relative location in the reference frame relative to the boundary is negative, and needs to be offset by -1 as well, as 0 is the first positive cell, and not the actual zero-line.
+			const CellIndex sourceCellInOtherBoundaryReferenceFrame =  {xLocalIdx, -yOfSourceCellAwayFromBoundary, Opposite(boundary)};
 			const CellIndex ghostIndex = TransformToOtherCoordinateSystem(ghostCellInGhostReferenceFrame, ghostOrigin, DomainOrigin );
-	
-			// Getting index for the cell to read from. See above ASCII sketch, as the origin is on the opposite side, subtract total amount of cells from current index to get the complement.
-			int complementXIndex = otherDomain->amountOfCells[bVertical] - xLocalIdx;
-			const CellIndex sourceIndexInOppositeBoundaryRelative = {complementXIndex, -yLocalIdx, Opposite(boundary)}; // Negative y, because it points outwards!
-			const CellIndex sourceIndex = TransformToOtherCoordinateSystem(sourceIndexInOppositeBoundaryRelative, complementOrigin, DomainOrigin);
+			const CellIndex sourceIndex = TransformToOtherCoordinateSystem(sourceCellInOtherBoundaryReferenceFrame, complementOrigin, DomainOrigin); // Defined relative to the other domain's (0,0)
 			
 #ifdef _DEBUG
 			assert(ValidateCellIndex(ghostIndex, true));
