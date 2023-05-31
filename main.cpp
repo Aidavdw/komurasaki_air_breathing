@@ -14,8 +14,6 @@
 /* MAIN ROUTINE */
 int main()
 {
-try // Easy way to display exceptions.
-{
     /* STARTING PROGRAM, GETTING TIME... */
     std::cout << "Program starting...\n";
     std::time_t timeAtStartOfProgram = std::time(0);
@@ -112,9 +110,4 @@ try // Easy way to display exceptions.
     /* FINAL INFORMATION DISPLAY AT END OF SIMULATION */
     auto timeAtFinishOfProgram = std::chrono::system_clock::now();
     // todo: implement timing and intermediate output.
-}
-    catch (const std::exception& e)
-    {
-        std::cerr << e.what() <<std::endl;
-    }
 }
