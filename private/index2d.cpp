@@ -28,11 +28,11 @@ CellIndex TransformToOtherCoordinateSystem(const CellIndex& positionInOtherCoord
         // The order of operations is important here; First de-rotate the original coordinate system
 
 #ifdef _DEBUG
-    if (fromOrigin.relativeToBoundary != positionInOtherCoordinateSystem.relativeToBoundary)
-        throw std::logic_error("positionInOtherCoordinate system must have the same orientation as FromOrigin!");
+    if (fromOrigin.relativeToBoundary != toOrigin.relativeToBoundary)
+        throw std::logic_error("The fromOrigin must be expressed in the same direction as the toOrigin.");
 #endif
     
-    const bool bSameAxis = (fromOrigin.relativeToBoundary == toOrigin.relativeToBoundary || fromOrigin.relativeToBoundary == Opposite(fromOrigin.relativeToBoundary));
+    const bool bSameAxis = (fromOrigin.relativeToBoundary == positionInOtherCoordinateSystem.relativeToBoundary || fromOrigin.relativeToBoundary == Opposite(positionInOtherCoordinateSystem.relativeToBoundary));
     if (bSameAxis) 
     {
         // If their up-axis are aligned, only the origin/datum is different.

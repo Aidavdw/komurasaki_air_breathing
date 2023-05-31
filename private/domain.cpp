@@ -170,11 +170,11 @@ CellIndex Domain::GetOriginIndexOfBoundary(const EFace boundary) const
 	case BOTTOM:
 		return {0,0, BOTTOM};
 	case LEFT:
-		return {0,0, LEFT};
+		return {0,0, BOTTOM};
 	case RIGHT:
-		return {amountOfCells[0] -1, 0, RIGHT};
+		return {amountOfCells[0] -1, 0, BOTTOM};
 	case TOP:
-		return {0, amountOfCells[1] -1, TOP};
+		return {0, amountOfCells[1] -1, BOTTOM};
 	default:
 		throw std::logic_error("GetGhostOrigin is not implemented for this boundary location.");
 	}
@@ -531,6 +531,7 @@ void Domain::PopulateSlipConditionGhostCells(const EFace boundary)
 {
 	const CellIndex ghostOrigin = GetOriginIndexOfBoundary(boundary);
 	const auto extent = GetGhostDimensions(boundary);
+	const CellIndex domainOrigin = CellIndex(0,0,BOTTOM); // just a small const
 
 	/* Example of what it looks like on left face; Note that the 'Ghost' reference frame points out, relative to the face it is on.
 	 *								up	/\ 
@@ -579,8 +580,8 @@ void Domain::PopulateSlipConditionGhostCells(const EFace boundary)
 		{
 			const CellIndex ghostCellInGhostReferenceFrame = {xLocalIdx, yFromGhostCellAwayFromBoundary, boundary}; // First define it what it is in its local reference frame. Then determine what the corresponding position is relative to the 'origin' of the entire domain. Note that for the ghost cells, the relative location in the reference frame relative to the boundary is negative, and needs to be offset by -1 as well, as 0 is the first positive cell, and not the actual zero-line.
 			const CellIndex sourceCellInGhostReferenceFrame =  {xLocalIdx, yOfSourceCellAwayFromBoundary, boundary};
-			const CellIndex ghostIndex = TransformToOtherCoordinateSystem(ghostCellInGhostReferenceFrame, ghostOrigin, {0,0, TOP} );
-			const CellIndex sourceIndex = TransformToOtherCoordinateSystem(sourceCellInGhostReferenceFrame, ghostOrigin, {0,0, TOP});
+			const CellIndex ghostIndex = TransformToOtherCoordinateSystem(ghostCellInGhostReferenceFrame, ghostOrigin, domainOrigin );
+			const CellIndex sourceIndex = TransformToOtherCoordinateSystem(sourceCellInGhostReferenceFrame, ghostOrigin, domainOrigin);
 			
 #ifdef _DEBUG
 			assert(ValidateCellIndex(ghostIndex, true));
@@ -680,7 +681,7 @@ void Domain::PopulateConnectedGhostCells(const EFace boundary)
 	CellIndex ghostOrigin = GetOriginIndexOfBoundary(boundary);
 	CellIndex complementOrigin = otherDomain->GetOriginIndexOfBoundary(Opposite(boundary));
 	auto extent = GetGhostDimensions(boundary);
-	const CellIndex DomainOrigin = CellIndex(0,0,TOP); // just a small const
+	const CellIndex DomainOrigin = CellIndex(0,0,BOTTOM); // just a small const
 
 	// Generally constant in the local x-direction, so y outer loop.
 	for (int yLocalIdx = 0; yLocalIdx < extent.second; yLocalIdx++)

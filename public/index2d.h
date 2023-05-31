@@ -18,10 +18,10 @@ struct CellIndex
 		relativeToBoundary(BOTTOM)
 	{}
 
-	CellIndex(const int x,const int y, const EFace upDirection) :
+	CellIndex(const int x,const int y, const EFace datumBoundary) :
 		x(x),
 		y(y),
-		relativeToBoundary(upDirection)
+		relativeToBoundary(datumBoundary)
 	{}
 
 	int x;

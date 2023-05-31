@@ -44,9 +44,24 @@ public:
 	std::pair<int, int> GetIndexFromIndexOnBoundary(const EFace boundary, const int indexOnBoundary) const;
 	
 	inline double& operator () (const CellIndex& cellIndex)						{ return operator()(cellIndex.x, cellIndex.y); }
-	inline double& GetReferenceIncludingGhostCells(const CellIndex& cellIndex)	{ return GetReferenceIncludingGhostCells(cellIndex.x, cellIndex.y); }
 	inline double GetAt(const CellIndex& cellIndex) const						{ return GetAt(cellIndex.x, cellIndex.y); }
-	inline double GetIncludingGhostCells(const CellIndex& cellIndex) const		{ return GetIncludingGhostCells(cellIndex.x, cellIndex.y); }
+	inline double& GetReferenceIncludingGhostCells(const CellIndex& cellIndex)
+	{
+#ifdef _DEBUG
+		if (cellIndex.relativeToBoundary != BOTTOM)
+			throw std::logic_error("cellIndexes are defined relative to the bottom-left corner. A cellIndex based on a different boundary is supplied");
+#endif
+		return GetReferenceIncludingGhostCells(cellIndex.x, cellIndex.y);
+	}
+	
+	inline double GetIncludingGhostCells(const CellIndex& cellIndex) const
+	{
+#ifdef _DEBUG
+		if (cellIndex.relativeToBoundary != BOTTOM)
+			throw std::logic_error("cellIndexes are defined relative to the bottom-left corner. A cellIndex based on a different boundary is supplied");
+#endif
+		return GetIncludingGhostCells(cellIndex.x, cellIndex.y);
+	}
 
 	/******* INLINE OPERATOR DEF ************/
 
