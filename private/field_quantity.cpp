@@ -20,6 +20,11 @@ FieldQuantity::FieldQuantity(Domain* domain, const int sizeX, const int sizeY, c
 	rungeKuttaBuffer = TwoDimensionalArray(sizeX, sizeY, nGhostCells, initialValue);
 	nextTimeStepBuffer = TwoDimensionalArray(sizeX, sizeY, nGhostCells, initialValue);
 	flux = TwoDimensionalArray(sizeX, sizeY, nGhostCells, initialValue);
+	
+	for (size_t i = 0; i < 4; i++)
+	{
+		MUSCLBuffer[i] = TwoDimensionalArray(sizeX, sizeY, nGhostCells, initialValue);
+	}
 }
 
 void FieldQuantity::CopyToBuffer(const EFieldQuantityBuffer from, const EFieldQuantityBuffer to)

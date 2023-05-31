@@ -587,13 +587,13 @@ void Domain::PopulateSlipConditionGhostCells(const EFace boundary)
 			assert(ValidateCellIndex(sourceIndex, false));
 #endif
 			// Coordinates are expressed in its actual local coordinate frame, so GetAt can be used, and GetReferenceIncludingGhostCells is not necessary.
-			rho.rungeKuttaBuffer(ghostIndex)	=	rho.rungeKuttaBuffer.GetAt(sourceIndex);
-			p.rungeKuttaBuffer(ghostIndex)		=	p.rungeKuttaBuffer.GetAt(sourceIndex);
-			u.rungeKuttaBuffer(ghostIndex)		= - u.rungeKuttaBuffer.GetAt(sourceIndex); // Flipped!
-			v.rungeKuttaBuffer(ghostIndex)		=   v.rungeKuttaBuffer.GetAt(sourceIndex);
-			H.rungeKuttaBuffer(ghostIndex)		=	H.rungeKuttaBuffer.GetAt(sourceIndex);
-			E.rungeKuttaBuffer(ghostIndex)		=	E.rungeKuttaBuffer.GetAt(sourceIndex);
-			T.rungeKuttaBuffer(ghostIndex)		=	T.rungeKuttaBuffer.GetAt(sourceIndex);
+			rho.rungeKuttaBuffer.GetReferenceIncludingGhostCells(ghostIndex)	=	rho.rungeKuttaBuffer.GetAt(sourceIndex);
+			p.rungeKuttaBuffer.GetReferenceIncludingGhostCells(ghostIndex)		=	p.rungeKuttaBuffer.GetAt(sourceIndex);
+			u.rungeKuttaBuffer.GetReferenceIncludingGhostCells(ghostIndex)		= - u.rungeKuttaBuffer.GetAt(sourceIndex); // Flipped!
+			v.rungeKuttaBuffer.GetReferenceIncludingGhostCells(ghostIndex)		=   v.rungeKuttaBuffer.GetAt(sourceIndex);
+			H.rungeKuttaBuffer.GetReferenceIncludingGhostCells(ghostIndex)		=	H.rungeKuttaBuffer.GetAt(sourceIndex);
+			E.rungeKuttaBuffer.GetReferenceIncludingGhostCells(ghostIndex)		=	E.rungeKuttaBuffer.GetAt(sourceIndex);
+			T.rungeKuttaBuffer.GetReferenceIncludingGhostCells(ghostIndex)		=	T.rungeKuttaBuffer.GetAt(sourceIndex);
 		}
 	}
 }
@@ -620,13 +620,13 @@ void Domain::PopulateNoSlipConditionGhostCells(const EFace boundary)
 			assert(ValidateCellIndex(sourceIndex, false));
 #endif
 
-			rho.rungeKuttaBuffer(ghostIndex)	=	rho.rungeKuttaBuffer.GetAt(sourceIndex);
-			p.rungeKuttaBuffer(ghostIndex)		=	p.rungeKuttaBuffer.GetAt(sourceIndex);
-			u.rungeKuttaBuffer(ghostIndex)		= - u.rungeKuttaBuffer.GetAt(sourceIndex);	// Flipped!
-			v.rungeKuttaBuffer(ghostIndex)		= -	v.rungeKuttaBuffer.GetAt(sourceIndex);	// Flipped!
-			H.rungeKuttaBuffer(ghostIndex)		=	H.rungeKuttaBuffer.GetAt(sourceIndex);
-			E.rungeKuttaBuffer(ghostIndex)		=	E.rungeKuttaBuffer.GetAt(sourceIndex);
-			T.rungeKuttaBuffer(ghostIndex)		=	T.rungeKuttaBuffer.GetAt(sourceIndex);
+			rho.rungeKuttaBuffer.GetReferenceIncludingGhostCells(ghostIndex)	=	rho.rungeKuttaBuffer.GetAt(sourceIndex);
+			p.rungeKuttaBuffer.GetReferenceIncludingGhostCells(ghostIndex)		=	p.rungeKuttaBuffer.GetAt(sourceIndex);
+			u.rungeKuttaBuffer.GetReferenceIncludingGhostCells(ghostIndex)		= - u.rungeKuttaBuffer.GetAt(sourceIndex);	// Flipped!
+			v.rungeKuttaBuffer.GetReferenceIncludingGhostCells(ghostIndex)		= -	v.rungeKuttaBuffer.GetAt(sourceIndex);	// Flipped!
+			H.rungeKuttaBuffer.GetReferenceIncludingGhostCells(ghostIndex)		=	H.rungeKuttaBuffer.GetAt(sourceIndex);
+			E.rungeKuttaBuffer.GetReferenceIncludingGhostCells(ghostIndex)		=	E.rungeKuttaBuffer.GetAt(sourceIndex);
+			T.rungeKuttaBuffer.GetReferenceIncludingGhostCells(ghostIndex)		=	T.rungeKuttaBuffer.GetAt(sourceIndex);
 		}
 	}
 }
@@ -720,13 +720,13 @@ void Domain::PopulateConnectedGhostCells(const EFace boundary)
 			assert(otherDomain->ValidateCellIndex(sourceIndex, false));
 #endif
 
-			rho.rungeKuttaBuffer(ghostIndex)		=	otherDomain->rho.rungeKuttaBuffer.GetAt(sourceIndex);
-			p.rungeKuttaBuffer(ghostIndex)		=	otherDomain->p.rungeKuttaBuffer.GetAt(sourceIndex);
-			u.rungeKuttaBuffer(ghostIndex)		=   otherDomain->u.rungeKuttaBuffer.GetAt(sourceIndex);	
-			v.rungeKuttaBuffer(ghostIndex)		=  	otherDomain->v.rungeKuttaBuffer.GetAt(sourceIndex);	
-			H.rungeKuttaBuffer(ghostIndex)		=	otherDomain->H.rungeKuttaBuffer.GetAt(sourceIndex);
-			E.rungeKuttaBuffer(ghostIndex)		=	otherDomain->E.rungeKuttaBuffer.GetAt(sourceIndex);
-			T.rungeKuttaBuffer(ghostIndex)		=	otherDomain->T.rungeKuttaBuffer.GetAt(sourceIndex);
+			rho.rungeKuttaBuffer.GetReferenceIncludingGhostCells(ghostIndex)		=	otherDomain->rho.rungeKuttaBuffer.GetAt(sourceIndex);
+			p.rungeKuttaBuffer.GetReferenceIncludingGhostCells(ghostIndex)		=	otherDomain->p.rungeKuttaBuffer.GetAt(sourceIndex);
+			u.rungeKuttaBuffer.GetReferenceIncludingGhostCells(ghostIndex)		=   otherDomain->u.rungeKuttaBuffer.GetAt(sourceIndex);	
+			v.rungeKuttaBuffer.GetReferenceIncludingGhostCells(ghostIndex)		=  	otherDomain->v.rungeKuttaBuffer.GetAt(sourceIndex);	
+			H.rungeKuttaBuffer.GetReferenceIncludingGhostCells(ghostIndex)		=	otherDomain->H.rungeKuttaBuffer.GetAt(sourceIndex);
+			E.rungeKuttaBuffer.GetReferenceIncludingGhostCells(ghostIndex)		=	otherDomain->E.rungeKuttaBuffer.GetAt(sourceIndex);
+			T.rungeKuttaBuffer.GetReferenceIncludingGhostCells(ghostIndex)		=	otherDomain->T.rungeKuttaBuffer.GetAt(sourceIndex);
 			
 		}
 	}

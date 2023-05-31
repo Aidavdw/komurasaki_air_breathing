@@ -9,7 +9,7 @@ void LoadExampleCaseWithoutReedValves(SimCase* simCase) {
 
 	const double lengthOfTube = 0.5;
 	const double heightOfTube = 0.028;
-	MeshSpacing constantMeshSpacing = MeshSpacing(EMeshSpacingType::CONSTANT, lengthOfTube, 5, 0, 0);
+	MeshSpacing constantMeshSpacing = MeshSpacing(EMeshSpacingType::CONSTANT, lengthOfTube, 6, 0, 0);
 
 	// Domains
 
