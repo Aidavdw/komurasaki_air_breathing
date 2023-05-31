@@ -101,20 +101,19 @@ void InitialiseDomainFromChapmanJougetDetonationSolution(Domain* domain, const C
     {
         double xPos = domain->localCellCenterPositions[0].at(xIndex);
         EulerContinuity cellValues = sol.FieldPropertiesAtPosition(xPos, gamma, tubeRadius);
+#ifdef _DEBUG
+        // Make sure we're not setting fields to 0.
+        assert(!IsCloseToZero(cellValues.density));
+        //assert(!IsCloseToZero(cellValues.v)); this will probably be zero lol
+        //assert(!IsCloseToZero(cellValues.u)); this will probably be zero lol
+        assert(!IsCloseToZero(cellValues.p));
+        assert(!IsCloseToZero(cellValues.e));
+        assert(!IsCloseToZero(cellValues.h));
+            
+#endif
         
         for (int yIndex = 0; yIndex < domain->amountOfCells[1]; yIndex++)
         {
-
-#ifdef _DEBUG
-            // Make sure we're not setting fields to 0.
-            assert(!IsCloseToZero(cellValues.density));
-            //assert(!IsCloseToZero(cellValues.v)); this will probably be zero lol
-            //assert(!IsCloseToZero(cellValues.u)); this will probably be zero lol
-            assert(!IsCloseToZero(cellValues.p));
-            assert(!IsCloseToZero(cellValues.e));
-            assert(!IsCloseToZero(cellValues.h));
-            
-#endif
             domain->rho.currentTimeStep(xIndex, yIndex) = cellValues.density;
             domain->u.currentTimeStep(xIndex, yIndex) = (cellValues.u);
             domain->v.currentTimeStep(xIndex, yIndex) = (cellValues.v);

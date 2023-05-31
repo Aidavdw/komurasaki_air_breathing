@@ -50,7 +50,7 @@ public:
 
 	/******* INLINE OPERATOR DEF ************/
 
-	inline int GetRowOffset(const int xIdx, const int yIdx) const		{ return (yIdx + nGhostCells) + (2*nGhostCells + nX);	} // Total amount of elements to skip because of the amount of rows the precede it; there are two entire rows of ghost cells before index 0, so (yIdx + nGhostCells). Then, all the rows (including the skipped ones) are (2*nGhostCells + nX) long, because they have ghost cells on both sides.
+	inline int GetRowOffset(const int xIdx, const int yIdx) const		{ return (yIdx + nGhostCells) * (2*nGhostCells + nX);	} // Total amount of elements to skip because of the amount of rows the precede it; there are two entire rows of ghost cells before index 0, so (yIdx + nGhostCells). Then, all the rows (including the skipped ones) are (2*nGhostCells + nX) long, because they have ghost cells on both sides.
 	inline int GetColumnOffset(const int xIdx, const int yIdx) const	{ return xIdx + nGhostCells;	} // Amount of elements to skip in this row due to the ghost cells presence. Linearly accessed, so only skip 1*nGhostCells.
 	
 	/* operator () overloads for get/setter: with pair of ints, cellIndex, and a special one for accessing ghostCells. */

@@ -195,6 +195,6 @@ void TwoDimensionalArray::ElementWiseCopy(const TwoDimensionalArray& from, TwoDi
 	#endif
 	
 	// Needs to be a static function, because it's using the private data variable.
-	for (size_t i = 0; i < ((from.nX+from.nGhostCells)*(from.nY+from.nGhostCells)); i++)
+	for (size_t i = 0; i < from.data_.size(); i++) // Also does the ghost cells. Can be excluded, but more cluttered code.
 		to.data_[i] = from.data_[i];
 }
