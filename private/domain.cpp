@@ -172,9 +172,9 @@ CellIndex Domain::GetOriginIndexOfBoundary(const EFace boundary) const
 	case LEFT:
 		return {0,0, LEFT};
 	case RIGHT:
-		return {amountOfCells[0], 0, RIGHT};
+		return {amountOfCells[0] -1, 0, RIGHT};
 	case TOP:
-		return {0, amountOfCells[1], TOP};
+		return {0, amountOfCells[1] -1, TOP};
 	default:
 		throw std::logic_error("GetGhostOrigin is not implemented for this boundary location.");
 	}

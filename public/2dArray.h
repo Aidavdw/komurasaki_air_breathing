@@ -43,7 +43,16 @@ public:
 	//todo: replace by CellIndex
 	std::pair<int, int> GetIndexFromIndexOnBoundary(const EFace boundary, const int indexOnBoundary) const;
 	
-	// todo: check for the overhead of calling this with two numbers. Might be that the compiler doesnt pick up on it, and that [][] is actually faster.
+	inline double& operator () (const CellIndex& cellIndex)						{ return operator()(cellIndex.x, cellIndex.y); }
+	inline double& GetReferenceIncludingGhostCells(const CellIndex& cellIndex)	{ return GetReferenceIncludingGhostCells(cellIndex.x, cellIndex.y); }
+	inline double GetAt(const CellIndex& cellIndex) const						{ return GetAt(cellIndex.x, cellIndex.y); }
+	inline double GetIncludingGhostCells(const CellIndex& cellIndex) const		{ return GetIncludingGhostCells(cellIndex.x, cellIndex.y); }
+
+	/******* INLINE OPERATOR DEF ************/
+
+	inline int GetRowOffset(const int xIdx, const int yIdx) const		{ return (yIdx + nGhostCells) + (2*nGhostCells + nX);	} // Total amount of elements to skip because of the amount of rows the precede it; there are two entire rows of ghost cells before index 0, so (yIdx + nGhostCells). Then, all the rows (including the skipped ones) are (2*nGhostCells + nX) long, because they have ghost cells on both sides.
+	inline int GetColumnOffset(const int xIdx, const int yIdx) const	{ return xIdx + nGhostCells;	} // Amount of elements to skip in this row due to the ghost cells presence. Linearly accessed, so only skip 1*nGhostCells.
+	
 	/* operator () overloads for get/setter: with pair of ints, cellIndex, and a special one for accessing ghostCells. */
 	inline double& operator () (const int xIdx, const int yIdx)
 	{
@@ -51,11 +60,12 @@ public:
 		if (xIdx < 0 || xIdx >= nX || yIdx < 0 || yIdx >= nY)
 			throw std::runtime_error("Tried accessing 2D array at index [" + std::to_string(xIdx) + "," + std::to_string(yIdx) + "], which is out of range (or a ghost cell).");
 #endif
-		const int rowOffset = yIdx + (2*nGhostCells + nX);
-		const int colOffset = xIdx + nGhostCells;
+		const int rowOffset = GetRowOffset(xIdx, yIdx);
+		const int colOffset = GetColumnOffset(xIdx, yIdx);
 		return data_.at(rowOffset + colOffset);
 	}
-	
+
+	// Setter for GhostCells
 	inline double& GetReferenceIncludingGhostCells(const int xIdx, const int yIdx)
 	{
 #ifdef  _DEBUG
@@ -65,12 +75,11 @@ public:
 		if ((xIdx > 0 && xIdx < nX) && (yIdx > 0 && yIdx < nY))
 			throw std::runtime_error("Tried accessing 2D array at index [" + std::to_string(xIdx) + "," + std::to_string(yIdx) + "], which is inside the normal domain. Be sure to use operator() to access these.");
 #endif
-		
-		const int rowOffset = yIdx + (2*nGhostCells + nX);
-		const int colOffset = xIdx + nGhostCells;
+		const int rowOffset = GetRowOffset(xIdx, yIdx);
+		const int colOffset = GetColumnOffset(xIdx, yIdx);
 		return data_.at(rowOffset + colOffset);
 	}
-	
+
 	/* operator () overloads for const getter: with pair of ints, cellIndex, and a special one for accessing ghostCells. */
 	inline double GetAt(const int xIdx, const int yIdx) const
 	{
@@ -78,10 +87,12 @@ public:
 		if (xIdx < 0 || xIdx >= nX || yIdx < 0 || yIdx >= nY)
 			throw std::runtime_error("Tried accessing 2D array at index [" + std::to_string(xIdx) + "," + std::to_string(yIdx) + "], which is out of range (or a ghost cell).");
 #endif
-		const int rowOffset = yIdx + (2*nGhostCells + nX);
-		const int colOffset = xIdx + nGhostCells;
+		const int rowOffset = GetRowOffset(xIdx, yIdx);
+		const int colOffset = GetColumnOffset(xIdx, yIdx);
 		return data_.at(rowOffset + colOffset);
 	}
+
+	// Getter for GhostCells
 	inline double GetIncludingGhostCells(const int xIdx, const int yIdx) const
 	{
 #ifdef  _DEBUG
@@ -91,15 +102,10 @@ public:
 		if ((xIdx > 0 && xIdx < nX) && (yIdx > 0 && yIdx < nY))
 			throw std::runtime_error("Tried accessing 2D array at index [" + std::to_string(xIdx) + "," + std::to_string(yIdx) + "], which is inside the normal domain. Be sure to use operator() to access these.");
 #endif
-		const int rowOffset = yIdx + (2*nGhostCells + nX);
-		const int colOffset = xIdx + nGhostCells;
+		const int rowOffset = GetRowOffset(xIdx, yIdx);
+		const int colOffset = GetColumnOffset(xIdx, yIdx);
 		return data_.at(rowOffset + colOffset);
 	}
-	
-	inline double& operator () (const CellIndex& cellIndex)						{ return operator()(cellIndex.x, cellIndex.y); }
-	inline double& GetReferenceIncludingGhostCells(const CellIndex& cellIndex)	{ return GetReferenceIncludingGhostCells(cellIndex.x, cellIndex.y); }
-	inline double GetAt(const CellIndex& cellIndex) const						{ return GetAt(cellIndex.x, cellIndex.y); }
-	inline double GetIncludingGhostCells(const CellIndex& cellIndex) const		{ return GetIncludingGhostCells(cellIndex.x, cellIndex.y); }
 
 private:
 	std::vector<double> data_;				// The actual value of this field quantity. Access using (), don't manually index!
