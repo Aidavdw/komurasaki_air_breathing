@@ -6,6 +6,7 @@
 
 #include "euler_container.h"
 #include "flux_splitting.h"
+#include "legacy/ausm.h"
 
 
 Domain::Domain(const std::string& name, SimCase* simCase, const Position& position, const std::pair<double, double> sizeArg, const std::pair<MeshSpacing, MeshSpacing> meshSpacingArg, const EInitialisationMethod initialisationMethod, const int ghostCellDepth) :
@@ -346,11 +347,14 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 				 */
 
 				const double speedOfSound = sqrt(gamma * p.MUSCLBuffer[face].GetAt(xIdx, yIdx)/rho.MUSCLBuffer[face].GetAt(xIdx, yIdx));
-				
+
+				// I Don't remember what I did here, I think this can be ignored?
+				/*
 				if (face == LEFT)
 					rf = CellIndex(xIdx -1, yIdx);
 				if (face == BOTTOM)
 					rf = CellIndex(xIdx, yIdx - 1);
+				*/
 
 				// Get the left- and right bound fluxes at the specific face we're considering now.
 				EulerContinuity continuityInNegativeDirection;
@@ -380,6 +384,33 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 				{
 					// It's subsonic, use AUSM_DV.
 					fluxSplit[face] = AUSMDVFluxSplitting(continuityInNegativeDirection, continuityPositiveDirection, gamma, solverSettings.AUSMSwitchBias, solverSettings.entropyFix);
+
+#ifdef _DEBUG
+					// Compare to naive implementation of AUSM_DV
+					double flux[4];
+					char horOrVer = (face == LEFT or face == RIGHT) ? 'h' : 'v';
+					AUSM_DV(flux,
+						horOrVer,
+						continuityInNegativeDirection.density,
+						continuityPositiveDirection.density,
+						continuityInNegativeDirection.u,
+						continuityPositiveDirection.u,
+						continuityInNegativeDirection.v,
+						continuityPositiveDirection.v,
+						continuityInNegativeDirection.p,
+						continuityPositiveDirection.p,
+						continuityInNegativeDirection.h,
+						continuityPositiveDirection.h,
+						0,
+						gamma,
+						solverSettings.AUSMSwitchBias,
+						solverSettings.entropyFix
+						);
+					double dif0 = flux[0] - fluxSplit[face].density;
+					double dif1 = flux[1] - fluxSplit[face].u;
+					double dif2 = flux[2] - fluxSplit[face].v;
+					double dif3 = flux[3] - fluxSplit[face].e;
+#endif
 				}
 
 				// If it's a vertical flux, then the u and v are in the local reference frame, and hence they must be inverted.
@@ -391,30 +422,18 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 				}
 			}
 
-#ifdef _DEBUG
-			// Check that all the fluxSplits are actually filled.
-			for (int i = 0; i < 4; i++)
-			{
-				const EFace face = static_cast<EFace>(i);
-				if (IsCloseToZero(fluxSplit[i].density))
-					throw std::logic_error("Density is zero for flux split of face" + FaceToString(face));
-				if (IsCloseToZero(fluxSplit[i].u))
-					throw std::logic_error("v is zero for flux split of face" + FaceToString(face));
-				if (IsCloseToZero(fluxSplit[i].v))
-					throw std::logic_error("Density is zero for flux split of face" + FaceToString(face));
-				if (IsCloseToZero(fluxSplit[i].e))
-					throw std::logic_error("energy is zero for flux split of face" + FaceToString(face));
-			}
-#endif
-
 			// Total accumulation is what goes in - what goes out
 			const CellIndex currentCell(xIdx, yIdx);
 			auto cellSizes = GetCellSizes(currentCell);
 			//EulerContinuity accumulation = ((rightFlux - leftFlux)/cellSizes.first + (upFlux - downFlux)/cellSizes.second)*dt; // dy = dr in this case, if you compensate for the squashification.
-			rho.flux(xIdx,yIdx) = ((fluxSplit[RIGHT].density - fluxSplit[LEFT].density)/cellSizes.first + (fluxSplit[TOP].density - fluxSplit[BOTTOM].density)/cellSizes.second)*dt;
-			v.flux(xIdx,yIdx) = ((fluxSplit[RIGHT].v - fluxSplit[LEFT].v)/cellSizes.first + (fluxSplit[TOP].v - fluxSplit[BOTTOM].v)/cellSizes.second)*dt;
-			u.flux(xIdx,yIdx) = ((fluxSplit[RIGHT].u - fluxSplit[LEFT].u)/cellSizes.first + (fluxSplit[TOP].u - fluxSplit[BOTTOM].u)/cellSizes.second)*dt;
-			E.flux(xIdx,yIdx) = ((fluxSplit[RIGHT].e - fluxSplit[LEFT].e)/cellSizes.first + (fluxSplit[TOP].e - fluxSplit[BOTTOM].e)/cellSizes.second)*dt;
+			const double rhoFlux = ((fluxSplit[RIGHT].density - fluxSplit[LEFT].density)/cellSizes.first + (fluxSplit[TOP].density - fluxSplit[BOTTOM].density)/cellSizes.second)*dt;
+			const double vFlux = ((fluxSplit[RIGHT].v - fluxSplit[LEFT].v)/cellSizes.first + (fluxSplit[TOP].v - fluxSplit[BOTTOM].v)/cellSizes.second)*dt;
+			const double uFlux = ((fluxSplit[RIGHT].u - fluxSplit[LEFT].u)/cellSizes.first + (fluxSplit[TOP].u - fluxSplit[BOTTOM].u)/cellSizes.second)*dt;
+			const double eFlux = ((fluxSplit[RIGHT].e - fluxSplit[LEFT].e)/cellSizes.first + (fluxSplit[TOP].e - fluxSplit[BOTTOM].e)/cellSizes.second)*dt;
+			rho.flux(xIdx,yIdx) = rhoFlux;
+			v.flux(xIdx,yIdx) = vFlux;
+			u.flux(xIdx,yIdx) = uFlux;
+			E.flux(xIdx,yIdx) = eFlux;
 
 			// Extra term to compensate for the fact that the cell sizes are not uniform because we are in a cylindrical coordinate system. In Florian (2017), this is the term *** Hr ***.
 			EulerContinuity hr;
