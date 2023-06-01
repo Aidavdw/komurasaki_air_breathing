@@ -45,22 +45,23 @@ public:
 	
 	inline double& operator () (const CellIndex& cellIndex)						{ return operator()(cellIndex.x, cellIndex.y); }
 	inline double GetAt(const CellIndex& cellIndex) const						{ return GetAt(cellIndex.x, cellIndex.y); }
-	inline double& GetReferenceIncludingGhostCells(const CellIndex& cellIndex)
+	
+	inline double& GetReferenceIncludingGhostCells(const CellIndex& cellIndex, const bool bAllowNormalCells=false)
 	{
 #ifdef _DEBUG
 		if (cellIndex.relativeToBoundary != BOTTOM)
 			throw std::logic_error("cellIndexes are defined relative to the bottom-left corner. A cellIndex based on a different boundary is supplied");
 #endif
-		return GetReferenceIncludingGhostCells(cellIndex.x, cellIndex.y);
+		return GetReferenceIncludingGhostCells(cellIndex.x, cellIndex.y, bAllowNormalCells);
 	}
 	
-	inline double GetIncludingGhostCells(const CellIndex& cellIndex) const
+	inline double GetIncludingGhostCells(const CellIndex& cellIndex, const bool bAllowNormalCells=false) const
 	{
 #ifdef _DEBUG
 		if (cellIndex.relativeToBoundary != BOTTOM)
 			throw std::logic_error("cellIndexes are defined relative to the bottom-left corner. A cellIndex based on a different boundary is supplied");
 #endif
-		return GetIncludingGhostCells(cellIndex.x, cellIndex.y);
+		return GetIncludingGhostCells(cellIndex.x, cellIndex.y, bAllowNormalCells);
 	}
 
 	/******* INLINE OPERATOR DEF ************/
@@ -81,14 +82,17 @@ public:
 	}
 
 	// Setter for GhostCells
-	inline double& GetReferenceIncludingGhostCells(const int xIdx, const int yIdx)
+	inline double& GetReferenceIncludingGhostCells(const int xIdx, const int yIdx, const bool bAllowNormalCells=false)
 	{
 #ifdef  _DEBUG
 		// if it's not in a ghost cell, throw error
 		if (xIdx < -nGhostCells || xIdx >= nX + 2*nGhostCells || yIdx < -nGhostCells || yIdx >= nY + 2*nGhostCells)
 			throw std::runtime_error("Tried accessing Ghost Cell of 2D array at index [" + std::to_string(xIdx) + "," + std::to_string(yIdx) + "], which is out of range.");
-		if ((xIdx > 0 && xIdx < nX) && (yIdx > 0 && yIdx < nY))
-			throw std::runtime_error("Tried accessing 2D array at index [" + std::to_string(xIdx) + "," + std::to_string(yIdx) + "], which is inside the normal domain. Be sure to use operator() to access these.");
+		if (!bAllowNormalCells)
+		{
+			if ((xIdx > 0 && xIdx < nX) && (yIdx > 0 && yIdx < nY))
+				throw std::runtime_error("Tried accessing 2D array at index [" + std::to_string(xIdx) + "," + std::to_string(yIdx) + "], which is inside the normal domain. Be sure to use operator() to access these.");
+		}
 #endif
 		const int rowOffset = GetRowOffset(xIdx, yIdx);
 		const int colOffset = GetColumnOffset(xIdx, yIdx);
@@ -108,14 +112,17 @@ public:
 	}
 
 	// Getter for GhostCells
-	inline double GetIncludingGhostCells(const int xIdx, const int yIdx) const
+	inline double GetIncludingGhostCells(const int xIdx, const int yIdx, const bool bAllowNormalCells=false) const
 	{
 #ifdef  _DEBUG
 		// if it's not in a ghost cell, throw error
 		if (xIdx < -nGhostCells || xIdx >= nX + 2*nGhostCells || yIdx < -nGhostCells || yIdx >= nY + 2*nGhostCells)
 			throw std::runtime_error("Tried accessing Ghost Cell of 2D array at index [" + std::to_string(xIdx) + "," + std::to_string(yIdx) + "], which is out of range.");
-		if ((xIdx > 0 && xIdx < nX) && (yIdx > 0 && yIdx < nY))
-			throw std::runtime_error("Tried accessing 2D array at index [" + std::to_string(xIdx) + "," + std::to_string(yIdx) + "], which is inside the normal domain. Be sure to use operator() to access these.");
+		if (!bAllowNormalCells)
+		{
+			if ((xIdx > 0 && xIdx < nX) && (yIdx > 0 && yIdx < nY))
+				throw std::runtime_error("Tried accessing 2D array at index [" + std::to_string(xIdx) + "," + std::to_string(yIdx) + "], which is inside the normal domain. Be sure to use operator() to access these.");
+		}
 #endif
 		const int rowOffset = GetRowOffset(xIdx, yIdx);
 		const int colOffset = GetColumnOffset(xIdx, yIdx);

@@ -2,6 +2,8 @@
 
 #include <stdexcept>
 
+#include "AuxFunctions.h"
+
 double MUSCLInterpolate(const double m1, const double centre, const double p1, const double p2, const EMUSCLSide sideToInterpolateTo, const double bias, const EFluxLimiterType fluxLimiterType)
 {
 
@@ -56,7 +58,20 @@ double MUSCLInterpolate(const double m1, const double centre, const double p1, c
         throw std::logic_error("MUSCL interpolation is not implemented for this type of side");
     }
 
+    /**
+#ifdef _DEBUG
+    // It's interpolation, so it must be somewhere in between all the values.
+    const double max = std::max({m1, centre, p1, p2});
+    if (var > max && !IsCloseToZero(var - max))
+        throw std::logic_error("MUSCL interpolation should yield a value between all the values, not above.");
+    const double min = std::min({m1, centre, p1, p2});
+    if (var < min && !IsCloseToZero(var - min))
+        throw std::logic_error("MUSCL interpolation should yield a value between all the values, not above.");
+#endif
+    **/
+
     return var;
+    
 }
 
 double ApplyFluxLimiter(const double r, const EFluxLimiterType fluxLimiterType)
