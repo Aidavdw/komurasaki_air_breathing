@@ -1,9 +1,7 @@
 #pragma once
 #include "domain.h"
 #include <map>
-
-// forward declarations
-class IValve;
+#include "IValve.h"
 
 // Changes the behaviour of how the solver works.
 struct SolverSettings
