@@ -39,12 +39,13 @@ int main()
     /* INITIAL CONDITIONS ON DOMAINS */
     simCase.ApplyInitialConditionsToDomainsAndValves();
     
-    std::cout << "Initial conditions applied." << std::endl;
-    
     std::cout << "Starting time loop." << std::endl;
     /* START TIME LOOP */
     for (int timeStepNumber = 1; timeStepNumber < simCase.totalSimulationTimeStepCount; ++timeStepNumber)
     {
+#ifdef _DEBUG
+        std::cout << "Advanced to time step " << timeStepNumber << " [ t = " << timeStepNumber*simCase.dt << "]" << std::endl;
+#endif
         // Set the starting runge-kutta conditions to be that of the solution of the previous time step.
         for (auto& domainIter : simCase.domains)
         {
@@ -55,6 +56,9 @@ int main()
         /* 4TH ORDER RUNGE-KUTTA PREDICTOR-CORRECTOR LOOP (iterate 4 times)*/
         for (int rungeKuttaIterationNumber = 0; rungeKuttaIterationNumber < simCase.solverSettings.rungeKuttaOrder; ++rungeKuttaIterationNumber)
         {
+#ifdef _DEBUG
+            std::cout << "RK iter " << rungeKuttaIterationNumber << " on time step " << timeStepNumber << " [ t = " << timeStepNumber*simCase.dt << "]" << std::endl;
+#endif
             // Set the ghost cells values. Note that this is deliberately done in a separate loop so that the runge-kutta operation is sure to be finished before reading into ghost cells.
             for (auto& domainIter : simCase.domains)
             {

@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <cassert>
 #include <ios>
+#include <iostream>
 
 #include "euler_container.h"
 #include "flux_splitting.h"
@@ -261,6 +262,10 @@ void Domain::UpdateGhostCells()
 		const EFace location = it.first;
 		const Boundary& boundary = it.second;
 
+#ifdef _DEBUG
+		std::cout << "Updating Ghost Cells for domain '" << name << "', side" << FaceToString(location);
+#endif
+
 		// Note that the below functions all work in relative coordinate frames.
 		// Technically a performance gain could be achieved by not calling a transformation on the frame every time, instead directly accessing those entries directly by looping. However, this is more legible.
 		switch (boundary.boundaryType) {
@@ -287,6 +292,8 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 	const SolverSettings& solverSettings = simCase->solverSettings;
 
 #ifdef _DEBUG
+	std::cout << "Calculating flow delta, and populating Flow Delta buffer of domain '" << name << "'" << std::endl;
+	
 	// Ensure that the buffers are actually empty to start with
 	if (!rho.flux.IsFilledWithZeroes())
 		throw std::logic_error("rho delta buffer is non-empty");
@@ -296,6 +303,8 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 		throw std::logic_error("v delta buffer is non-empty");
 	if (!E.flux.IsFilledWithZeroes())
 		throw std::logic_error("E delta buffer is non-empty");
+
+	std::cout << "Calculating MUSCL interpolation values for rho, u, v, p" << std::endl;
 #endif
 
 	//todo: investigate how this works if the cells are not equally sized; how does accumulation work in the ghost cells?

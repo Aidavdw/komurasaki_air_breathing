@@ -1,6 +1,7 @@
 #include "sim_case.h"
 
 #include <algorithm>
+#include <iostream>
 #include <stdexcept>
 
 #include "IValve.h"
@@ -95,11 +96,14 @@ void SimCase::ConnectBoundaries(const std::string domainOneName, const EFace dom
 }
 
 void SimCase::ApplyInitialConditionsToDomainsAndValves()
-{
+{	
 	// Setting the initial values for all the cells in the domains.
 	for (auto& domainIter : domains)
 	{
 		Domain& domain = domainIter.second;
+#ifdef _DEBUG
+		std::cout << "Applying Initial conditions to domain '" << domain.name << std::endl;
+#endif
 		switch (domain.initialisationMethod)
 		{
 		case EInitialisationMethod::AMBIENT_CONDITIONS:
@@ -119,8 +123,18 @@ void SimCase::ApplyInitialConditionsToDomainsAndValves()
 	}
 
 	// Setting the starting deflections for the valves based on the starting fields.
-	for (IValve& valve : valves)
+	for (size_t i = 0; i < valves.size(); i++)
 	{
+#ifdef _DEBUG
+		std::cout << "Applying Initial conditions to Valve " << i << std::endl;
+#endif
+		
+		IValve& valve = valves.at(i);
 		valve.SetInitialConditions();
 	}
+
+#ifdef _DEBUG
+	std::cout << "Initial conditions applied." << std::endl;
+#endif
+	
 }
