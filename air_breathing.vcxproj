@@ -32,6 +32,7 @@
     <ClInclude Include="public\field_quantity.h" />
     <ClInclude Include="public\gradient_descent.h" />
     <ClInclude Include="public\index2d.h" />
+    <ClInclude Include="public\main_library.h" />
     <ClInclude Include="public\mesh_spacing.h" />
     <ClInclude Include="public\microwave.h" />
     <ClInclude Include="public\muscl.h" />
@@ -137,6 +138,7 @@
     <ClCompile Include="private\flux_splitting.cpp" />
     <ClCompile Include="private\gradient_descent.cpp" />
     <ClCompile Include="private\index2d.cpp" />
+    <ClCompile Include="private\main_library.cpp" />
     <ClCompile Include="private\mesh_spacing.cpp" />
     <ClCompile Include="private\microwave.cpp" />
     <ClCompile Include="private\muscl.cpp" />
