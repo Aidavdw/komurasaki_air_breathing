@@ -156,3 +156,8 @@ void IValve::EmptyBuffer()
     }
 }
 
+std::string IValve::ToString() const
+{
+    return "Valve in '" + intoDomain_->name + "' at " + FaceToString(boundary_) + " dist="+ std::to_string(positionAlongBoundary_);
+}
+

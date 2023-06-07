@@ -67,6 +67,9 @@ int main()
                 domain.PopulateFlowDeltaBuffer(simCase.dt);
             }
 
+#ifdef _DEBUG
+            std::cout << "Updating deflections, and calculating flow deltas for valves." << std::endl;
+#endif
             for (IValve& valve : simCase.valves)
             {
                 // Update the deflections
@@ -77,12 +80,16 @@ int main()
             }
 
             // Async await until both the buffers have been set for all the FieldQuantities in a domain. Easiest way to do this; wait until they're all finished.
+
+#ifdef _DEBUG
+            std::cout << "Adding valve buffer terms to source cells." << std::endl;
+#endif
             for (IValve& valve : simCase.valves)
             {
                 // Add the delta due to the valve sourcing into the delta flow buffer.
                 valve.AddBufferTermsToSourceCells(EFieldQuantityBuffer::FLUX);
             }
-   
+            
             for (auto& domainIter : simCase.domains)
             {
                 Domain& domain = domainIter.second;

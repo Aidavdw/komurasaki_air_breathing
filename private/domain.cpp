@@ -263,7 +263,7 @@ void Domain::UpdateGhostCells()
 		const Boundary& boundary = it.second;
 
 #ifdef _DEBUG
-		std::cout << "Updating Ghost Cells for domain '" << name << "', side" << FaceToString(location);
+		std::cout << "Updating Ghost Cells for domain '" << name << "', side" << FaceToString(location) << std::endl;
 #endif
 
 		// Note that the below functions all work in relative coordinate frames.
@@ -477,10 +477,12 @@ void Domain::EmptyFlowDeltaBuffer()
 void Domain::SetNextTimeStepValuesBasedOnRungeKuttaAndDeltaBuffers(const int currentRungeKuttaIter)
 {
 #ifdef _DEBUG
+	std::cout << "Setting next time step values based on runge-kutta and delta buffers for domain '" << name << "'" << std::endl;
+	
 	// Fail if the buffers are empty; they clearly must be set.
 	assert(!rho.rungeKuttaBuffer.IsFilledWithZeroes());
-	assert(!u.rungeKuttaBuffer.IsFilledWithZeroes());
-	assert(!v.rungeKuttaBuffer.IsFilledWithZeroes());
+	// assert(!u.rungeKuttaBuffer.IsFilledWithZeroes()); // This can be zero for the initial condition lol.
+	// assert(!v.rungeKuttaBuffer.IsFilledWithZeroes()); // This can be zero for the initial condition lol.
 	assert(!E.rungeKuttaBuffer.IsFilledWithZeroes());
 	assert(rho.flux.IsFilledWithZeroes());
 	assert(u.flux.IsFilledWithZeroes());
@@ -514,7 +516,7 @@ void ValidateAxisInput(const int axis)
 {
 	if (axis > 1 || axis < 0)
 	{
-		throw std::invalid_argument("Cannot get access axis with the required index; there are only 2, X and Y!");
+		throw std::invalid_argument("Cannot get access axis with the required index; there are only 2, X and Y/R!");
 	}
 }
 

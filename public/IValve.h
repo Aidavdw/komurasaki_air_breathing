@@ -30,8 +30,6 @@ protected:
 	std::vector<EulerContinuity> sinkTermBuffer_;			// Stores how much will be sourced into the sourceCellIndices.
 
 
-	
-
 public:
 
 	void CalculateFlow();					// Safely calls FillBuffer. Proxy function.
@@ -42,6 +40,8 @@ public:
 
 	virtual void AddBufferTermsToSourceCells(const EFieldQuantityBuffer bufferToWriteInto);	// Sets the source terms in sourceTermBuffer_ as calculated with CalculateFlowFromValve(), and puts them in the sourceCellsIndices in the intoDomain_. Excepts if it cannot do this.
 	virtual void EmptyBuffer();				// Sets the sourceTermBuffer and sinkTermBuffer back to zeros.
+
+	std::string ToString() const;
 
 protected:
 	virtual void FillBuffer(); // Don't call manually, this is supposed to be called in proxy by CalculateFlow(). Calculates the flow from the valve, and fills it into the sourceTermBuffer_ variable.
