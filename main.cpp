@@ -1,7 +1,3 @@
-/* 
-* Rewrite of Florian's code, in cpp
-*/
-
 #include <ctime>
 #include <iostream>
 
@@ -89,9 +85,13 @@ int main()
                 // Add the delta due to the valve sourcing into the delta flow buffer.
                 valve.AddBufferTermsToSourceCells(EFieldQuantityBuffer::FLUX);
             }
-            
+
+#ifdef _DEBUG
+            std::cout << "Setting next-time-step values based on the runge kutta and delta buffer contents." << std::endl;
+#endif
             for (auto& domainIter : simCase.domains)
             {
+                
                 Domain& domain = domainIter.second;
                 domain.SetNextTimeStepValuesBasedOnRungeKuttaAndDeltaBuffers(rungeKuttaIterationNumber);
                 domain.EmptyFlowDeltaBuffer();
@@ -101,11 +101,11 @@ int main()
             {
                 valve.EmptyBuffer();
             }
-
-            // todo: Put nextTimeStep buffer values into RungeKutta buffer.
         } /* END OF THE RUNGE-KUTTA LOOP */
-        
-        // Take the 'next time step' solution of the last runge-kutta iteration as the solution for the new time step.
+
+#ifdef _DEBUG
+        std::cout << "Taking the 'next time step' solution of the last runge-kutta iteration as the solution for the new time step." << std::endl;
+#endif
         for (auto& domainIter : simCase.domains)
         {
             Domain& domain = domainIter.second;
@@ -117,8 +117,16 @@ int main()
         //todo: implement displaying/calculating cfl
     } // END OF TIME LOOP
 
+#ifdef _DEBUG
+    std::cout << "End of time loop!" << std::endl;
+#endif
 
     /* FINAL INFORMATION DISPLAY AT END OF SIMULATION */
     auto timeAtFinishOfProgram = std::chrono::system_clock::now();
     // todo: implement timing and intermediate output.
+
+
+#ifdef _DEBUG
+    std::cout << "Simulation finished \\(^-^)/" << std::endl;
+#endif
 }
