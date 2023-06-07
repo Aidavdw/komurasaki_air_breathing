@@ -43,7 +43,7 @@ Domain* SimCase::AddDomain(const int id, const std::string name, const Position&
 	return &it.first->second;
 }
 
-void SimCase::ConnectBoundaries(const int domainOneIdx, const EFace domainOneLocation, const int domainTwoIdx, const EFace domainTwoLocation)
+void SimCase::ConnectBoundariesById(const int domainOneIdx, const EFace domainOneLocation, const int domainTwoIdx, const EFace domainTwoLocation)
 {
 	if (domainOneIdx == domainTwoIdx)
 	{
@@ -88,11 +88,11 @@ void SimCase::ConnectBoundaries(const int domainOneIdx, const EFace domainOneLoc
 	
 }
 
-void SimCase::ConnectBoundaries(const std::string domainOneName, const EFace domainOneLocation, const std::string domainTwoName, const EFace domainTwoLocation)
+void SimCase::ConnectBoundariesByName(const std::string domainOneName, const EFace domainOneLocation, const std::string domainTwoName, const EFace domainTwoLocation)
 {
 	int domainOneIdx = domainIDS.at(domainOneName);
 	int domainTwoIdx = domainIDS.at(domainTwoName);
-	ConnectBoundaries(domainOneIdx, domainOneLocation, domainTwoIdx, domainTwoLocation);
+	ConnectBoundariesById(domainOneIdx, domainOneLocation, domainTwoIdx, domainTwoLocation);
 }
 
 void SimCase::ApplyInitialConditionsToDomainsAndValves()

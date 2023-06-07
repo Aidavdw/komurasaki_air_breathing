@@ -28,11 +28,11 @@ struct MeshSpacing
 
 	EMeshSpacingType spacingType = EMeshSpacingType::CONSTANT;
 	
-	double left;
-	double right;
+	double left = 0;
+	double right = 0;
 
-	double length;
-	int amountOfElements;
+	double length = 0;
+	int amountOfElements = 0;
 
 	double GetCellWidth(const int i) const;
 
