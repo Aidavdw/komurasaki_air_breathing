@@ -6,7 +6,7 @@
 #include "debug/2darrayserialiser.h"
 
 // Pls beware how cpp handles string literals with backslashes.
-#define DIR_TO_DUMP_TO R"(C:\Users\Red Devil\Documents\git\komurasaki_air_breathing\debug_output)"
+#define DIR_TO_DUMP_TO std::string("C:/Users/Red Devil/Documents/git/komurasaki_air_breathing/debug_output/")
 
 void DoSimulation(SimCase& simCase)
 {
@@ -105,11 +105,11 @@ void DoSimulation(SimCase& simCase)
 
 #ifdef _DEBUG
             // Dump the field quantities' values
-            std::string dumpFile = DIR_TO_DUMP_TO + domain.name + "_t" + std::to_string(timeStepNumber*simCase.dt);
-            DumpPrettyWithGhostStrings(domain.p.currentTimeStep, dumpFile + "_p.csv", 1);
-            DumpPrettyWithGhostStrings(domain.rho.currentTimeStep, dumpFile + "_rho.csv", 1);
-            DumpPrettyWithGhostStrings(domain.u.currentTimeStep, dumpFile + "_u.csv", 1);
-            DumpPrettyWithGhostStrings(domain.v.currentTimeStep, dumpFile + "_v.csv", 1);
+            std::string dumpFile = domain.name + "_t" + std::to_string(timeStepNumber*simCase.dt) + ".csv";
+            DumpPrettyWithGhostStrings(domain.p.currentTimeStep, DIR_TO_DUMP_TO + "p_" + dumpFile + ".csv", 4);
+            DumpPrettyWithGhostStrings(domain.rho.currentTimeStep, DIR_TO_DUMP_TO + "rho_" + dumpFile + ".csv", 4);
+            DumpPrettyWithGhostStrings(domain.u.currentTimeStep, DIR_TO_DUMP_TO + "u_" + dumpFile + ".csv", 4);
+            DumpPrettyWithGhostStrings(domain.v.currentTimeStep, DIR_TO_DUMP_TO + "v_" + dumpFile + ".csv", 4);
 
     #endif
         }

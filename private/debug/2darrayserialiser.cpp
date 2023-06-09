@@ -42,24 +42,23 @@ bool DumpPrettyWithGhostStrings(const TwoDimensionalArray& src, const std::strin
     ss.precision(significantDigits);
 
     // Also go over the ghost cells, so there is 2*nGhost more entries in each axis.
-    for (int x = -src.nGhostCells; x < src.nX + src.nGhostCells; x++)
+    for (int y = -src.nGhostCells; y < src.nY + src.nGhostCells; y++)
     {
-        for (int y = -src.nGhostCells; y < src.nY + src.nGhostCells; y++)
+        for (int x = -src.nGhostCells; x < src.nX + src.nGhostCells; x++)
         {
             // Vertical Spacing: If we're crossing the line between ghost -> non-ghost (bottom) or non-ghost -> ghost (top), skip a line to make it easier to see with the eye.
-            if (x == 0 && ((y == 0) || (y == src.nY) ) )
+            if (x == -src.nGhostCells && ((y == 0) || (y == src.nY) ) )
                 ss << "\n";
 
             // Horizontal spacing: dito, but now for the ghost cells on the sides
             if ((x == 0) || (x == src.nX))
-                ss << ", ";
+                ss << "           , ";
             
             ss << src.GetIncludingGhostCells(x,y, true);
-            if (y != src.nY-1)
+            if (x != src.nX + src.nGhostCells -1)
                 ss << ", ";
         }
-        if (x != src.nX-1)
-            ss << "\n";
+        ss << "\n";
     }
 
     return SaveStringToFile(ss.str(), filename);

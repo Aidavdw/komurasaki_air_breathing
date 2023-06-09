@@ -2,14 +2,14 @@
 #include "domain.h"
 #include "sim_case.h"
 
-// Thisdefines the case for a det_tube
 void LoadExampleCaseWithoutReedValves(SimCase* simCase) {
 	// Reed valve settings
 	//simCase->reed_valve_total_length = L_V + L_FIX;
 
 	const double lengthOfTube = 0.5;
 	const double heightOfTube = 0.028;
-	MeshSpacing constantMeshSpacing = MeshSpacing(EMeshSpacingType::CONSTANT, lengthOfTube, 6, 0, 0);
+	const MeshSpacing xMeshSpacing = MeshSpacing(EMeshSpacingType::CONSTANT, lengthOfTube, 250, 0, 0);
+	const MeshSpacing yMeshSpacing = MeshSpacing(EMeshSpacingType::CONSTANT, lengthOfTube, 14, 0, 0);
 
 	// Domains
 
@@ -17,7 +17,7 @@ void LoadExampleCaseWithoutReedValves(SimCase* simCase) {
 	                                  "Tube",
 	                                  {lengthOfTube/2,heightOfTube/2},
 	                                  {lengthOfTube,heightOfTube},
-	                                  {constantMeshSpacing, constantMeshSpacing },
+	                                  {xMeshSpacing, xMeshSpacing },
 	                                  EInitialisationMethod::FROM_CHAPMAN_JOUGET_SOLUTION,
 	                                  simCase->solverSettings.nGhost
 	);
@@ -29,7 +29,7 @@ void LoadExampleCaseWithoutReedValves(SimCase* simCase) {
 	                                     "ambient",
 	                                     {lengthOfTube/2,heightOfTube/2},
 	                                     {lengthOfTube,heightOfTube},
-	                                     {constantMeshSpacing, constantMeshSpacing },
+	                                     {xMeshSpacing, xMeshSpacing },
 	                                     EInitialisationMethod::AMBIENT_CONDITIONS,
 	                                     simCase->solverSettings.nGhost
 	);
