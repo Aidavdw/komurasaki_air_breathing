@@ -16,6 +16,7 @@
     <ClInclude Include="public\beam_section.h" />
     <ClInclude Include="public\boundary.h" />
     <ClInclude Include="public\cell_values_container.h" />
+    <ClInclude Include="public\debug\2darrayserialiser.h" />
     <ClInclude Include="public\domain.h" />
     <ClInclude Include="public\domain_enums.h" />
     <ClInclude Include="public\euler_container.h" />
@@ -140,11 +141,14 @@
     <ClCompile Include="private\reed_valve.cpp" />
     <ClCompile Include="private\sim_case.cpp" />
     <ClCompile Include="private\IValve.cpp" />
-    <ClCompile Include="pythonmodule.cpp" />
+    <None Include="pythonmodule.cpp" />
     <None Include="redundant\legacy\old_main.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="public\flux_splitting.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="private\debug\2darrayserialiser.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

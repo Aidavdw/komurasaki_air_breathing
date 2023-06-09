@@ -3,6 +3,10 @@
 #include "sim_case.h"
 #include <chrono>
 #include "reed_valve.h"
+#include "debug/2darrayserialiser.h"
+
+// Pls beware how cpp handles string literals with backslashes.
+#define DIR_TO_DUMP_TO R"(C:\Users\Red Devil\Documents\git\komurasaki_air_breathing\debug_output)"
 
 void DoSimulation(SimCase& simCase)
 {
@@ -98,7 +102,18 @@ void DoSimulation(SimCase& simCase)
         {
             Domain& domain = domainIter.second;
             domain.CopyFieldQuantitiesToBuffer(EFieldQuantityBuffer::NEXT_TIME_STEP, EFieldQuantityBuffer::CURRENT_TIME_STEP);
+
+#ifdef _DEBUG
+            // Dump the field quantities' values
+            std::string dumpFile = DIR_TO_DUMP_TO + domain.name + "_t" + std::to_string(timeStepNumber*simCase.dt);
+            DumpPrettyWithGhostStrings(domain.p.currentTimeStep, dumpFile + "_p.csv", 1);
+            DumpPrettyWithGhostStrings(domain.rho.currentTimeStep, dumpFile + "_rho.csv", 1);
+            DumpPrettyWithGhostStrings(domain.u.currentTimeStep, dumpFile + "_u.csv", 1);
+            DumpPrettyWithGhostStrings(domain.v.currentTimeStep, dumpFile + "_v.csv", 1);
+
+    #endif
         }
+
 
         // todo: export flow data of domains
         // todo: export valve data

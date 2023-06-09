@@ -4,7 +4,7 @@
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(KomurasakiAirBreathing, m)
+PYBIND11_MODULE(komurasakiairbreathing, m)
 {
     // Simcase
     py::class_<SimCase>(m, "SimCase")
