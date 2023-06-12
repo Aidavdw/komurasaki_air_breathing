@@ -7,7 +7,6 @@
 
 #include "euler_container.h"
 #include "flux_splitting.h"
-#include "legacy/ausm.h"
 
 
 Domain::Domain(const std::string& name, SimCase* simCase, const Position& position, const std::pair<double, double> sizeArg, const std::pair<MeshSpacing, MeshSpacing> meshSpacingArg, const EInitialisationMethod initialisationMethod, const int ghostCellDepth) :
@@ -393,33 +392,6 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 				{
 					// It's subsonic, use AUSM_DV.
 					fluxSplit[face] = AUSMDVFluxSplitting(continuityInNegativeDirection, continuityPositiveDirection, gamma, solverSettings.AUSMSwitchBias, solverSettings.entropyFix);
-
-#ifdef _DEBUG
-					// Compare to naive implementation of AUSM_DV
-					double flux[4];
-					char horOrVer = (face == LEFT or face == RIGHT) ? 'h' : 'v';
-					AUSM_DV(flux,
-						horOrVer,
-						continuityInNegativeDirection.density,
-						continuityPositiveDirection.density,
-						continuityInNegativeDirection.u,
-						continuityPositiveDirection.u,
-						continuityInNegativeDirection.v,
-						continuityPositiveDirection.v,
-						continuityInNegativeDirection.p,
-						continuityPositiveDirection.p,
-						continuityInNegativeDirection.h,
-						continuityPositiveDirection.h,
-						0,
-						gamma,
-						solverSettings.AUSMSwitchBias,
-						solverSettings.entropyFix
-						);
-					double dif0 = flux[0] - fluxSplit[face].density;
-					double dif1 = flux[1] - fluxSplit[face].u;
-					double dif2 = flux[2] - fluxSplit[face].v;
-					double dif3 = flux[3] - fluxSplit[face].e;
-#endif
 				}
 
 				// If it's a vertical flux, then the u and v are in the local reference frame, and hence they must be inverted.
