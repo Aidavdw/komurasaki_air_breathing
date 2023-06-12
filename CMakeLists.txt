@@ -11,6 +11,6 @@ include_directories(
 )
 
 add_subdirectory(extern/pybind11)
-pybind11_add_module(pylib pythonmodule.cpp
+pybind11_add_module(komurasakiairbreathing pythonmodule.cpp
 	${SRC_LIB}
 )
