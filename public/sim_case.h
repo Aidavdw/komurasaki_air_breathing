@@ -2,6 +2,7 @@
 #include "domain.h"
 #include <map>
 #include "IValve.h"
+#include "pythoninterface/record.h"
 
 // Changes the behaviour of how the solver works.
 struct SolverSettings
@@ -54,6 +55,7 @@ public:
 	std::map<int, Domain> domains; // The domains that are part of this SimCase
 	std::map<std::string, int> domainIDS;
 	std::vector<IValve> valves;
+	std::map<std::string, TwoDimensionalArrayRecord> twoDimensionalArrayRecords;
 
 	double simulationDuration;
 	double dt;
@@ -68,8 +70,12 @@ public:
 	void ConnectBoundariesByName(const std::string domainOneName, const EFace domainOneLocation, const std::string domainTwoName, const EFace domainTwoLocation);
 
 	//todo: add proxy inserter for (reed) valves so that it doesn't need to be constructed so awkwardly.
-
+	
 	void ApplyInitialConditionsToDomainsAndValves();
+
+	void AddRecord(const TwoDimensionalArray& src, const std::string tag);
+	Domain& GetDomainByID(const int id) {return domains.at(id);}
+	Domain& GetDomainByName(const std::string& name) {return GetDomainByID(domainIDS.at(name));}
 
 };
 

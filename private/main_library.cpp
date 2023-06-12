@@ -124,6 +124,14 @@ void DoSimulation(SimCase& simCase)
     #endif
         }
 
+        // Check the Records to see what needs to be saved
+        for (auto& it : simCase.twoDimensionalArrayRecords)
+        {
+            std::cout << "Saving record '" << it.first << "'" << std::endl;
+            it.second.SaveRecord();
+        }
+            
+
 
         // todo: export flow data of domains
         // todo: export valve data

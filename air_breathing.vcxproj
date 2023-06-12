@@ -30,7 +30,8 @@
     <ClInclude Include="public\microwave.h" />
     <ClInclude Include="public\muscl.h" />
     <ClInclude Include="public\pos2d.h" />
-    <ClInclude Include="public\pythoninterface\module.h" />
+    <ClInclude Include="public\pythoninterface\record.h" />
+    <ClInclude Include="public\pythoninterface\conversion_functions.h" />
     <ClInclude Include="public\reed_valve.h" />
     <ClInclude Include="public\sim_case.h" />
     <ClInclude Include="public\IValve.h" />
@@ -137,7 +138,8 @@
     <ClCompile Include="private\microwave.cpp" />
     <ClCompile Include="private\muscl.cpp" />
     <ClCompile Include="private\pos2d.cpp" />
-    <ClCompile Include="private\pythoninterface\module.cpp" />
+    <ClCompile Include="private\pythoninterface\record.cpp" />
+    <ClCompile Include="private\pythoninterface\conversion_functions.cpp" />
     <ClCompile Include="private\reed_valve.cpp" />
     <ClCompile Include="private\sim_case.cpp" />
     <ClCompile Include="private\IValve.cpp" />

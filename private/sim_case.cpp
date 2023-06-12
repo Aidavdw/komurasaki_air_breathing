@@ -23,6 +23,8 @@ void SimCase::InsertValve(const IValve& valve)
 
 Domain* SimCase::AddDomain(const int id, const std::string name, const Position& position, const std::pair<double, double> sizeArg, const std::pair<MeshSpacing, MeshSpacing> meshSpacingArg, const EInitialisationMethod initialisationMethod, const int ghostCellDepth)
 {
+	// todo: remove GhostCellDepth argument, because it's already available inside of the domain that this function is called from.
+	
 	// Ensure it doesn't have the same name or id
 	if (domainIDS.count(name) > 0)
 		throw std::logic_error("Cannot add two domains with the same name");
@@ -33,6 +35,8 @@ Domain* SimCase::AddDomain(const int id, const std::string name, const Position&
 		if (iter.second == id)
 			throw std::logic_error("Cannot add two domains with the same id");
 #endif
+
+	// todo: check that the MeshSpacing size and the actual size are the same, or change SizeArg to only take in MeshSpacingArg.
 	
 	
 	//todo: switch this to an emplace constructor so that it doesn't have to be copied over
@@ -137,4 +141,13 @@ void SimCase::ApplyInitialConditionsToDomainsAndValves()
 	std::cout << "Initial conditions applied." << std::endl;
 #endif
 	
+}
+
+void SimCase::AddRecord(const TwoDimensionalArray& src, const std::string tag)
+{
+	// Verify the tag does not yet already exist
+	if (twoDimensionalArrayRecords.count(tag))
+		throw std::logic_error("A record with this tag has already been set");
+
+	twoDimensionalArrayRecords[tag] = TwoDimensionalArrayRecord(&src);
 }
