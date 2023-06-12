@@ -10,12 +10,12 @@
 
 double eval_msd_function(double x, double c)
 {
-    return sqrt(c / x + 1) + sqrt(c / x) - x;
+    return std::sqrt(c / x + 1) + std::sqrt(c / x) - x;
 }
 
 double eval_msd_deriv(double x, double c)
 {
-    return -c / std::pow(x, 2) * (0.5 * sqrt(c / x + 1) + 0.5 * sqrt(c / x)) - 1;
+    return -c / std::pow(x, 2) * (0.5 * std::sqrt(c / x + 1) + 0.5 * std::sqrt(c / x)) - 1;
 }
 
 ChapmanJougetDetonationSolution SolveChapmanJougetDetonationProblem(const double temperatureAmbient, const double pressureAmbient, const double ETA, const double S0, const double idealGasConstant, const double GAMMA, const double lengthOfCombustionTube, const double RadiusOfCombustionTube, const double convergenceThreshold)
@@ -24,7 +24,7 @@ ChapmanJougetDetonationSolution SolveChapmanJougetDetonationProblem(const double
     const static int MAX_ITERS = 200;
 
     double rho0 = pressureAmbient / (idealGasConstant * temperatureAmbient); // Ambient density
-    double a0 = sqrt(GAMMA * idealGasConstant * temperatureAmbient); // Ambient speed of sound
+    double a0 = std::sqrt(GAMMA * idealGasConstant * temperatureAmbient); // Ambient speed of sound
     double powerDensity = ETA * S0 / (M_PI * RadiusOfCombustionTube * RadiusOfCombustionTube); // Mean power density
     
     const double cFactor = (std::pow(GAMMA, 2) - 1) / (2 * std::pow(a0, 3) * rho0) * powerDensity; // Constant factor for Newton-Raphson method
@@ -148,7 +148,7 @@ EulerContinuity ChapmanJougetDetonationSolution::FieldPropertiesAtPosition(const
         c.p = postExpansion.p* std::pow(1.0 - (gamma - 1.0) / (gamma + 1.0) * (1.0 - xPosition / l_exp), 2.0 * gamma / (gamma - 1.0));
         c.density = postExpansion.density * std::pow(postExpansion.p / c.p, 1.0 / gamma);
         c.t = postExpansion.p / (postExpansion.density * tubeRadius) * std::pow(c.density / postExpansion.density, gamma - 1.0);
-        c.u = -2.0 / (gamma - 1.0) * (sqrt(gamma * postExpansion.p / postExpansion.density) - sqrt(gamma * tubeRadius * c.t));
+        c.u = -2.0 / (gamma - 1.0) * (sqrt(gamma * postExpansion.p / postExpansion.density) - std::sqrt(gamma * tubeRadius * c.t));
         c.v = 0.0;
 
         c.e = c.p / (gamma - 1.0) + 0.5 * c.density * (std::pow(c.u, 2) + std::pow(c.v, 2));

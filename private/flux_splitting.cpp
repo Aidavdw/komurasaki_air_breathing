@@ -36,8 +36,8 @@ EulerContinuity HanelFluxSplitting(const EulerContinuity& l, const EulerContinui
     const double alphaL=2*alphaLPartial/(alphaLPartial+alphaRPartial);
     const double alphaR=2*alphaRPartial/(alphaRPartial+alphaLPartial);
     
-    const double cLeft = sqrt(gamma * l.p / l.density);
-    const double cRight = sqrt(gamma * r.p / r.density);
+    const double cLeft = std::sqrt(gamma * l.p / l.density);
+    const double cRight = std::sqrt(gamma * r.p / r.density);
     const double maxSpeedOfSound =  std::max(cLeft, cRight);
 
     double uLplus;
@@ -100,8 +100,8 @@ EulerContinuity AUSMDVFluxSplitting(const EulerContinuity& l, const EulerContinu
     const double alphaL=2*alphaLPartial/(alphaLPartial+alphaRPartial);
     const double alphaR=2*alphaRPartial/(alphaRPartial+alphaLPartial);
     
-    const double cL = sqrt(gamma * l.p / l.density);
-    const double cR = sqrt(gamma * r.p / r.density);
+    const double cL = std::sqrt(gamma * l.p / l.density);
+    const double cR = std::sqrt(gamma * r.p / r.density);
     const double maxSpeedOfSound =  std::max(cL, cR);
 
     double uLplus,pLplus;

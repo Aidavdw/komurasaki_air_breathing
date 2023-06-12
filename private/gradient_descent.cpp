@@ -26,7 +26,7 @@
 #include "gradient_descent.h"
 #include <iostream>
 #include <fstream>
-#include <math.h>
+#include <cmath>
 
 	 // Constructor.
 qbGradient::qbGradient()
@@ -152,5 +152,5 @@ double qbGradient::ComputeGradientMagnitude(std::vector<double> gradientVector)
 	for (int i = 0; i < m_nDims; ++i)
 		vectorMagnitude += gradientVector[i] * gradientVector[i];
 
-	return sqrt(vectorMagnitude);
+	return std::sqrt(vectorMagnitude);
 }

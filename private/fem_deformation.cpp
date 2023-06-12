@@ -4,6 +4,7 @@
 #include <iterator>
 #include <stdexcept>
 #include <vector>
+#include <cmath>
 
 #include "AuxFunctions.h"
 
@@ -295,7 +296,7 @@ TwoDimensionalArray FemDeformation::CholeskyDecomposition(const TwoDimensionalAr
 		{
 			throw std::logic_error("While Cholesky decomposing, got a non-positive definite matrix!");
 		}
-		out(i,i) = sqrt(out(i, i));
+		out(i,i) = std::sqrt(out(i, i));
 
 		for (int j = i + 1; j < activeDegreesOfFreedom; ++j)
 		{

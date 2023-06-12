@@ -1,5 +1,6 @@
 #include "pos2d.h"
 #include <cmath>
+#include <limits>
 
 double Position::Distance() const
 {
@@ -9,7 +10,7 @@ double Position::Distance() const
     else if (std::abs(y) < std::numeric_limits<double>::epsilon())
         return x;
 
-    return sqrt(x*x + y*y);
+    return std::sqrt(x*x + y*y);
 }
 
 

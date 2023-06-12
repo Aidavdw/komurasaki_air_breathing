@@ -355,7 +355,7 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 				 *
 				 */
 
-				const double speedOfSound = sqrt(gamma * p.MUSCLBuffer[face].GetAt(xIdx, yIdx)/rho.MUSCLBuffer[face].GetAt(xIdx, yIdx));
+				const double speedOfSound = std::sqrt(gamma * p.MUSCLBuffer[face].GetAt(xIdx, yIdx)/rho.MUSCLBuffer[face].GetAt(xIdx, yIdx));
 
 				// I Don't remember what I did here, I think this can be ignored?
 				/*

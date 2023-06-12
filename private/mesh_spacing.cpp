@@ -3,6 +3,7 @@
 #include <cassert>
 #include <stdexcept>
 #include <functional>
+#include <cmath>
 #include "AuxFunctions.h"
 #include "gradient_descent.h"
 
@@ -92,7 +93,7 @@ void MeshSpacing::FitSpacingToParameters()
 	solver.SetObjectFcn(p_ObjectFcn);
 
 	// Set a start point.
-	double knownSpacing = std::max({ left, right });
+	double knownSpacing = std::max(left, right);
 	double leftGuess = bLeft ? left : knownSpacing;
 	double rightGuess = bRight ? right : knownSpacing;
 	solver.SetStartPoint({ leftGuess, rightGuess, double(amountOfElements) });

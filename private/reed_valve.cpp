@@ -424,7 +424,7 @@ double ReedValve::FukanariReferenceArea() const
 	{
 		throw std::logic_error("Fukanari's reference area is only confirmed for straight double tapered reed valves. Maybe the difference is small, but this is for your information. Ignore this message if you know what you're doing.");
 	}
-	return GetTipDeflection()*(fem_.rootWidth + sqrt(fem_.freeLength * fem_.freeLength + 0.25*std::pow(fem_.rootWidth - fem_.tipWidth,2)));
+	return GetTipDeflection()*(fem_.rootWidth + std::sqrt(fem_.freeLength * fem_.freeLength + 0.25*std::pow(fem_.rootWidth - fem_.tipWidth,2)));
 }
 
 double ReedValve::DischargeCoefficient() const
