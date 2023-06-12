@@ -129,6 +129,9 @@ public:
 		return data_.at(rowOffset + colOffset);
 	}
 
+	// pybind11 does not like functions that take a lot of aliases, so here is a unique proxy.
+	double GetAtPythonProxy(const int xIdx, const int yIdx) const { return GetAt(xIdx,yIdx); }
+
 private:
 	std::vector<double> data_;				// The actual value of this field quantity. Access using (), don't manually index!
 };

@@ -27,13 +27,24 @@ PYBIND11_MODULE(komurasakiairbreathing, m)
         .def_readonly("internal_energy", &Domain::E)
         .def_readonly("temperature", &Domain::T)
         .def_readonly("enthalpy", &Domain::H);
-    
+
+    py::class_<FieldQuantity>(m, "FieldQuantity")
+        .def_readonly("current_time_step", &FieldQuantity::currentTimeStep)
+        .def_readonly("rungeKuttaBuffer", &FieldQuantity::currentTimeStep);
+
+    py::class_<TwoDimensionalArray>(m, "TwoDimensionalArray")
+        .def("GetAt", &TwoDimensionalArray::GetAtPythonProxy)
+        .def_readonly("size_x", &TwoDimensionalArray::nX)
+        .def_readonly("size_y", &TwoDimensionalArray::nY);
 
     // Todo: add these jetsers
     // SolverSettings
     // AmbientConditions
     // ChapmanJougetInitialConditionParameters
     // RuntimeParameters
+
+    py::class_<Boundary>(m,"Boundary")
+        .def_readonly("boundary_type", &Boundary::boundaryType);
 
     // Position
     py::class_<Position>(m,"Position")
