@@ -8,10 +8,25 @@ PYBIND11_MODULE(komurasakiairbreathing, m)
 {
     // Simcase
     py::class_<SimCase>(m, "SimCase")
-        .def(py::init<int, int>()) // constructor
+        .def(py::init<double, double>()) // constructor
         .def("AddDomain", &SimCase::AddDomain)
         .def("ConnectBoundariesByName", &SimCase::ConnectBoundariesByName)
-        .def("ConnectBoundariesById", &SimCase::ConnectBoundariesById);
+        .def("ConnectBoundariesById", &SimCase::ConnectBoundariesById)
+        .def("GetDomainByID", &SimCase::GetDomainByID)
+        .def("GetDomainByName", &SimCase::GetDomainByName)
+        .def("AddRecord", &SimCase::AddRecord);
+    
+
+    py::class_<Domain>(m, "Domain")
+        .def("SetBoundaryType", &Domain::SetBoundaryType)
+        .def_readonly("density", &Domain::rho)
+        .def_readonly("velocity_x", &Domain::u)
+        .def_readonly("velocity_r", &Domain::v)
+        .def_readonly("pressure", &Domain::p)
+        .def_readonly("internal_energy", &Domain::E)
+        .def_readonly("temperature", &Domain::T)
+        .def_readonly("enthalpy", &Domain::H);
+    
 
     // Todo: add these jetsers
     // SolverSettings
@@ -21,7 +36,7 @@ PYBIND11_MODULE(komurasakiairbreathing, m)
 
     // Position
     py::class_<Position>(m,"Position")
-        .def(py::init<int, int>()) // constructor
+        .def(py::init<double, double>()) // constructor
         .def_readonly("x", &Position::x)
         .def_readonly("y", &Position::y)
         .def_readonly("up_direction", &Position::upDirection);
