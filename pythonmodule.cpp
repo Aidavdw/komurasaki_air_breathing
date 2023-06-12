@@ -1,6 +1,7 @@
 ﻿#include "main_library.h"
 #include "sim_case.h"
 #include "extern/pybind11/include/pybind11/pybind11.h"
+#include "pythoninterface/conversion_functions.h"
 
 namespace py = pybind11;
 
@@ -87,4 +88,5 @@ PYBIND11_MODULE(komurasakiairbreathing, m)
 
     // define all standalone functions
     m.def("DoSimulation", &DoSimulation);
+    m.def("TwoDimensionalArrayToNumpyArray", &TwoDimensionalArrayToNumpyArray);
 }
