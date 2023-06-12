@@ -44,7 +44,7 @@ PYBIND11_MODULE(komurasakiairbreathing, m)
         .export_values();
 
     // EFace
-    py::enum_<EFace>(m, "InitialisationMethod")
+    py::enum_<EFace>(m, "Face")
         .value("left",EFace::LEFT)
         .value("right",EFace::RIGHT)
         .value("top",EFace::TOP)
