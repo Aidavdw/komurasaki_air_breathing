@@ -752,10 +752,17 @@ bool Domain::ValidateCellIndex(const CellIndex cellIndex, const bool bAllowGhost
 
 bool Domain::AreAllBoundariesSet() const
 {
-	if (boundaries.size() < 4 || boundaries.size() > 4)
+	std::map<EFace, bool> truth;
+	
+	if (boundaries.size() < 4)
 		return false;
+	if (boundaries.size() > 4)
+		throw std::logic_error("Too many boundaries defined! This should not be possible.");
+	
 	for (const auto& it : boundaries)
 	{
+		if (truth.count(it.first))
+			throw std::logic_error("The side" + FaceToString(it.first) + "Already exists!");
 		const Boundary& boundary = it.second;
 		// This could be moved into boundary.h/boundary.cpp
 		if (boundary.boundaryType == EBoundaryCondition::NOT_SET)
