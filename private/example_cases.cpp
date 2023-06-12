@@ -9,15 +9,15 @@ void LoadExampleCaseWithoutReedValves(SimCase* simCase) {
 	const double lengthOfTube = 0.5;
 	const double heightOfTube = 0.028;
 	const MeshSpacing xMeshSpacing = MeshSpacing(EMeshSpacingType::CONSTANT, lengthOfTube, 250, 0, 0);
-	const MeshSpacing yMeshSpacing = MeshSpacing(EMeshSpacingType::CONSTANT, lengthOfTube, 14, 0, 0);
+	const MeshSpacing yMeshSpacing = MeshSpacing(EMeshSpacingType::CONSTANT, heightOfTube, 14, 0, 0);
 
 	// Domains
 
 	Domain* tube = simCase->AddDomain(1,
 	                                  "Tube",
-	                                  {lengthOfTube/2,heightOfTube/2},
+	                                  {0,0},
 	                                  {lengthOfTube,heightOfTube},
-	                                  {xMeshSpacing, xMeshSpacing },
+	                                  {xMeshSpacing, yMeshSpacing },
 	                                  EInitialisationMethod::FROM_CHAPMAN_JOUGET_SOLUTION,
 	                                  simCase->solverSettings.nGhost
 	);
@@ -27,9 +27,9 @@ void LoadExampleCaseWithoutReedValves(SimCase* simCase) {
 	
 	Domain* ambient = simCase->AddDomain(2,
 	                                     "ambient",
-	                                     {lengthOfTube/2,heightOfTube/2},
+	                                     {lengthOfTube,0},
 	                                     {lengthOfTube,heightOfTube},
-	                                     {xMeshSpacing, xMeshSpacing },
+	                                     {xMeshSpacing, yMeshSpacing },
 	                                     EInitialisationMethod::AMBIENT_CONDITIONS,
 	                                     simCase->solverSettings.nGhost
 	);
