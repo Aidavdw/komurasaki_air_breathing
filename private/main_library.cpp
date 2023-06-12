@@ -32,7 +32,7 @@ void DoSimulation(SimCase& simCase)
     for (int timeStepNumber = 1; timeStepNumber < simCase.totalSimulationTimeStepCount; ++timeStepNumber)
     {
 #ifdef _DEBUG
-        std::cout << "Advanced to time step " << timeStepNumber << " [ t = " << timeStepNumber*simCase.dt << "]" << std::endl;
+        std::cout << "Advanced to time step " << timeStepNumber << " [ t = " << timeStepNumber*simCase.dt << " / " << simCase.totalSimulationTimeStepCount <<"], " << timeStepNumber/simCase.totalSimulationTimeStepCount*100 <<"% done"  << std::endl;
 #endif
         // Set the starting runge-kutta conditions to be that of the solution of the previous time step.
         for (auto& domainIter : simCase.domains)
@@ -104,13 +104,23 @@ void DoSimulation(SimCase& simCase)
             domain.CopyFieldQuantitiesToBuffer(EFieldQuantityBuffer::NEXT_TIME_STEP, EFieldQuantityBuffer::CURRENT_TIME_STEP);
 
 #ifdef _DEBUG
-            // Dump the field quantities' values
-            std::string dumpFile = domain.name + "_t" + std::to_string(timeStepNumber*simCase.dt) + ".csv";
-            DumpPrettyWithGhostStrings(domain.p.currentTimeStep, DIR_TO_DUMP_TO + "p_" + dumpFile + ".csv", 4);
-            DumpPrettyWithGhostStrings(domain.rho.currentTimeStep, DIR_TO_DUMP_TO + "rho_" + dumpFile + ".csv", 4);
-            DumpPrettyWithGhostStrings(domain.u.currentTimeStep, DIR_TO_DUMP_TO + "u_" + dumpFile + ".csv", 4);
-            DumpPrettyWithGhostStrings(domain.v.currentTimeStep, DIR_TO_DUMP_TO + "v_" + dumpFile + ".csv", 4);
+            std::cout << "Dumping values into csv files" << std::endl;
+            
+            std::string pFilename = domain.name + "_p_time" + std::to_string(timeStepNumber) + ".csv";
+            DumpPrettyWithGhostStrings(domain.p.currentTimeStep, DIR_TO_DUMP_TO + "GHOST_"+ pFilename, 4);
+            DumpTwoDimensionalArrayToFileGrid(domain.p.currentTimeStep, DIR_TO_DUMP_TO + pFilename, 4);
 
+            std::string rhoFilename = domain.name + "_rho_time" + std::to_string(timeStepNumber) + ".csv";
+            DumpPrettyWithGhostStrings(domain.rho.currentTimeStep, DIR_TO_DUMP_TO + "GHOST_"+ rhoFilename, 4);
+            DumpTwoDimensionalArrayToFileGrid(domain.rho.currentTimeStep, DIR_TO_DUMP_TO + rhoFilename, 4);
+
+            std::string uFilename = domain.name + "_u_time" + std::to_string(timeStepNumber) + ".csv";
+            DumpPrettyWithGhostStrings(domain.u.currentTimeStep, DIR_TO_DUMP_TO + "GHOST_"+ uFilename, 4);
+            DumpTwoDimensionalArrayToFileGrid(domain.u.currentTimeStep, DIR_TO_DUMP_TO + uFilename, 4);
+
+            std::string vFilename = domain.name + "_v_time" + std::to_string(timeStepNumber) + ".csv";
+            DumpPrettyWithGhostStrings(domain.v.currentTimeStep, DIR_TO_DUMP_TO + "GHOST_"+ vFilename, 4);
+            DumpTwoDimensionalArrayToFileGrid(domain.v.currentTimeStep, DIR_TO_DUMP_TO + vFilename, 4);
     #endif
         }
 
