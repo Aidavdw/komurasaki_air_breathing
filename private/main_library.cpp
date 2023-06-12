@@ -10,9 +10,11 @@
 
 void DoSimulation(SimCase& simCase)
 {
+    std::cout << "Starting new simulation case." << std::endl;
     // Check if domains are properly initialised
     for (const auto& domain : simCase.domains)
     {
+        std::cout << "Checking boundaries for domain '" << domain.second.name << "'" << std::endl;
         if (!domain.second.AreAllBoundariesSet())
             throw std::logic_error("Not all boundaries are set for domain " + domain.second.name);
     }
@@ -32,7 +34,7 @@ void DoSimulation(SimCase& simCase)
     for (int timeStepNumber = 1; timeStepNumber < simCase.totalSimulationTimeStepCount; ++timeStepNumber)
     {
 #ifdef _DEBUG
-        std::cout << "Advanced to time step " << timeStepNumber << " [ t = " << timeStepNumber*simCase.dt << " / " << simCase.totalSimulationTimeStepCount <<"], " << timeStepNumber/simCase.totalSimulationTimeStepCount*100 <<"% done"  << std::endl;
+        std::cout << "Advanced to time step " << timeStepNumber*simCase.dt << " [ t = " << timeStepNumber << " / " << simCase.totalSimulationTimeStepCount <<"], " << timeStepNumber/simCase.totalSimulationTimeStepCount*100 <<"% done"  << std::endl;
 #endif
         // Set the starting runge-kutta conditions to be that of the solution of the previous time step.
         for (auto& domainIter : simCase.domains)
