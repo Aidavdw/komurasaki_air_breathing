@@ -44,8 +44,8 @@ EulerContinuity HanelFluxSplitting(const EulerContinuity& l, const EulerContinui
     double pLplus;
     if (l.u <= maxSpeedOfSound)
     {
-        uLplus=0.5*(l.u+abs(l.u))+alphaL*(0.25/maxSpeedOfSound*pow(l.u+maxSpeedOfSound,2)-0.5*(l.u+abs(l.u)));
-        pLplus=0.25*l.p*pow(l.u/maxSpeedOfSound+1,2)*(2-l.u/maxSpeedOfSound);
+        uLplus=0.5*(l.u+abs(l.u))+alphaL*(0.25/maxSpeedOfSound*std::pow(l.u+maxSpeedOfSound,2)-0.5*(l.u+abs(l.u)));
+        pLplus=0.25*l.p*std::pow(l.u/maxSpeedOfSound+1,2)*(2-l.u/maxSpeedOfSound);
     }
     else
     {
@@ -57,8 +57,8 @@ EulerContinuity HanelFluxSplitting(const EulerContinuity& l, const EulerContinui
     double pRminus;
     if (abs(r.u)<=maxSpeedOfSound)
     {
-        uRminus=0.5*(r.u-abs(r.u))+alphaR*(-0.25/maxSpeedOfSound*pow(r.u-maxSpeedOfSound,2)-0.5*(r.u-abs(r.u)));
-        pRminus=0.25*r.p*pow(r.u/maxSpeedOfSound-1,2)*(2+r.u/maxSpeedOfSound);
+        uRminus=0.5*(r.u-abs(r.u))+alphaR*(-0.25/maxSpeedOfSound*std::pow(r.u-maxSpeedOfSound,2)-0.5*(r.u-abs(r.u)));
+        pRminus=0.25*r.p*std::pow(r.u/maxSpeedOfSound-1,2)*(2+r.u/maxSpeedOfSound);
     }
     else
     {
@@ -108,8 +108,8 @@ EulerContinuity AUSMDVFluxSplitting(const EulerContinuity& l, const EulerContinu
     // Definition of UL(plus), PL(plus), UR(minus) and PR(minus)
     if (abs(l.u)<=maxSpeedOfSound)
     {
-        uLplus=0.5*(l.u+abs(l.u))+alphaL*(0.25/maxSpeedOfSound*pow(l.u+maxSpeedOfSound,2)-0.5*(l.u+abs(l.u)));
-        pLplus=0.25*l.p*pow(l.u/maxSpeedOfSound+1.0,2)*(2.0-l.u/maxSpeedOfSound);
+        uLplus=0.5*(l.u+abs(l.u))+alphaL*(0.25/maxSpeedOfSound*std::pow(l.u+maxSpeedOfSound,2)-0.5*(l.u+abs(l.u)));
+        pLplus=0.25*l.p*std::pow(l.u/maxSpeedOfSound+1.0,2)*(2.0-l.u/maxSpeedOfSound);
     }
     else
     {
@@ -120,8 +120,8 @@ EulerContinuity AUSMDVFluxSplitting(const EulerContinuity& l, const EulerContinu
     double uRminus,pRminus;
     if (abs(r.u)<=maxSpeedOfSound)
     {
-        uRminus=0.5*(r.u-abs(r.u))+alphaR*(-0.25/maxSpeedOfSound*pow(r.u-maxSpeedOfSound,2)-0.5*(r.u-abs(r.u)));
-        pRminus=0.25*r.p*pow(r.u/maxSpeedOfSound-1.0,2)*(2.0+r.u/maxSpeedOfSound);
+        uRminus=0.5*(r.u-abs(r.u))+alphaR*(-0.25/maxSpeedOfSound*std::pow(r.u-maxSpeedOfSound,2)-0.5*(r.u-abs(r.u)));
+        pRminus=0.25*r.p*std::pow(r.u/maxSpeedOfSound-1.0,2)*(2.0+r.u/maxSpeedOfSound);
     }
     else
     {

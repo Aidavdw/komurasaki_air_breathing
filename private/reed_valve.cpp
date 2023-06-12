@@ -225,7 +225,7 @@ void ReedValve::FillBuffer()
 	const double referenceArea = FukanariReferenceArea();
 	const double gamma = intoDomain_->SpecificHeatRatio();
 	// If the critical pressure ratio is reached, the flow is considered choked, so the mass flow can no longer be increased!
-	const double criticalPressureRatio = pow(2.0/(gamma+1.0),gamma/(gamma-1.0));
+	const double criticalPressureRatio = std::pow(2.0/(gamma+1.0),gamma/(gamma-1.0));
 	const double dischargeCoefficient = DischargeCoefficient();
 
 #ifdef _DEBUG
@@ -236,7 +236,7 @@ void ReedValve::FillBuffer()
 	double totalMassFlowRate;
 	if (averagePressureRatio > criticalPressureRatio) // && pratio <= 1.0), flow is choked.
 	{
-		totalMassFlowRate = dischargeCoefficient*referenceArea*averageDensityOutOfDomain*pow(averagePressureRatio,1.0/gamma)*sqrt(2.0*gamma*averagePressureOutOfDomain/averageDensityOutOfDomain/(gamma-1.0)*(1.0-pow(averagePressureRatio,(gamma-1.0)/gamma)));
+		totalMassFlowRate = dischargeCoefficient*referenceArea*averageDensityOutOfDomain*std::pow(averagePressureRatio,1.0/gamma)*sqrt(2.0*gamma*averagePressureOutOfDomain/averageDensityOutOfDomain/(gamma-1.0)*(1.0-std::pow(averagePressureRatio,(gamma-1.0)/gamma)));
 
 #ifdef _DEBUG
 		assert(!isnan(totalMassFlowRate));
@@ -244,7 +244,7 @@ void ReedValve::FillBuffer()
 	}
 	else // pressureRatio > 0.0 && pressureRatio <= criticalPressureRatio, flow is not choked.
 	{
-		totalMassFlowRate = dischargeCoefficient*referenceArea*gamma*averagePressureOutOfDomain/sqrt(gamma*averagePressureOutOfDomain/averageDensityOutOfDomain)*pow(2.0/(gamma+1.0),0.5*(gamma+1.0)/(gamma-1.0));
+		totalMassFlowRate = dischargeCoefficient*referenceArea*gamma*averagePressureOutOfDomain/sqrt(gamma*averagePressureOutOfDomain/averageDensityOutOfDomain)*std::pow(2.0/(gamma+1.0),0.5*(gamma+1.0)/(gamma-1.0));
 
 #ifdef _DEBUG
 		assert(!isnan(totalMassFlowRate));
@@ -297,7 +297,7 @@ void ReedValve::FillBuffer()
 			sourceTermBuffer_.at(i).density = normalisedMassFlowRate/sourceCellVolumes.at(i);
 			sourceTermBuffer_.at(i).u = (normalisedMassFlowRate*averageUOutside)/sourceCellVolumes.at(i);
 			sourceTermBuffer_.at(i).v = (normalisedMassFlowRate*averageVOutside)/sourceCellVolumes.at(i);
-			sourceTermBuffer_.at(i).e = (gamma/(gamma-1.0)*averagePressureOutOfDomain/averageDensityOutOfDomain + 0.5*volumeFlowRate*sqrt(pow(averageUOutside, 2) + pow(averageVOutside,2)))*normalisedMassFlowRate/sourceCellVolumes.at(i);
+			sourceTermBuffer_.at(i).e = (gamma/(gamma-1.0)*averagePressureOutOfDomain/averageDensityOutOfDomain + 0.5*volumeFlowRate*sqrt(std::pow(averageUOutside, 2) + std::pow(averageVOutside,2)))*normalisedMassFlowRate/sourceCellVolumes.at(i);
 		}
 
 		// The sink terms, the outOfDomain_.
@@ -313,7 +313,7 @@ void ReedValve::FillBuffer()
 			sinkTermBuffer_.at(i).density = -normalisedMassFlowRate/sinkCellVolumes.at(i);
 			sinkTermBuffer_.at(i).u = -(normalisedMassFlowRate*averageUOutside)/sinkCellVolumes.at(i);
 			sinkTermBuffer_.at(i).v = -(normalisedMassFlowRate*averageVOutside)/sinkCellVolumes.at(i);
-			sinkTermBuffer_.at(i).e = -(gamma/(gamma-1.0)*averagePressureOutOfDomain/averageDensityOutOfDomain + 0.5*volumeFlowRate*sqrt(pow(averageUOutside, 2) + pow(averageVOutside,2)))*normalisedMassFlowRate/sinkCellVolumes.at(i);
+			sinkTermBuffer_.at(i).e = -(gamma/(gamma-1.0)*averagePressureOutOfDomain/averageDensityOutOfDomain + 0.5*volumeFlowRate*sqrt(std::pow(averageUOutside, 2) + std::pow(averageVOutside,2)))*normalisedMassFlowRate/sinkCellVolumes.at(i);
 		}
 	}
 }
@@ -424,10 +424,10 @@ double ReedValve::FukanariReferenceArea() const
 	{
 		throw std::logic_error("Fukanari's reference area is only confirmed for straight double tapered reed valves. Maybe the difference is small, but this is for your information. Ignore this message if you know what you're doing.");
 	}
-	return GetTipDeflection()*(fem_.rootWidth + sqrt(fem_.freeLength * fem_.freeLength + 0.25*pow(fem_.rootWidth - fem_.tipWidth,2)));
+	return GetTipDeflection()*(fem_.rootWidth + sqrt(fem_.freeLength * fem_.freeLength + 0.25*std::pow(fem_.rootWidth - fem_.tipWidth,2)));
 }
 
 double ReedValve::DischargeCoefficient() const
 {
-	return fmax(0.0,fmin(1.0,0.9193*pow(1.0+0.5*GetTipDeflection()*1000.0,-0.596)));
+	return fmax(0.0,fmin(1.0,0.9193*std::pow(1.0+0.5*GetTipDeflection()*1000.0,-0.596)));
 }

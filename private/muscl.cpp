@@ -1,6 +1,7 @@
 ﻿#include "muscl.h"
 
 #include <stdexcept>
+#include <cmath>
 
 #include "AuxFunctions.h"
 
@@ -103,11 +104,11 @@ double SuperBee(const double r)
 /* Van Albada limiter function (version 1: TVD). r(i) is defined as (u(i)-u(i-1))/(u(i+1)-u(i) */
 double VanAlbadaOne(const double r)
 {
-    return (pow(r,2)+r)/(pow(r,2)+1);
+    return (std::pow(r,2)+r)/(std::pow(r,2)+1);
 }
 
 // Van Albada limiter function (version 2: not TVD). r(i) is defined as (u(i)-u(i-1))/(u(i+1)-u(i)). */
 double VanAlbadaTwo(const double r)
 {
-    return 2.0*r/(pow(r,2)+1);
+    return 2.0*r/(std::pow(r,2)+1);
 }

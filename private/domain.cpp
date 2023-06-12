@@ -4,6 +4,7 @@
 #include <cassert>
 #include <ios>
 #include <iostream>
+#include <cmath>
 
 #include "euler_container.h"
 #include "flux_splitting.h"
@@ -195,7 +196,7 @@ double Domain::GetCellVolume(const CellIndex cix) const
 	double cellR = localCellCenterPositions[1].at(cix.y);
 	double rInner = cellR - 0.5*cellDR;
 	double rOuter = cellR + 0.5*cellDR;
-	double volume = cellDX * M_PI * (pow(rOuter, 2) - pow(rInner, 2));
+	double volume = cellDX * M_PI * (std::pow(rOuter, 2) - std::pow(rInner, 2));
 	return volume;
 }
 
@@ -235,7 +236,7 @@ void Domain::SetToAmbientConditions(const double temperatureSet, const double pS
 	const double R = GasConstant();
 
 	const double rhoSet = pSet / (temperatureSet * R);
-	const double ESet = pSet / (gamma - 1.0) + 0.5 * rhoSet * (pow(uSet, 2) + pow(vSet, 2));
+	const double ESet = pSet / (gamma - 1.0) + 0.5 * rhoSet * (std::pow(uSet, 2) + std::pow(vSet, 2));
 	const double HSet = (ESet + pSet) / rhoSet;
 	rho.currentTimeStep.SetAllToValue(rhoSet);
 	E.currentTimeStep.SetAllToValue(ESet);
@@ -322,10 +323,10 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 			double gamma = SpecificHeatRatio();
 			double gasConstant = GasConstant();
 			// energy
-			const double eLeft = p.MUSCLBuffer[LEFT].GetAt(xIdx,yIdx) / (gamma - 1) + 0.5 * rho.MUSCLBuffer[LEFT].GetAt(xIdx, yIdx) * (pow(u.MUSCLBuffer[LEFT](xIdx, yIdx), 2) + pow(v.MUSCLBuffer[LEFT](xIdx, yIdx), 2));
-			const double eRight = p.MUSCLBuffer[RIGHT].GetAt(xIdx,yIdx) / (gamma - 1) + 0.5 * rho.MUSCLBuffer[RIGHT].GetAt(xIdx, yIdx) * (pow(u.MUSCLBuffer[RIGHT](xIdx, yIdx), 2) + pow(v.MUSCLBuffer[RIGHT](xIdx, yIdx), 2));
-			const double eTop = p.MUSCLBuffer[TOP].GetAt(xIdx,yIdx) / (gamma - 1) + 0.5 * rho.MUSCLBuffer[TOP].GetAt(xIdx, yIdx) * (pow(u.MUSCLBuffer[TOP](xIdx, yIdx), 2) + pow(v.MUSCLBuffer[TOP](xIdx, yIdx), 2));
-			const double eBottom = p.MUSCLBuffer[BOTTOM].GetAt(xIdx,yIdx) / (gamma - 1) + 0.5 * rho.MUSCLBuffer[BOTTOM].GetAt(xIdx, yIdx) * (pow(u.MUSCLBuffer[BOTTOM](xIdx, yIdx), 2) + pow(v.MUSCLBuffer[BOTTOM](xIdx, yIdx), 2));
+			const double eLeft = p.MUSCLBuffer[LEFT].GetAt(xIdx,yIdx) / (gamma - 1) + 0.5 * rho.MUSCLBuffer[LEFT].GetAt(xIdx, yIdx) * (std::pow(u.MUSCLBuffer[LEFT](xIdx, yIdx), 2) + std::pow(v.MUSCLBuffer[LEFT](xIdx, yIdx), 2));
+			const double eRight = p.MUSCLBuffer[RIGHT].GetAt(xIdx,yIdx) / (gamma - 1) + 0.5 * rho.MUSCLBuffer[RIGHT].GetAt(xIdx, yIdx) * (std::pow(u.MUSCLBuffer[RIGHT](xIdx, yIdx), 2) + std::pow(v.MUSCLBuffer[RIGHT](xIdx, yIdx), 2));
+			const double eTop = p.MUSCLBuffer[TOP].GetAt(xIdx,yIdx) / (gamma - 1) + 0.5 * rho.MUSCLBuffer[TOP].GetAt(xIdx, yIdx) * (std::pow(u.MUSCLBuffer[TOP](xIdx, yIdx), 2) + std::pow(v.MUSCLBuffer[TOP](xIdx, yIdx), 2));
+			const double eBottom = p.MUSCLBuffer[BOTTOM].GetAt(xIdx,yIdx) / (gamma - 1) + 0.5 * rho.MUSCLBuffer[BOTTOM].GetAt(xIdx, yIdx) * (std::pow(u.MUSCLBuffer[BOTTOM](xIdx, yIdx), 2) + std::pow(v.MUSCLBuffer[BOTTOM](xIdx, yIdx), 2));
 
 			// enthalpy
 			const double hLeft = (eLeft + p.MUSCLBuffer[LEFT].GetAt(xIdx,yIdx))/rho.MUSCLBuffer[LEFT].GetAt(xIdx,yIdx);
@@ -475,7 +476,7 @@ void Domain::SetNextTimeStepValuesBasedOnRungeKuttaAndDeltaBuffers(const int cur
 
 			// The others are not state variables; they can be calculated using the known variables. Calculate them now.
 			//todo: set a build mode where these are not calculated to speed things up, as this is only really necessary for data export.
-			p.nextTimeStepBuffer(xIdx, yIdx) = (SpecificHeatRatio()-1) * E.nextTimeStepBuffer.GetAt(xIdx, yIdx) - 0.5*rho.nextTimeStepBuffer(xIdx,yIdx)*pow(u.nextTimeStepBuffer.GetAt(xIdx,yIdx) + v.nextTimeStepBuffer.GetAt(xIdx,yIdx), 2);
+			p.nextTimeStepBuffer(xIdx, yIdx) = (SpecificHeatRatio()-1) * E.nextTimeStepBuffer.GetAt(xIdx, yIdx) - 0.5*rho.nextTimeStepBuffer(xIdx,yIdx)*std::pow(u.nextTimeStepBuffer.GetAt(xIdx,yIdx) + v.nextTimeStepBuffer.GetAt(xIdx,yIdx), 2);
 			T.nextTimeStepBuffer(xIdx, yIdx) = p.nextTimeStepBuffer.GetAt(xIdx, yIdx) / (GasConstant() * rho.nextTimeStepBuffer.GetAt(xIdx,yIdx));
 			H.nextTimeStepBuffer(xIdx,yIdx) = (E.nextTimeStepBuffer.GetAt(xIdx,yIdx) + p.nextTimeStepBuffer(xIdx,yIdx))/rho.nextTimeStepBuffer.GetAt(xIdx,yIdx);
 		}

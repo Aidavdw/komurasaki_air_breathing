@@ -21,8 +21,8 @@ BeamSection::BeamSection(const double length, const std::pair<double,double> wid
 
 	crossSectionalArea[0] = h[0] * b[0];
 	crossSectionalArea[1] = h[1] * b[1];
-	areaMomentOfInertia[0] = b[0] * pow(h[0], 3) / 12.0;
-	areaMomentOfInertia[1] = b[1] * pow(h[1], 3) / 12.0;
+	areaMomentOfInertia[0] = b[0] * std::pow(h[0], 3) / 12.0;
+	areaMomentOfInertia[1] = b[1] * std::pow(h[1], 3) / 12.0;
 
 	// Calculating the other properties; Right now, only the top surface area.
 	switch (beamProfile)
@@ -42,19 +42,19 @@ void BeamSection::PopulateMassMatrix()
 {
 	// Populating the mass matrix
 	massMatrix[0][0] = length * (10.0 * crossSectionalArea[1] + 3.0 * crossSectionalArea[0]) / 35.0;
-	massMatrix[0][1] = pow(length, 2) * (15.0 * crossSectionalArea[1] + 7.0 * crossSectionalArea[0]) / 420.0;
+	massMatrix[0][1] = std::pow(length, 2) * (15.0 * crossSectionalArea[1] + 7.0 * crossSectionalArea[0]) / 420.0;
 	massMatrix[0][2] = 9.0 * length * (crossSectionalArea[1] + crossSectionalArea[0]) / 140.0;
-	massMatrix[0][3] = -pow(length, 2) * (7.0 * crossSectionalArea[1] + 6.0 * crossSectionalArea[0]) / 420.0;
+	massMatrix[0][3] = -std::pow(length, 2) * (7.0 * crossSectionalArea[1] + 6.0 * crossSectionalArea[0]) / 420.0;
 
 	massMatrix[1][0] = massMatrix[0][1];
-	massMatrix[1][1] = pow(length, 3) * (3.0 * crossSectionalArea[1] + 5.0 * crossSectionalArea[0]) / 840.0;
+	massMatrix[1][1] = std::pow(length, 3) * (3.0 * crossSectionalArea[1] + 5.0 * crossSectionalArea[0]) / 840.0;
 	massMatrix[1][2] = -massMatrix[0][3];
-	massMatrix[1][3] = -pow(length, 3) * (crossSectionalArea[0] + crossSectionalArea[1]) / 280.0;
+	massMatrix[1][3] = -std::pow(length, 3) * (crossSectionalArea[0] + crossSectionalArea[1]) / 280.0;
 
 	massMatrix[2][0] = massMatrix[0][2];
 	massMatrix[2][1] = massMatrix[1][2];
 	massMatrix[2][2] = length * (10.0 * crossSectionalArea[0] + 3.0 * crossSectionalArea[1]) / 35.0;
-	massMatrix[2][3] = -pow(length, 2) * (15.0 * crossSectionalArea[0] + 7.0 * crossSectionalArea[1]) / 420.0;
+	massMatrix[2][3] = -std::pow(length, 2) * (15.0 * crossSectionalArea[0] + 7.0 * crossSectionalArea[1]) / 420.0;
 
 	massMatrix[3][0] = massMatrix[0][3];
 	massMatrix[3][1] = massMatrix[1][3];
@@ -64,10 +64,10 @@ void BeamSection::PopulateMassMatrix()
 
 void BeamSection::PopulateStiffnessMatrix()
 {
-	stiffnessMatrix[0][0] = 6.0 * (areaMomentOfInertia[0] + areaMomentOfInertia[1]) / pow(length, 3);
-	stiffnessMatrix[0][1] = 2.0 / pow(length, 2) * (areaMomentOfInertia[0] + 2.0 * areaMomentOfInertia[1]);
+	stiffnessMatrix[0][0] = 6.0 * (areaMomentOfInertia[0] + areaMomentOfInertia[1]) / std::pow(length, 3);
+	stiffnessMatrix[0][1] = 2.0 / std::pow(length, 2) * (areaMomentOfInertia[0] + 2.0 * areaMomentOfInertia[1]);
 	stiffnessMatrix[0][2] = -stiffnessMatrix[0][0];
-	stiffnessMatrix[0][3] = 2.0 / pow(length, 2) * (2.0 * areaMomentOfInertia[0] + areaMomentOfInertia[1]);
+	stiffnessMatrix[0][3] = 2.0 / std::pow(length, 2) * (2.0 * areaMomentOfInertia[0] + areaMomentOfInertia[1]);
 
 	stiffnessMatrix[1][0] = stiffnessMatrix[0][1];
 	stiffnessMatrix[1][1] = (areaMomentOfInertia[0] + 3.0 * areaMomentOfInertia[1]) / length;
