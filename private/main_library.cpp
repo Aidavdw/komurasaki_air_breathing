@@ -103,7 +103,7 @@ void DoSimulation(SimCase& simCase)
             Domain& domain = domainIter.second;
             domain.CopyFieldQuantitiesToBuffer(EFieldQuantityBuffer::NEXT_TIME_STEP, EFieldQuantityBuffer::CURRENT_TIME_STEP);
 
-#ifdef _DEBUG
+#ifdef _CREATE_DUMP_FILES
             std::cout << "Dumping values into csv files" << std::endl;
             
             std::string pFilename = domain.name + "_p_time" + std::to_string(timeStepNumber) + ".csv";

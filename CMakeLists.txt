@@ -14,3 +14,8 @@ add_subdirectory(extern/pybind11)
 pybind11_add_module(komurasakiairbreathing pythonmodule.cpp
 	${SRC_LIB}
 )
+
+# Uncomment next line to do a debug build, which adds extra failsafes/debug messages.
+add_compile_definitions(_DEBUG)
+# Uncomment next line to do dumping of intermediate files
+#add_compile_definitions(_CREATE_DUMP_FILES)
