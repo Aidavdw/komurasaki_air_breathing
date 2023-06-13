@@ -3,7 +3,6 @@
 #include "sim_case.h"
 #include <chrono>
 #include "reed_valve.h"
-#include "debug/2darrayserialiser.h"
 
 // Pls beware how cpp handles string literals with backslashes.
 #define DIR_TO_DUMP_TO std::string("C:/Users/Red Devil/Documents/git/komurasaki_air_breathing/debug_output/")
@@ -33,9 +32,7 @@ void DoSimulation(SimCase& simCase)
     /* START TIME LOOP */
     for (int timeStepNumber = 1; timeStepNumber < simCase.totalSimulationTimeStepCount; ++timeStepNumber)
     {
-#ifdef _DEBUG
         std::cout << "Advanced to time step " << timeStepNumber*simCase.dt << " [ t = " << timeStepNumber << " / " << simCase.totalSimulationTimeStepCount <<"], " << timeStepNumber/simCase.totalSimulationTimeStepCount*100 <<"% done"  << std::endl;
-#endif
         // Set the starting runge-kutta conditions to be that of the solution of the previous time step.
         for (auto& domainIter : simCase.domains)
         {
@@ -140,16 +137,22 @@ void DoSimulation(SimCase& simCase)
         //todo: implement displaying/calculating cfl
     } // END OF TIME LOOP
 
-#ifdef _DEBUG
-    std::cout << "End of time loop!" << std::endl;
-#endif
+
 
     /* FINAL INFORMATION DISPLAY AT END OF SIMULATION */
     auto timeAtFinishOfProgram = std::chrono::system_clock::now();
+    std::cout << "End of time loop!" << std::endl;
+    std::cout << "Simulation finished \\(^-^)/" << std::endl;
     // todo: implement timing and intermediate output.
 
-
 #ifdef _DEBUG
-    std::cout << "Simulation finished \\(^-^)/" << std::endl;
+    std::cout << "Saved records: " << std::endl;
+    for (auto& it : simCase.twoDimensionalArrayRecords)
+    {
+        auto& record = it.second;
+        auto& tag = it.first;
+        std::cout << "\t2DArray: " << tag << "(" << record.records.size() <<" elements)" << std::endl;
+    }
 #endif
+
 }

@@ -2,6 +2,7 @@
 #include "sim_case.h"
 #include "extern/pybind11/include/pybind11/pybind11.h"
 #include "pythoninterface/conversion_functions.h"
+#include "extern/pybind11/include/pybind11/stl.h"
 
 namespace py = pybind11;
 
@@ -15,7 +16,10 @@ PYBIND11_MODULE(komurasakiairbreathing, m)
         .def("ConnectBoundariesById", &SimCase::ConnectBoundariesById)
         .def("GetDomainByID", &SimCase::GetDomainByID)
         .def("GetDomainByName", &SimCase::GetDomainByName)
-        .def("AddRecord", &SimCase::AddRecord);
+        .def("AddRecord", &SimCase::AddRecord)
+        .def_readonly("domains", &SimCase::domains)
+        .def_readonly("two_dimensional_array_records", &SimCase::twoDimensionalArrayRecords)
+        .def_readonly("valve_interfaces", &SimCase::valves);
     
 
     py::class_<Domain>(m, "Domain")
@@ -27,6 +31,11 @@ PYBIND11_MODULE(komurasakiairbreathing, m)
         .def_readonly("internal_energy", &Domain::E)
         .def_readonly("temperature", &Domain::T)
         .def_readonly("enthalpy", &Domain::H);
+
+    py::class_<TwoDimensionalArrayRecord>(m,"TwoDimensionalArrayRecord")
+        .def_readonly("records", &TwoDimensionalArrayRecord::records)
+        .def("AsNumpyArray", &TwoDimensionalArrayRecord::AsNumpyArray);
+        
 
     py::class_<FieldQuantity>(m, "FieldQuantity")
         .def_readonly("current_time_step", &FieldQuantity::currentTimeStep)
