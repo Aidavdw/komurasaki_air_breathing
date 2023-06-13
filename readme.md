@@ -24,6 +24,10 @@ The ``SimCase`` object works as the master container. It contains global informa
 From it, you can create new **Domains** and **Valves**.
 The ``Domain`` represents a domain where fluid is present. In the set-up period, you give it a size, location, and method to initialise with.
 
+# Data Architecture
+The simcase contains a master reference to all the domains and valves.
+
+![A diagram showing the data layout of the program]
 # Coding style
 
 ## Accessor consts
