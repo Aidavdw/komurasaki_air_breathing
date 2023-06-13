@@ -22,6 +22,7 @@ void TwoDimensionalArray::SetAllToValue(const double value)
 
 void TwoDimensionalArray::Resize(const int sizeX, const int sizeY, const double initialValue)
 {
+	// todo: early exit if already this size
 	data_ = std::vector<double>((sizeX) * (sizeY), initialValue);
 }
 

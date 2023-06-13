@@ -1,4 +1,4 @@
-#include "example_cases.h"
+#include "debug/example_cases.h"
 #include "domain.h"
 #include "sim_case.h"
 

@@ -1,7 +1,7 @@
 #include <ctime>
 #include <iostream>
 #include "sim_case.h"
-#include "example_cases.h"
+#include "debug/example_cases.h"
 #include "main_library.h"
 
 // Hello kinoshita! Good luck!

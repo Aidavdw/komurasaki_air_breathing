@@ -6,7 +6,7 @@
 
 #define N_DOF_PER_NODE 2		// The total amount of degrees of freedom for a 2d beam element.
 
-// A simple beam in bending, modeled as an FEM system.
+// A simple beam in bending, modeled as an FEM system. Used in the reed valve.
 class FemDeformation
 {
 public:

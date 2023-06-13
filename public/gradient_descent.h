@@ -1,3 +1,5 @@
+// gradient descent function, stolen from somewhere on the internet.
+
 /* ************************************************************************
 		qbGradient class definition.
 

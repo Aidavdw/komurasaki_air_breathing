@@ -17,10 +17,10 @@
     <ClInclude Include="public\boundary.h" />
     <ClInclude Include="public\cell_values_container.h" />
     <ClInclude Include="public\debug\2darrayserialiser.h" />
+    <ClInclude Include="public\debug\example_cases.h" />
     <ClInclude Include="public\domain.h" />
     <ClInclude Include="public\domain_enums.h" />
     <ClInclude Include="public\euler_container.h" />
-    <ClInclude Include="public\example_cases.h" />
     <ClInclude Include="public\fem_deformation.h" />
     <ClInclude Include="public\field_quantity.h" />
     <ClInclude Include="public\gradient_descent.h" />
@@ -52,7 +52,8 @@
     <ClCompile Include="private\AuxFunctions.cpp" />
     <ClCompile Include="private\beam_section.cpp" />
     <ClCompile Include="private\boundary.cpp" />
-    <ClCompile Include="private\example_cases.cpp">
+    <ClCompile Include="private\cell_values_container.cpp" />
+    <ClCompile Include="private\debug\example_cases.cpp">
       <RuntimeLibrary>MultiThreadedDebugDll</RuntimeLibrary>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <Optimization>Disabled</Optimization>
@@ -125,7 +126,6 @@
       <SDLCheck>true</SDLCheck>
       <LinkCompiled>true</LinkCompiled>
     </ClCompile>
-    <ClCompile Include="private\cell_values_container.cpp" />
     <ClCompile Include="private\domain.cpp" />
     <ClCompile Include="private\euler_container.cpp" />
     <ClCompile Include="private\fem_deformation.cpp" />

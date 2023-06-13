@@ -43,6 +43,7 @@ struct RuntimeParameters
 	int numberOfTimeStepsBetweenDataExport = 10;
 };
 
+// Master container for configuration settings for the simulation, domains, and valves.
 class SimCase {
 public:
 	SimCase(const double simulationDuration, const double dt);
@@ -52,30 +53,27 @@ public:
 	AmbientConditions ambientConditions;
 	ChapmanJougetInitialConditionParameters chapmanJougetInitialConditionParameters;
 
-	std::map<int, Domain> domains; // The domains that are part of this SimCase
-	std::map<std::string, int> domainIDS;
-	std::vector<IValve> valves;
-	std::map<std::string, TwoDimensionalArrayRecord> twoDimensionalArrayRecords;
+	std::map<int, Domain> domains;			// The domains that are part of this SimCase. Add more using AddDomain()
+	std::map<std::string, int> domainIDS;	// names of domains to their IDs.
+	std::vector<IValve> valves;				// The valves that are part of this simulation. Add more using InsertValve()
+	std::map<std::string, TwoDimensionalArrayRecord> twoDimensionalArrayRecords;	// Contains all the records, indicating which values are tracked and saved so that they can be analysed after running the simulation.
 
-	double simulationDuration;
-	double dt;
-	int totalSimulationTimeStepCount;			// The total amount of time steps that are in this simulation.
-
-	void InsertValve(const IValve& valve);
-
-	Domain* AddDomain(const int id, const std::string name, const Position& position, const std::pair<double, double> sizeArg, const std::pair<MeshSpacing, MeshSpacing> meshSpacingArg, const EInitialisationMethod
-	                  initialisationMethod, const int ghostCellDepth);
-
-	void ConnectBoundariesById(const int domainOneIdx, const EFace domainOneLocation, const int domainTwoIdx, const EFace domainTwoLocation);
-	void ConnectBoundariesByName(const std::string domainOneName, const EFace domainOneLocation, const std::string domainTwoName, const EFace domainTwoLocation);
+	double simulationDuration;				// Total amount of time to run the simulation for
+	double dt;								// The amount of time between two time steps.
+	int totalSimulationTimeStepCount;		// The total amount of time steps that are in this simulation, = simulationDuration/dt
 
 	//todo: add proxy inserter for (reed) valves so that it doesn't need to be constructed so awkwardly.
-	
-	void ApplyInitialConditionsToDomainsAndValves();
+	void InsertValve(const IValve& valve);
 
-	void AddRecord(const TwoDimensionalArray& src, const std::string tag);
+	Domain* AddDomain(const int id, const std::string name, const Position& position, const std::pair<double, double> sizeArg, const std::pair<MeshSpacing, MeshSpacing> meshSpacingArg, const EInitialisationMethod initialisationMethod, const int ghostCellDepth); // Adds a new domain to simulation.
+
+	void ConnectBoundariesById(const int domainOneIdx, const EFace domainOneLocation, const int domainTwoIdx, const EFace domainTwoLocation); // Sets two boundaries on two different domains to be connected, meaning that flow going out of one goes into the other (and vice versa).
+	void ConnectBoundariesByName(const std::string domainOneName, const EFace domainOneLocation, const std::string domainTwoName, const EFace domainTwoLocation); // Sets two boundaries on two different domains to be connected, meaning that flow going out of one goes into the other (and vice versa).
+	
+	void ApplyInitialConditionsToDomainsAndValves(); // Sets initial conditions for all domains based on their initialisation method, then puts the reed valves in a neutral position inside of them.
+
+	void AddRecord(const TwoDimensionalArray& src, const std::string tag);	// Add a record to a specific variable, meaning that it will be saved for every time step so that it can be analysed after the simulation finishes.
 	Domain& GetDomainByID(const int id) {return domains.at(id);}
 	Domain& GetDomainByName(const std::string& name) {return GetDomainByID(domainIDS.at(name));}
-
 };
 

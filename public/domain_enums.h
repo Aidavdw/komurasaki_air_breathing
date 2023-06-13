@@ -45,6 +45,7 @@ enum EFace
 	BOTTOM
 };
 
+// Small auxiliary function to get the name of the enum. For printing purposes.
 inline std::string FaceToString(const EFace location)
 {
 	switch (location)
@@ -58,6 +59,7 @@ inline std::string FaceToString(const EFace location)
 	}
 }
 
+// Returns the exact opposite of the face that is given.
 inline EFace Opposite(const EFace location)
 {
 	switch (location)

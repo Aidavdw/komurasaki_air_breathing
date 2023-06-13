@@ -2,7 +2,7 @@
 #include <stdexcept>
 #include "domain_enums.h"
 
-// Really simple wrapper that represents a position in a domain
+// Really simple wrapper that represents a position in a domain, aware of which position is up.
 struct Position
 {
 	Position() :
@@ -64,4 +64,5 @@ struct Position
 	}
 };
 
+// Expresses where it is placed when compared to a different place.
 Position TransformToOtherCoordinateSystem(const Position& positionInOtherCoordinateSystem, const Position& fromOrigin, const Position& toOrigin);

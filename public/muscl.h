@@ -15,6 +15,7 @@ enum class EFluxLimiterType
     VAN_ALBADA_TWO
 };
 
+// Returns the MUSCL interpolated value of centre, given the values of its left neighbour m1, and two right neighbours, p1 and p2.
 double MUSCLInterpolate(const double m1, const double centre, const double p1, const double p2, const EMUSCLSide sideToInterpolateTo, const double bias, const EFluxLimiterType fluxLimiterType);
 
 double ApplyFluxLimiter(const double r, const EFluxLimiterType fluxLimiterType);

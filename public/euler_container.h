@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "AuxFunctions.h"
 
+// Describes the properties for a single entity of flow; mostly implemented so that not every flow variable has to be passed through separately in every function.
 struct EulerContinuity
 {
     EulerContinuity() :

@@ -1,4 +1,6 @@
 ﻿#pragma once
+/* This file contains functionality for the debug dumping of TwoDimensionalArrays. These can be enabled with the build flag CREATE__DUMP_FILES
+ */
 #include "2dArray.h"
 
 bool SaveStringToFile(const std::string& str, const std::string& filename);  // Opens a file and writes a string into it.

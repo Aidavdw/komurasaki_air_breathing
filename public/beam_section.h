@@ -7,7 +7,7 @@ enum class EBeamProfile
 	STRAIGHT_DOUBLE_TAPERED // Has variable width (b) and variable thickness/height (h). Is exactly straight.
 };
 
-// Represents the properties of a beam section in a fem simulation. Note that it does not say anything about its deformation state- these are all just constant properties.
+// Represents the the geometry and properties of a beam section in a fem simulation. Note that it does not say anything about its deformation state- these are all just constant properties.
 class BeamSection
 {
 public:

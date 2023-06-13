@@ -2,7 +2,7 @@
 #include <stdexcept>
 #include "domain_enums.h"
 
-// Really simple wrapper that represents a cell index in a grid or matrix.
+// Really simple wrapper that represents a cell index in a grid or matrix, keeping state of its 'up' direction. Can be used to index grid-like data containers like Domain, TwoDimensionalArray and FieldQuantity.
 struct CellIndex
 {
 	CellIndex() :
@@ -54,4 +54,5 @@ struct CellIndex
 
 };
 
+// Expresses where it is placed when compared to a different place.
 CellIndex TransformToOtherCoordinateSystem(const CellIndex& positionInOtherCoordinateSystem, const CellIndex& fromOrigin, const CellIndex& toOrigin);

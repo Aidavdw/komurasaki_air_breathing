@@ -10,7 +10,7 @@
 class Domain;
 
 
-//Abstract class that represents a valve that lets air from one domain into another.
+//Abstract class that represents a valve that lets air from one domain into another. This is how the simulation interacts with valves, so any valve must be derived from this class.
 class IValve
 {
 public:

@@ -13,7 +13,7 @@
 class SimCase;
 
 
-// Contains information on a specific domain.
+// Represents a volume containing fluid. The properties of the fluid at any position are described by its FieldQuantities
 class Domain
 {
 public:

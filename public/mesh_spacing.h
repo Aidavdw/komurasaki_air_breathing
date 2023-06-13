@@ -5,7 +5,7 @@
 // forward declarations
 class Domain;
 
-
+// For a domain, describes how the distribution of cell sizes changes. A domain has two of these, 1 in each axis.
 enum class EMeshSpacingType
 {
 	CONSTANT, // Ignores everything, just assumes that all the cells are equally sized and distributed over the domain.
