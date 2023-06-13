@@ -4,6 +4,7 @@
 #include "example_cases.h"
 #include "main_library.h"
 
+// Hello kinoshita! Good luck!
 
 /* MAIN ROUTINE */
 int main()
