@@ -26,8 +26,11 @@ The ``Domain`` represents a domain where fluid is present. In the set-up period,
 
 # Data Architecture
 The simcase contains a master reference to all the domains and valves.
+The domains have their properties described by a collection of FieldQuantities.
+These FieldQuantities again have multiple buffers (values it can have simultaneously), implemented as TwoDimensionalArrays.
 
-![A diagram showing the data layout of the program]
+Valves use an interface architecture, so that the program only needs to know about its core functionality and not its implementation. This means that making a new type of valve is as simple as inheriting from *IValve*. Right now, only reed valves are implemented. They have their defomation implemented separately as FemDeformation.
+![A diagram showing the data layout of the program](logical-layout.svg)
 # Coding style
 
 ## Accessor consts
