@@ -4,13 +4,14 @@
 #include "beam_section.h"
 #include "pos2d.h"
 
-#define N_DOF_PER_NODE 2		// The total amount of degrees of freedom for a 2d beam element.
+// The total amount of degrees of freedom for a 2d beam element. In 2 dimensions, this is therefore 2 (x,y).
+#define N_DOF_PER_NODE 2
 
 // A simple beam in bending, modeled as an FEM system. Used in the reed valve.
 class FemDeformation
 {
 public:
-	FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const EBeamProfile beamProfile, const double freeLength, const double fixedLength, const double dt, const EFace upDirection);
+	FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const EBeamProfile beamProfile, const double freeLength, const double fixedLength, const std::pair<double,double> thickness, const std::pair<double,double> width, const double rayleighDampingAlpha, const double rayleighDampingBeta, const double dt, const EFace upDirection);
 
 	FemDeformation();
 	

@@ -18,14 +18,18 @@
 #define DAMPING_C3 0.0007
 #define SAMPLING_DEPTH_FOR_OUT_OF_DOMAIN 2
 
-ReedValve::ReedValve(Domain* intoDomain, Domain* outOfDomain, const EFace boundary, const double positionAlongBoundary, const double lengthOfFreeSection, const double lengthOfFixedSections, const EBeamProfile beamProfile, const bool bMirrored, const int amountOfFreeSections, const int amountOfFixedNodes) :
+ReedValve::ReedValve(Domain* intoDomain, Domain* outOfDomain, const EFace boundary, const double positionAlongBoundary, const double lengthOfFreeSection, const double lengthOfFixedSections, const EBeamProfile beamProfile, const std::pair<double,double> thickness, const std::pair<double,double> width, const double rayleighDampingAlpha, const double rayleighDampingBeta, const bool bMirrored, const int amountOfFreeSections, const int amountOfFixedNodes) :
 	IValve(intoDomain, outOfDomain, boundary, positionAlongBoundary),
 	bMirrored(bMirrored),
 	amountOfFixedNodes(amountOfFixedNodes),
 	amountOfFreeNodes(amountOfFreeSections),
 	lengthOfFreeSection(lengthOfFreeSection),
 	lengthOfFixedSections(lengthOfFixedSections),
-	beamProfile_(beamProfile)
+	beamProfile_(beamProfile),
+	rayleighDampingAlpha_(rayleighDampingAlpha),
+	rayleighDampingBeta_(rayleighDampingBeta),
+	width_(width),
+	thickness_(thickness)
 {
 	positionMirrorModifier_ = bMirrored ? -1 : 1;
 	hingePositionInDomain = intoDomain->PositionAlongBoundaryToCoordinate(boundary, positionAlongBoundary, 0);
@@ -113,7 +117,7 @@ void ReedValve::CalculateForceOnNodesFromPressure(std::vector<double>& forceVect
 
 void ReedValve::OnRegister()
 {
-	fem_ = FemDeformation(amountOfFreeNodes, amountOfFixedNodes, beamProfile_, lengthOfFreeSection, lengthOfFixedSections, intoDomain_->simCase->dt, boundary_);
+	fem_ = FemDeformation(amountOfFreeNodes, amountOfFixedNodes, beamProfile_, lengthOfFreeSection, lengthOfFixedSections, thickness_, width_, rayleighDampingAlpha_, rayleighDampingBeta_, intoDomain_->simCase->dt, boundary_);
 	FillCellIndexArrayWithLine(sourceCellsIndices_, boundary_, positionAlongBoundary_, lengthOfFreeSection, lengthOfFixedSections);
 
 	/*	     0	    					posAlongBoundary		posAlongBoundary+lengthOfValveSection			lengthOfSide

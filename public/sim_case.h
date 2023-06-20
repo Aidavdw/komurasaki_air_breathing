@@ -78,7 +78,10 @@ public:
 	Domain& GetDomainByName(const std::string& name) {return GetDomainByID(domainIDS.at(name));}
 
 	/**** Valve inserters. If you derive a new Valve class that derives from IValve, add a new function here to register it. ****/
-	void AddReedValve(Domain* domainThisValveFeedsInto, const EFace boundary, const double positionAlongBoundary, const double lengthOfFreeSection,  const double lengthOfFixedSections, const EBeamProfile beamProfile, const bool bMirrored, const int amountOfFreeSections=30, const int amountOfFixedNodes=3);
+	void AddReedValve(Domain* domainThisValveFeedsInto, const EFace boundary, const double positionAlongBoundary, const double
+	                  lengthOfFreeSection, const double lengthOfFixedSections, const EBeamProfile beamProfile, std::pair<double, double>
+	                  thickness, const std::pair<double, double> width, const double rayleighDampingAlpha, const double rayleighDampingBeta, const
+	                  bool bMirrored, const int amountOfFreeSections = 30, const int amountOfFixedNodes = 3);
 	
 	
 	 

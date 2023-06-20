@@ -12,7 +12,7 @@ class FieldQuantity;
 class ReedValve : public IValve
 {
 public:
-	ReedValve(Domain* intoDomain, Domain* outOfDomain, const EFace boundary, const double positionAlongBoundary, const double lengthOfFreeSection, const double lengthOfFixedSections, const EBeamProfile beamProfile, const bool bMirrored, const int amountOfFreeSections, const int amountOfFixedNodes);
+	ReedValve(Domain* intoDomain, Domain* outOfDomain, const EFace boundary, const double positionAlongBoundary, const double lengthOfFreeSection, const double lengthOfFixedSections, const EBeamProfile beamProfile, const std::pair<double,double> thickness, const std::pair<double,double> width, const double rayleighDampingAlpha, const double rayleighDampingBeta, const bool bMirrored, const int amountOfFreeSections, const int amountOfFixedNodes);
 
 	bool bMirrored;			// The reed valve always generates its geometry in the direction that goes along with the edge, preserving  aright handed coordinate system. This flag sets the geometry to be generated exactly the other way around. Note that the FEMDeformation itself is unaware of the mirroring, as it just assumes everything is in local space.
 	
@@ -35,6 +35,12 @@ protected:
 	
 	EBeamProfile beamProfile_;
 	FemDeformation fem_;
+	
+	// values only saved here to be given to fem_
+	double rayleighDampingAlpha_;
+	double rayleighDampingBeta_;
+	std::pair<double,double> width_;
+	std::pair<double,double> thickness_;
 
 public:
 

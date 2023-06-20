@@ -8,12 +8,18 @@
 
 #include "AuxFunctions.h"
 
-
-
-FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const EBeamProfile beamProfile, const double freeLength, const double fixedLength, const double dt, const EFace upDirection) :
+FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const EBeamProfile beamProfile, const double freeLength, const double fixedLength, const std::pair<double,double> thickness, const std::pair<double,double> width, const double rayleighDampingAlpha, const double rayleighDampingBeta, const double dt, const EFace upDirection) :
 	fixedNodes(amountOfFixedNodes),
 	dt(dt),
-	beamProfile_(beamProfile)
+	rootWidth(width.first),
+	tipWidth(width.second),
+	rootThickness(thickness.first),
+	tipThickness(thickness.second),
+	freeLength(freeLength),
+	fixedLength(fixedLength),
+	beamProfile_(beamProfile),
+	rayleighDampingAlpha(rayleighDampingAlpha),
+	rayleighDampingBeta(rayleighDampingBeta)
 {
 	freeNodes = amountOfFreeSections + 1;
 	amountOfNodes = freeNodes + amountOfFixedNodes;
@@ -24,6 +30,7 @@ FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountO
 	nodePositionsRelativeToRoot.emplace_back(0,0);
 	for (int i = 0; i < beamSections.size(); i++)
 	{
+		//todo: check if upDirection should not be mirrored, due to the new coordinate way of handling
 		nodePositionsRelativeToRoot.emplace_back(nodePositionsRelativeToRoot[i].x + beamSections[i].length, 0, upDirection);
 	}
 
@@ -44,6 +51,7 @@ FemDeformation::FemDeformation() :
 	freeNodes(0),
 	amountOfNodes(0),
 	N_DOF(0),
+	n_active(0),
 	dt(0),
 	rootWidth(0),
 	tipWidth(0),

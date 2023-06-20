@@ -16,8 +16,7 @@ SimCase::SimCase(const double simulationDuration, const double dt) :
 }
 
 void SimCase::AddReedValve(Domain* domainThisValveFeedsInto, const EFace boundary, const double positionAlongBoundary,
-	const double lengthOfFreeSection, const double lengthOfFixedSections, const EBeamProfile beamProfile,
-	const bool bMirrored, const int amountOfFreeSections, const int amountOfFixedNodes)
+	const double lengthOfFreeSection, const double lengthOfFixedSections, const EBeamProfile beamProfile, std::pair<double,double> thickness, const std::pair<double,double> width, const double rayleighDampingAlpha, const double rayleighDampingBeta,	const bool bMirrored, const int amountOfFreeSections, const int amountOfFixedNodes)
 {
 	// Placing a reed valve like this requires the boundary to be connected. Validate the connected boundary & domain.
 	if (domainThisValveFeedsInto->boundaries.at(boundary).boundaryType != EBoundaryCondition::CONNECTED)
@@ -27,7 +26,7 @@ void SimCase::AddReedValve(Domain* domainThisValveFeedsInto, const EFace boundar
 	Domain* domainOutOf = domainThisValveFeedsInto->boundaries.at(boundary).connectedBoundary->domain;
 
 	// SimCase::valves holds unique pointer references so it can dynamically cast them. So, create them on heap and save unique pointer.
-	valves.push_back(std::make_unique<ReedValve>(domainThisValveFeedsInto, domainOutOf, boundary, positionAlongBoundary, lengthOfFreeSection, lengthOfFixedSections, beamProfile, bMirrored, amountOfFreeSections, amountOfFixedNodes));
+	valves.push_back(std::make_unique<ReedValve>(domainThisValveFeedsInto, domainOutOf, boundary, positionAlongBoundary, lengthOfFreeSection, lengthOfFixedSections, beamProfile, thickness, width, rayleighDampingAlpha,rayleighDampingBeta, bMirrored, amountOfFreeSections, amountOfFixedNodes));
 	valves.back()->OnRegister();
 }
 
