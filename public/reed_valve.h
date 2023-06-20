@@ -4,6 +4,7 @@
 #include "field_quantity.h"
 #include "index2d.h"
 #include "IValve.h"
+#include "reed_valve_geometry.h"
 
 // forward declarations
 class FieldQuantity;
@@ -12,15 +13,13 @@ class FieldQuantity;
 class ReedValve : public IValve
 {
 public:
-	ReedValve(Domain* intoDomain, Domain* outOfDomain, const EFace boundary, const double positionAlongBoundary, const double lengthOfFreeSection, const double lengthOfFixedSections, const EBeamProfile beamProfile, const std::pair<double,double> thickness, const std::pair<double,double> width, const double rayleighDampingAlpha, const double rayleighDampingBeta, const bool bMirrored, const int amountOfFreeSections, const int amountOfFixedNodes);
+	ReedValve(Domain* intoDomain, Domain* outOfDomain, const EFace boundary, const double positionAlongBoundary, const ReedValveGeometry& reedValveGeometry , const ReedValveEmpiricalParameters& reedValveEmpiricalParameters, const bool bMirrored, const double lengthOfFixedSections, const int amountOfFreeSections, const int amountOfFixedNodes);
 
 	bool bMirrored;			// The reed valve always generates its geometry in the direction that goes along with the edge, preserving  aright handed coordinate system. This flag sets the geometry to be generated exactly the other way around. Note that the FEMDeformation itself is unaware of the mirroring, as it just assumes everything is in local space.
 	
 	double holeEndPositionAlongBoundary;	// The hole start pos and boundary are inherited from IValve, now just the end pos.
 	Position hingePositionInDomain;			// The exact position in the intoDomain where the hinge is, aka where the reed valve starts.
 	Position holeEndPositionInDomain;		// The exact position in the intoDomain where the hole of this reed valve ends.
-
-	double naturalFrequency = 470.0; // todo: figure out where on earth this comes from.
 
 	int amountOfFixedNodes;
 	int amountOfFreeNodes;
@@ -33,14 +32,11 @@ protected:
 	CellIndex holeEndPositionIndex_;	// A cached inverted position-to-cellindex of where the hole of this reed valve ends.
 	int positionMirrorModifier_;		// As shorthand modifier that is 1 if the valve is not mirrored, or is -1 if the valve is mirrored.
 	
-	EBeamProfile beamProfile_;
 	FemDeformation fem_;
 	
 	// values only saved here to be given to fem_
-	double rayleighDampingAlpha_;
-	double rayleighDampingBeta_;
-	std::pair<double,double> width_;
-	std::pair<double,double> thickness_;
+	ReedValveGeometry reedValveGeometry_;
+	ReedValveEmpiricalParameters reedValveEmpiricalParameters_;
 
 public:
 

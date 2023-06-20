@@ -4,6 +4,7 @@
 
 #include "beam_section.h"
 #include "IValve.h"
+#include "reed_valve_geometry.h"
 #include "pythoninterface/record.h"
 
 // Changes the behaviour of how the solver works.
@@ -78,9 +79,8 @@ public:
 	Domain& GetDomainByName(const std::string& name) {return GetDomainByID(domainIDS.at(name));}
 
 	/**** Valve inserters. If you derive a new Valve class that derives from IValve, add a new function here to register it. ****/
-	void AddReedValve(Domain* domainThisValveFeedsInto, const EFace boundary, const double positionAlongBoundary, const double
-	                  lengthOfFreeSection, const double lengthOfFixedSections, const EBeamProfile beamProfile, std::pair<double, double>
-	                  thickness, const std::pair<double, double> width, const double rayleighDampingAlpha, const double rayleighDampingBeta, const
+	void AddReedValve(Domain* domainThisValveFeedsInto, const EFace boundary, const double positionAlongBoundary, const ReedValveGeometry&
+	                  reedValveGeometry, const ReedValveEmpiricalParameters& reedValveEmpiricalParameters, const double lengthOfFixedSections, const
 	                  bool bMirrored, const int amountOfFreeSections = 30, const int amountOfFixedNodes = 3);
 	
 	

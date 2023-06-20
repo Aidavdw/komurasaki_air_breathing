@@ -18,18 +18,15 @@
 #define DAMPING_C3 0.0007
 #define SAMPLING_DEPTH_FOR_OUT_OF_DOMAIN 2
 
-ReedValve::ReedValve(Domain* intoDomain, Domain* outOfDomain, const EFace boundary, const double positionAlongBoundary, const double lengthOfFreeSection, const double lengthOfFixedSections, const EBeamProfile beamProfile, const std::pair<double,double> thickness, const std::pair<double,double> width, const double rayleighDampingAlpha, const double rayleighDampingBeta, const bool bMirrored, const int amountOfFreeSections, const int amountOfFixedNodes) :
+ReedValve::ReedValve(Domain* intoDomain, Domain* outOfDomain, const EFace boundary, const double positionAlongBoundary, const ReedValveGeometry& reedValveGeometry , const ReedValveEmpiricalParameters& reedValveEmpiricalParameters, const bool bMirrored, const double lengthOfFixedSections, const int amountOfFreeSections, const int amountOfFixedNodes) :
 	IValve(intoDomain, outOfDomain, boundary, positionAlongBoundary),
 	bMirrored(bMirrored),
 	amountOfFixedNodes(amountOfFixedNodes),
 	amountOfFreeNodes(amountOfFreeSections),
-	lengthOfFreeSection(lengthOfFreeSection),
+	lengthOfFreeSection(reedValveGeometry.freeLength),
 	lengthOfFixedSections(lengthOfFixedSections),
-	beamProfile_(beamProfile),
-	rayleighDampingAlpha_(rayleighDampingAlpha),
-	rayleighDampingBeta_(rayleighDampingBeta),
-	width_(width),
-	thickness_(thickness)
+	reedValveGeometry_(reedValveGeometry),
+	reedValveEmpiricalParameters_(reedValveEmpiricalParameters)
 {
 	positionMirrorModifier_ = bMirrored ? -1 : 1;
 	hingePositionInDomain = intoDomain->PositionAlongBoundaryToCoordinate(boundary, positionAlongBoundary, 0);
@@ -117,7 +114,7 @@ void ReedValve::CalculateForceOnNodesFromPressure(std::vector<double>& forceVect
 
 void ReedValve::OnRegister()
 {
-	fem_ = FemDeformation(amountOfFreeNodes, amountOfFixedNodes, beamProfile_, lengthOfFreeSection, lengthOfFixedSections, thickness_, width_, rayleighDampingAlpha_, rayleighDampingBeta_, intoDomain_->simCase->dt, boundary_);
+	fem_ = FemDeformation(amountOfFreeNodes, amountOfFixedNodes, lengthOfFixedSections, reedValveGeometry_, reedValveEmpiricalParameters_, intoDomain_->simCase->dt, boundary_);
 	FillCellIndexArrayWithLine(sourceCellsIndices_, boundary_, positionAlongBoundary_, lengthOfFreeSection, lengthOfFixedSections);
 
 	/*	     0	    					posAlongBoundary		posAlongBoundary+lengthOfValveSection			lengthOfSide
@@ -415,6 +412,7 @@ void ReedValve::CalculateAerodynamicDamping(std::vector<double> &forceVectorOut)
 		else // dy < 0
 			dampingFactor = DAMPING_C3 * posNow.y;
 
+		const double naturalFrequency = reedValveEmpiricalParameters_.naturalFrequency;
 		double dampingForce = -2 * naturalFrequency / mass * dyDt * dampingFactor;
 
 		forceVectorOut[section.leftNodeIndex] += 0.5*dampingForce;
@@ -424,7 +422,7 @@ void ReedValve::CalculateAerodynamicDamping(std::vector<double> &forceVectorOut)
 
 double ReedValve::FukanariReferenceArea() const
 {
-	if (beamProfile_ != EBeamProfile::STRAIGHT_DOUBLE_TAPERED)
+	if (reedValveGeometry_.beamProfile != EBeamProfile::STRAIGHT_DOUBLE_TAPERED)
 	{
 		throw std::logic_error("Fukanari's reference area is only confirmed for straight double tapered reed valves. Maybe the difference is small, but this is for your information. Ignore this message if you know what you're doing.");
 	}

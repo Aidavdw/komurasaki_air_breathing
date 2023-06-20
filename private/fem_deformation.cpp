@@ -8,18 +8,18 @@
 
 #include "AuxFunctions.h"
 
-FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const EBeamProfile beamProfile, const double freeLength, const double fixedLength, const std::pair<double,double> thickness, const std::pair<double,double> width, const double rayleighDampingAlpha, const double rayleighDampingBeta, const double dt, const EFace upDirection) :
+FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const double fixedLength, const ReedValveGeometry& reedValveGeometry , const ReedValveEmpiricalParameters& reedValveEmpiricalParameters, const double dt, const EFace upDirection) :
 	fixedNodes(amountOfFixedNodes),
 	dt(dt),
-	rootWidth(width.first),
-	tipWidth(width.second),
-	rootThickness(thickness.first),
-	tipThickness(thickness.second),
-	freeLength(freeLength),
+	rootWidth(reedValveGeometry.rootWidth),
+	tipWidth(reedValveGeometry.tipWidth),
+	rootThickness(reedValveGeometry.rootThickness),
+	tipThickness(reedValveGeometry.tipThickness),
+	freeLength(reedValveGeometry.freeLength),
 	fixedLength(fixedLength),
-	beamProfile_(beamProfile),
-	rayleighDampingAlpha(rayleighDampingAlpha),
-	rayleighDampingBeta(rayleighDampingBeta)
+	beamProfile_(reedValveGeometry.beamProfile),
+	rayleighDampingAlpha(reedValveEmpiricalParameters.rayleighDampingAlpha),
+	rayleighDampingBeta(reedValveEmpiricalParameters.rayleighDampingBeta)
 {
 	freeNodes = amountOfFreeSections + 1;
 	amountOfNodes = freeNodes + amountOfFixedNodes;

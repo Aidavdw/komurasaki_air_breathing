@@ -33,6 +33,7 @@
     <ClInclude Include="public\pythoninterface\record.h" />
     <ClInclude Include="public\pythoninterface\conversion_functions.h" />
     <ClInclude Include="public\reed_valve.h" />
+    <ClInclude Include="public\reed_valve_geometry.h" />
     <ClInclude Include="public\sim_case.h" />
     <ClInclude Include="public\IValve.h" />
     <None Include="redundant\legacy\ausm.h" />
@@ -141,6 +142,7 @@
     <ClCompile Include="private\pythoninterface\record.cpp" />
     <ClCompile Include="private\pythoninterface\conversion_functions.cpp" />
     <ClCompile Include="private\reed_valve.cpp" />
+    <ClCompile Include="private\reed_valve_geometry.cpp" />
     <ClCompile Include="private\sim_case.cpp" />
     <ClCompile Include="private\IValve.cpp" />
     <None Include="pythonmodule.cpp" />
