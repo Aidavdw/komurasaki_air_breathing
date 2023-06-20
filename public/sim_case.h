@@ -1,6 +1,8 @@
 #pragma once
 #include "domain.h"
 #include <map>
+
+#include "beam_section.h"
 #include "IValve.h"
 #include "pythoninterface/record.h"
 
@@ -55,15 +57,14 @@ public:
 
 	std::map<int, Domain> domains;			// The domains that are part of this SimCase. Add more using AddDomain()
 	std::map<std::string, int> domainIDS;	// names of domains to their IDs.
-	std::vector<IValve> valves;				// The valves that are part of this simulation. Add more using InsertValve()
+	std::vector<std::unique_ptr<IValve>> valves;				// The valves that are part of this simulation. Add more using InsertValve-like functions, defind at the bottom. Holds unique pointers to the base class, so that they can be memory-tracked.
 	std::map<std::string, TwoDimensionalArrayRecord> twoDimensionalArrayRecords;	// Contains all the records, indicating which values are tracked and saved so that they can be analysed after running the simulation.
 
 	double simulationDuration;				// Total amount of time to run the simulation for
 	double dt;								// The amount of time between two time steps.
 	int totalSimulationTimeStepCount;		// The total amount of time steps that are in this simulation, = simulationDuration/dt
 
-	//todo: add proxy inserter for (reed) valves so that it doesn't need to be constructed so awkwardly.
-	void InsertValve(const IValve& valve);
+
 
 	Domain* AddDomain(const int id, const std::string name, const Position& position, const std::pair<double, double> sizeArg, const std::pair<MeshSpacing, MeshSpacing> meshSpacingArg, const EInitialisationMethod initialisationMethod, const int ghostCellDepth); // Adds a new domain to simulation.
 
@@ -75,5 +76,11 @@ public:
 	void AddRecord(const TwoDimensionalArray& src, const std::string tag);	// Add a record to a specific variable, meaning that it will be saved for every time step so that it can be analysed after the simulation finishes.
 	Domain& GetDomainByID(const int id) {return domains.at(id);}
 	Domain& GetDomainByName(const std::string& name) {return GetDomainByID(domainIDS.at(name));}
+
+	/**** Valve inserters. If you derive a new Valve class that derives from IValve, add a new function here to register it. ****/
+	void AddReedValve(Domain* domainThisValveFeedsInto, const EFace boundary, const double positionAlongBoundary, const double lengthOfFreeSection,  const double lengthOfFixedSections, const EBeamProfile beamProfile, const bool bMirrored, const int amountOfFreeSections=30, const int amountOfFixedNodes=3);
+	
+	
+	 
 };
 

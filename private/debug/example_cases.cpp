@@ -41,3 +41,15 @@ void LoadExampleCaseWithoutReedValves(SimCase* simCase) {
 	simCase->ConnectBoundariesByName("Tube", EFace::RIGHT, "ambient", EFace::LEFT);
 }
 
+void LoadExampleCaseWithReedValves(SimCase* simCase)
+{
+	// Identical to the previous case, but now add valves after it.
+	LoadExampleCaseWithoutReedValves(simCase);
+
+	
+
+	simCase->AddReedValve()
+	
+	
+}
+

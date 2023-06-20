@@ -6,6 +6,7 @@
 
 #include "IValve.h"
 #include "microwave.h"
+#include "reed_valve.h"
 
 SimCase::SimCase(const double simulationDuration, const double dt) :
 	simulationDuration(simulationDuration),
@@ -14,11 +15,20 @@ SimCase::SimCase(const double simulationDuration, const double dt) :
 	totalSimulationTimeStepCount = (int)(1 + simulationDuration / dt);  // Number of time steps
 }
 
-void SimCase::InsertValve(const IValve& valve)
+void SimCase::AddReedValve(Domain* domainThisValveFeedsInto, const EFace boundary, const double positionAlongBoundary,
+	const double lengthOfFreeSection, const double lengthOfFixedSections, const EBeamProfile beamProfile,
+	const bool bMirrored, const int amountOfFreeSections, const int amountOfFixedNodes)
 {
-	// Create a new one by copy.
-	valves.push_back(valve);
-	valves.back().OnRegister();
+	// Placing a reed valve like this requires the boundary to be connected. Validate the connected boundary & domain.
+	if (domainThisValveFeedsInto->boundaries.at(boundary).boundaryType != EBoundaryCondition::CONNECTED)
+		throw std::logic_error("Cannot Place a reed valve on domain '" + domainThisValveFeedsInto->name + "', boundary [" + FaceToString(boundary) + "], as it is not set as a connected boundary.");
+	if (!domainThisValveFeedsInto->boundaries.at(boundary).connectedBoundary || !domainThisValveFeedsInto->boundaries.at(boundary).connectedBoundary->domain)
+		throw std::logic_error("Cannot Place a reed valve on domain '" + domainThisValveFeedsInto->name + "', boundary [" + FaceToString(boundary) + "], as it is an invalid connected boundary");
+	Domain* domainOutOf = domainThisValveFeedsInto->boundaries.at(boundary).connectedBoundary->domain;
+
+	// SimCase::valves holds unique pointer references so it can dynamically cast them. So, create them on heap and save unique pointer.
+	valves.push_back(std::make_unique<ReedValve>(domainThisValveFeedsInto, domainOutOf, boundary, positionAlongBoundary, lengthOfFreeSection, lengthOfFixedSections, beamProfile, bMirrored, amountOfFreeSections, amountOfFixedNodes));
+	valves.back()->OnRegister();
 }
 
 Domain* SimCase::AddDomain(const int id, const std::string name, const Position& position, const std::pair<double, double> sizeArg, const std::pair<MeshSpacing, MeshSpacing> meshSpacingArg, const EInitialisationMethod initialisationMethod, const int ghostCellDepth)
@@ -133,8 +143,8 @@ void SimCase::ApplyInitialConditionsToDomainsAndValves()
 		std::cout << "Applying Initial conditions to Valve " << i << std::endl;
 #endif
 		
-		IValve& valve = valves.at(i);
-		valve.SetInitialConditions();
+		std::unique_ptr<IValve>& valve = valves.at(i);
+		valve->SetInitialConditions();
 	}
 
 #ifdef _DEBUG

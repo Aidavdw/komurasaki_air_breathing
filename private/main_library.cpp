@@ -57,13 +57,13 @@ void DoSimulation(SimCase& simCase)
 #ifdef _DEBUG
             std::cout << "Updating deflections, and calculating flow deltas for valves." << std::endl;
 #endif
-            for (IValve& valve : simCase.valves)
+            for (std::unique_ptr<IValve>& valve : simCase.valves)
             {
                 // Update the deflections
-                valve.UpdateValveState();
+                valve->UpdateValveState();
 
                 // Compute mean pressure on each side and mass-flow rate at valve
-                valve.CalculateFlow();
+                valve->CalculateFlow();
             }
 
             // Async await until both the buffers have been set for all the FieldQuantities in a domain. Easiest way to do this; wait until they're all finished.
@@ -71,10 +71,10 @@ void DoSimulation(SimCase& simCase)
 #ifdef _DEBUG
             std::cout << "Adding valve buffer terms to source cells." << std::endl;
 #endif
-            for (IValve& valve : simCase.valves)
+            for (std::unique_ptr<IValve>& valve : simCase.valves)
             {
                 // Add the delta due to the valve sourcing into the delta flow buffer.
-                valve.AddBufferTermsToSourceCells(EFieldQuantityBuffer::FLUX);
+                valve->AddBufferTermsToSourceCells(EFieldQuantityBuffer::FLUX);
             }
 
 #ifdef _DEBUG
@@ -88,9 +88,9 @@ void DoSimulation(SimCase& simCase)
                 domain.EmptyFlowDeltaBuffer();
             }
             
-            for (IValve& valve : simCase.valves)
+            for (std::unique_ptr<IValve>& valve : simCase.valves)
             {
-                valve.EmptyBuffer();
+                valve->EmptyBuffer();
             }
         } /* END OF THE RUNGE-KUTTA LOOP */
 

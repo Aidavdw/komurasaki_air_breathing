@@ -15,6 +15,8 @@ enum class EMeshSpacingType
 
 };
 
+// todo: remove double dependecy on 'length'. Make a proxy MeshSpacingWithoutSize, which gets constructed using the dimensions of the domain itself.
+
 // Contains information and calculations for the internal distribution of cells in a domain (mesh). Be sure to supply an adequate amount of spacing parameters for the desired mesh spacing type, as to not overconstrain the problem.
 struct MeshSpacing
 {

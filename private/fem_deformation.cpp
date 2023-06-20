@@ -39,21 +39,21 @@ FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountO
 }
 
 // Empty constructor
-FemDeformation::FemDeformation():
+FemDeformation::FemDeformation() :
 	fixedNodes(0),
 	freeNodes(0),
 	amountOfNodes(0),
 	N_DOF(0),
 	dt(0),
-	beamProfile_(EBeamProfile::STRAIGHT_DOUBLE_TAPERED),
-	freeLength(0),
-	fixedLength(0),
-	rayleighDampingAlpha(0),
-	rayleighDampingBeta(0),
 	rootWidth(0),
 	tipWidth(0),
 	rootThickness(0),
-	tipThickness(0)
+	tipThickness(0),
+	freeLength(0),
+	fixedLength(0),
+	beamProfile_(EBeamProfile::STRAIGHT_DOUBLE_TAPERED),
+	rayleighDampingAlpha(0),
+	rayleighDampingBeta(0)
 { }
 
 void FemDeformation::UpdatePositions(const std::vector<double>& newDeflection)
