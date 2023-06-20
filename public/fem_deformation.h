@@ -31,21 +31,17 @@ public:
 
 	double rootWidth;
 	double tipWidth;
-	double roo{}tThickness;
-	double
-	{
-	}
-
-	tipThickness;
-	double f{}reeLength;							// Len{}gth of the part that {}can move freely
-	double fixedLength;							// Length of the part that i{}s fixed in place.
+	double rootThickness;
+	double tipThickness;
+	double freeLength;							// Length of the part that can move freely
+	double fixedLength;							// Length of the part that is fixed in place.
 	
 protected:
 	EBeamProfile beamProfile_;
 
 
-	double rayleighDampingAlpha;				 // Alpha coef. for Rayleigh damping {}(alpha*M + beta*K)
-	double rayleighDampingBeta;				 // Beta coef. for Rayleigh damping (a{}lpha*M + beta*K)
+	double rayleighDampingAlpha;				 // Alpha coef. for Rayleigh damping (alpha*M + beta*K)
+	double rayleighDampingBeta;				 // Beta coef. for Rayleigh damping (alpha*M + beta*K)
 
 	TwoDimensionalArray globalMassMatrix;		// The global mass matrix for this FEM beam, with the element matrices combined.
 	TwoDimensionalArray globalStiffnessMatrix;	// The global mass stiffness for this FEM beam, with the element matrices combined.

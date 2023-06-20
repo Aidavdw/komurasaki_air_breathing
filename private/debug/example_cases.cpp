@@ -48,7 +48,7 @@ void LoadExampleCaseWithReedValves(SimCase* simCase)
 
 	
 
-	simCase->AddReedValve()
+	//simCase->AddReedValve();
 	
 	
 }
