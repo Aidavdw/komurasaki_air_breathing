@@ -4,9 +4,12 @@
 #include <chrono>
 #include "reed_valve.h"
 
-// Pls beware how cpp handles string literals with backslashes.
+#ifdef _CREATE_DUMP_FILES
+// Pls beware how cpp handles string literals with backslashes. 
 #define DIR_TO_DUMP_TO std::string("C:/Users/Red Devil/Documents/git/komurasaki_air_breathing/debug_output/")
+#endif
 
+// Run a simulation, with a SimCase that has already been set up.
 void DoSimulation(SimCase& simCase)
 {
     std::cout << "Starting new simulation case." << std::endl;

@@ -6,7 +6,7 @@ enum class EInitialisationMethod
 {
 	ZERO,						// Every value will be set to 0
 	AMBIENT_CONDITIONS,			// Propagate the values set in SimCase, and make this domain fit those.
-	FROM_INPUT_DATA,				// Read from input data (file or interface)
+	FROM_INPUT_RHO_P_U_V,				// Read from input data (file or interface)
 	FROM_CHAPMAN_JOUGET_SOLUTION	// Solve the Chapman Jouget solution for this domain, considering it the engine tube.
 };
 

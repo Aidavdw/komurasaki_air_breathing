@@ -18,8 +18,8 @@ PYBIND11_MODULE(komurasakiairbreathing, m)
         .def("GetDomainByName", &SimCase::GetDomainByName)
         .def("AddRecord", &SimCase::AddRecord)
         .def_readonly("domains", &SimCase::domains)
-        .def_readonly("two_dimensional_array_records", &SimCase::twoDimensionalArrayRecords)
-        .def_readonly("valve_interfaces", &SimCase::valves);
+        .def_readonly("two_dimensional_array_records", &SimCase::twoDimensionalArrayRecords);
+        //.def_readonly("valve_interfaces", &SimCase::valves);
     
 
     py::class_<Domain>(m, "Domain")
@@ -75,7 +75,7 @@ PYBIND11_MODULE(komurasakiairbreathing, m)
     py::enum_<EInitialisationMethod>(m, "InitialisationMethod")
         .value("zero",EInitialisationMethod::ZERO)
         .value("ambient_conditions",EInitialisationMethod::AMBIENT_CONDITIONS)
-        .value("from_input_data",EInitialisationMethod::FROM_INPUT_DATA)
+        .value("from_input_data",EInitialisationMethod::FROM_INPUT_RHO_P_U_V)
         .value("from_chapman_jouget_solution",EInitialisationMethod::FROM_CHAPMAN_JOUGET_SOLUTION)
         .export_values();
 
@@ -109,4 +109,5 @@ PYBIND11_MODULE(komurasakiairbreathing, m)
     // define all standalone functions
     m.def("DoSimulation", &DoSimulation);
     m.def("TwoDimensionalArrayToNumpyArray", &TwoDimensionalArrayToNumpyArray);
+    m.def("FillTwoDimensionalArrayFromNumpy", &FillTwoDimensionalArrayFromNumpy);
 }

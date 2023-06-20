@@ -118,6 +118,10 @@ void SimCase::ApplyInitialConditionsToDomainsAndValves()
 #endif
 		switch (domain.initialisationMethod)
 		{
+		case EInitialisationMethod::ZERO:
+			// Everything is already set as zero input.
+			// todo: add double-check to see if they're all 0 in debug build.
+			break;
 		case EInitialisationMethod::AMBIENT_CONDITIONS:
 			domain.SetToAmbientConditions(ambientConditions.temperature, ambientConditions.staticPressure, ambientConditions.u, ambientConditions.v);
 			break;
@@ -127,6 +131,31 @@ void SimCase::ApplyInitialConditionsToDomainsAndValves()
 				const double tubeLength = domain.size[0];
 				ChapmanJougetDetonationSolution detonationConditions = SolveChapmanJougetDetonationProblem(ambientConditions.temperature, ambientConditions.staticPressure, chapmanJougetInitialConditionParameters.ETA, chapmanJougetInitialConditionParameters.S0, chapmanJougetInitialConditionParameters.idealGasConstant, chapmanJougetInitialConditionParameters.gamma, tubeLength, domain.size[1]);
 				InitialiseDomainFromChapmanJougetDetonationSolution(&domain, detonationConditions, chapmanJougetInitialConditionParameters.gamma);
+				break;
+			}
+		case EInitialisationMethod::FROM_INPUT_RHO_P_U_V:
+			{
+				// If it's set from input data, it expects these fields to have been manually set already in a previous step.
+				// todo: Add checker function that calls back to see if they have actually already been set externally.
+				std::cout << "Using already set numpy input for initial conditions of domain '" << domain.name << "'" << std::endl;
+				for (int xIdx = 0; xIdx < domain.p.currentTimeStep.nX; xIdx++)
+				{
+					for (int yIdx = 0; yIdx < domain.p.currentTimeStep.nY; yIdx++)
+					{
+						const double gamma = domain.SpecificHeatRatio();
+						// shorthand refs
+						const double p = domain.p.currentTimeStep.GetAt(xIdx, yIdx);
+						const double u = domain.u.currentTimeStep.GetAt(xIdx, yIdx);
+						const double v = domain.v.currentTimeStep.GetAt(xIdx, yIdx);
+						const double rho = domain.rho.currentTimeStep.GetAt(xIdx, yIdx);
+						
+						const double E = p / (gamma - 1.0) + 0.5 * rho * (std::pow(u, 2) + std::pow(v, 2));
+						const double H = (E + p) / rho;
+
+						domain.E.currentTimeStep(xIdx, yIdx) = E;
+						domain.H.currentTimeStep(xIdx,yIdx) = H;
+					}
+				}
 				break;
 			}
 		default:

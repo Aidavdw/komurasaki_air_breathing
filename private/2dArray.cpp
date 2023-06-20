@@ -189,11 +189,9 @@ std::pair<int, int> TwoDimensionalArray::GetIndexFromIndexOnBoundary(const EFace
 
 void TwoDimensionalArray::ElementWiseCopy(const TwoDimensionalArray& from, TwoDimensionalArray& to)
 {
-	#ifdef _DEBUG
 	if (from.nX != to.nX || from.nY != to.nY)
 		throw std::logic_error("Cannot do element-wise copying between two TwoDimensionalArrays that are not the same size.");
 	assert(from.nGhostCells == to.nGhostCells);
-	#endif
 	
 	// Needs to be a static function, because it's using the private data variable.
 	for (size_t i = 0; i < from.data_.size(); i++) // Also does the ghost cells. Can be excluded, but more cluttered code.
