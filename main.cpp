@@ -13,7 +13,7 @@ int main()
 
     // INITIALIZE CASE
     SimCase simCase(2, 0.01);
-    LoadExampleCaseWithoutReedValves(&simCase); // Since this is the debug build, just do this very specific simple case.
+    LoadExampleCaseWithReedValves(&simCase); // Since this is the debug build, just do this very specific simple case.
 
     DoSimulation(simCase);
 }

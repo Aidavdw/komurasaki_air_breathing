@@ -8,18 +8,18 @@
 
 #include "AuxFunctions.h"
 
-FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const double fixedLength, const ReedValveGeometry& reedValveGeometry , const ReedValveEmpiricalParameters& reedValveEmpiricalParameters, const double dt, const EFace upDirection) :
+FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const double fixedLength, const ReedValveGeometry& reedValveGeometry , const ReedValveEmpiricalParameters& reedValveEmpiricalParameters, const MaterialProperties& materialProperties, const double dt, const EFace upDirection) :
 	fixedNodes(amountOfFixedNodes),
+	geometry(reedValveGeometry),
+	empiricalParameters(reedValveEmpiricalParameters),
+	material(materialProperties),
 	dt(dt),
 	rootWidth(reedValveGeometry.rootWidth),
 	tipWidth(reedValveGeometry.tipWidth),
 	rootThickness(reedValveGeometry.rootThickness),
 	tipThickness(reedValveGeometry.tipThickness),
 	freeLength(reedValveGeometry.freeLength),
-	fixedLength(fixedLength),
-	beamProfile_(reedValveGeometry.beamProfile),
-	rayleighDampingAlpha(reedValveEmpiricalParameters.rayleighDampingAlpha),
-	rayleighDampingBeta(reedValveEmpiricalParameters.rayleighDampingBeta)
+	fixedLength(fixedLength)
 {
 	freeNodes = amountOfFreeSections + 1;
 	amountOfNodes = freeNodes + amountOfFixedNodes;
@@ -58,10 +58,7 @@ FemDeformation::FemDeformation() :
 	rootThickness(0),
 	tipThickness(0),
 	freeLength(0),
-	fixedLength(0),
-	beamProfile_(EBeamProfile::STRAIGHT_DOUBLE_TAPERED),
-	rayleighDampingAlpha(0),
-	rayleighDampingBeta(0)
+	fixedLength(0)
 { }
 
 void FemDeformation::UpdatePositions(const std::vector<double>& newDeflection)
@@ -133,7 +130,7 @@ void FemDeformation::CreateBeamSections()
 			leftWidth = beamSections.back().b[1];
 			leftThickness = beamSections.back().h[1];
 			// Handling how the free element is created based on the selected profile.
-			switch (beamProfile_)
+			switch (geometry.beamProfile)
 			{
 			case EBeamProfile::STRAIGHT_DOUBLE_TAPERED:
 				rightWidth = rootWidth + (tipWidth - rootWidth)*ratioCovered;
@@ -145,7 +142,7 @@ void FemDeformation::CreateBeamSections()
 			// TODO: Right now, all nodes are exactly equidistant, and the same size. Make this variable?
 			length = freeLength / freeNodes;
 			
-			BeamSection beamSection = BeamSection(length, {leftWidth, rightWidth}, {leftThickness, rightThickness}, materialDensity, youngsModulus, beamProfile_, bIsFixed, nodeIndex );
+			BeamSection beamSection = BeamSection(length, {leftWidth, rightWidth}, {leftThickness, rightThickness}, material.density, material.youngsModulus, geometry.beamProfile, bIsFixed, nodeIndex );
 			beamSections.emplace_back(beamSection);
 			
 		}
@@ -215,7 +212,7 @@ void FemDeformation::AssembleDampingMatrix(TwoDimensionalArray& matrixOut)
 	{
 		for (int j = 0; j < N_DOF; ++j)
 		{
-			dampingMatrix(i,j) = rayleighDampingAlpha * globalMassMatrix(i,j) + rayleighDampingBeta * globalStiffnessMatrix(i,j);
+			dampingMatrix(i,j) = empiricalParameters.rayleighDampingAlpha * globalMassMatrix(i,j) + empiricalParameters.rayleighDampingBeta * globalStiffnessMatrix(i,j);
 		}
 	}
 	

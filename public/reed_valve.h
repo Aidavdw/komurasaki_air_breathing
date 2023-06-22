@@ -13,7 +13,7 @@ class FieldQuantity;
 class ReedValve : public IValve
 {
 public:
-	ReedValve(Domain* intoDomain, Domain* outOfDomain, const EFace boundary, const double positionAlongBoundary, const ReedValveGeometry& reedValveGeometry , const ReedValveEmpiricalParameters& reedValveEmpiricalParameters, const bool bMirrored, const double lengthOfFixedSections, const int amountOfFreeSections, const int amountOfFixedNodes);
+	ReedValve(Domain* intoDomain, Domain* outOfDomain, const EFace boundary, const double positionAlongBoundary, const ReedValveGeometry& reedValveGeometry , const ReedValveEmpiricalParameters& reedValveEmpiricalParameters, const MaterialProperties materialProperties, const bool bMirrored, const double lengthOfFixedSections, const int amountOfFreeSections, const int amountOfFixedNodes);
 
 	bool bMirrored;			// The reed valve always generates its geometry in the direction that goes along with the edge, preserving  aright handed coordinate system. This flag sets the geometry to be generated exactly the other way around. Note that the FEMDeformation itself is unaware of the mirroring, as it just assumes everything is in local space.
 	
@@ -37,6 +37,7 @@ protected:
 	// values only saved here to be given to fem_
 	ReedValveGeometry reedValveGeometry_;
 	ReedValveEmpiricalParameters reedValveEmpiricalParameters_;
+	MaterialProperties materialProperties; // Right now, constant material properties for entire valve. This needs to be changed if material is anisotropic or if the material changes as a function of moving towards the tip.
 
 public:
 

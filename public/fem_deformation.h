@@ -12,7 +12,7 @@
 class FemDeformation
 {
 public:
-	FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const double fixedLength, const ReedValveGeometry& reedValveGeometry , const ReedValveEmpiricalParameters& reedValveEmpiricalParameters, const double dt, const EFace upDirection);
+	FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const double fixedLength, const ReedValveGeometry& reedValveGeometry , const ReedValveEmpiricalParameters& reedValveEmpiricalParameters, const MaterialProperties& materialProperties, const double dt, const EFace upDirection);
 
 	FemDeformation();
 	
@@ -22,9 +22,10 @@ public:
 	int amountOfNodes;							// The total amount of nodes that this beam is modeled with. This means fixed, and free nodes.
 	int N_DOF;									// The amount of degrees of freedom for the FEM system.
 	int n_active;
-
-	double materialDensity = 4400.0; // The density of the material. todo: remove hardcode.
-	double youngsModulus = 110.0E9;   // Young modulus (of TiAl alloy) todo: remove hardcode.
+	
+	ReedValveGeometry geometry;
+	ReedValveEmpiricalParameters empiricalParameters;
+	MaterialProperties material;
 
 	double dt;									// Time step used to assemble the newmark matrices.
 	
@@ -39,12 +40,7 @@ public:
 	double fixedLength;							// Length of the part that is fixed in place.
 	
 protected:
-	EBeamProfile beamProfile_;
-
-
-	double rayleighDampingAlpha;				 // Alpha coef. for Rayleigh damping (alpha*M + beta*K)
-	double rayleighDampingBeta;				 // Beta coef. for Rayleigh damping (alpha*M + beta*K)
-
+	
 	TwoDimensionalArray globalMassMatrix;		// The global mass matrix for this FEM beam, with the element matrices combined.
 	TwoDimensionalArray globalStiffnessMatrix;	// The global mass stiffness for this FEM beam, with the element matrices combined.
 	TwoDimensionalArray globalStiffnessMatrixCholeskyDecomposed;

@@ -15,17 +15,10 @@ SimCase::SimCase(const double simulationDuration, const double dt) :
 	totalSimulationTimeStepCount = (int)(1 + simulationDuration / dt);  // Number of time steps
 }
 
-void SimCase::AddReedValve(Domain* domainThisValveFeedsInto, const EFace boundary, const double positionAlongBoundary, const ReedValveGeometry& reedValveGeometry, const ReedValveEmpiricalParameters& reedValveEmpiricalParameters, const double lengthOfFixedSections, const bool bMirrored, const int amountOfFreeSections, const int amountOfFixedNodes)
+void SimCase::AddReedValve(Domain* domainThisValveFeedsInto, Domain* domainSourceFrom, const EFace boundary, const double positionAlongBoundary, const ReedValveGeometry& reedValveGeometry, const ReedValveEmpiricalParameters& reedValveEmpiricalParameters, const MaterialProperties materialProperties, const double lengthOfFixedSections, const bool bMirrored, const int amountOfFreeSections, const int amountOfFixedNodes)
 {
-	// Placing a reed valve like this requires the boundary to be connected. Validate the connected boundary & domain.
-	if (domainThisValveFeedsInto->boundaries.at(boundary).boundaryType != EBoundaryCondition::CONNECTED)
-		throw std::logic_error("Cannot Place a reed valve on domain '" + domainThisValveFeedsInto->name + "', boundary [" + FaceToString(boundary) + "], as it is not set as a connected boundary.");
-	if (!domainThisValveFeedsInto->boundaries.at(boundary).connectedBoundary || !domainThisValveFeedsInto->boundaries.at(boundary).connectedBoundary->domain)
-		throw std::logic_error("Cannot Place a reed valve on domain '" + domainThisValveFeedsInto->name + "', boundary [" + FaceToString(boundary) + "], as it is an invalid connected boundary");
-	Domain* domainOutOf = domainThisValveFeedsInto->boundaries.at(boundary).connectedBoundary->domain;
-
 	// SimCase::valves holds unique pointer references so it can dynamically cast them. So, create them on heap and save unique pointer.
-	valves.push_back(std::make_unique<ReedValve>(domainThisValveFeedsInto, domainOutOf, boundary, positionAlongBoundary, reedValveGeometry , reedValveEmpiricalParameters, bMirrored, lengthOfFixedSections, amountOfFreeSections, amountOfFixedNodes));
+	valves.push_back(std::make_unique<ReedValve>(domainThisValveFeedsInto, domainSourceFrom, boundary, positionAlongBoundary, reedValveGeometry , reedValveEmpiricalParameters, materialProperties, bMirrored, lengthOfFixedSections, amountOfFreeSections, amountOfFixedNodes));
 	valves.back()->OnRegister();
 }
 

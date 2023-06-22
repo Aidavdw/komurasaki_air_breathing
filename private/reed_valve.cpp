@@ -11,14 +11,10 @@
 
 #include "AuxFunctions.h"
 
-#define HOLE_FACTOR 0.9
 
-#define DAMPING_C1 5.0E-8 //5.0E-7  
-#define DAMPING_C2 0.0E-8 //2.0E-8 // Why on earth is this 0??
-#define DAMPING_C3 0.0007
 #define SAMPLING_DEPTH_FOR_OUT_OF_DOMAIN 2
 
-ReedValve::ReedValve(Domain* intoDomain, Domain* outOfDomain, const EFace boundary, const double positionAlongBoundary, const ReedValveGeometry& reedValveGeometry , const ReedValveEmpiricalParameters& reedValveEmpiricalParameters, const bool bMirrored, const double lengthOfFixedSections, const int amountOfFreeSections, const int amountOfFixedNodes) :
+ReedValve::ReedValve(Domain* intoDomain, Domain* outOfDomain, const EFace boundary, const double positionAlongBoundary, const ReedValveGeometry& reedValveGeometry , const ReedValveEmpiricalParameters& reedValveEmpiricalParameters, const MaterialProperties materialProperties, const bool bMirrored, const double lengthOfFixedSections, const int amountOfFreeSections, const int amountOfFixedNodes) :
 	IValve(intoDomain, outOfDomain, boundary, positionAlongBoundary),
 	bMirrored(bMirrored),
 	amountOfFixedNodes(amountOfFixedNodes),
@@ -26,9 +22,10 @@ ReedValve::ReedValve(Domain* intoDomain, Domain* outOfDomain, const EFace bounda
 	lengthOfFreeSection(reedValveGeometry.freeLength),
 	lengthOfFixedSections(lengthOfFixedSections),
 	reedValveGeometry_(reedValveGeometry),
-	reedValveEmpiricalParameters_(reedValveEmpiricalParameters)
+	reedValveEmpiricalParameters_(reedValveEmpiricalParameters),
+	materialProperties(materialProperties)
 {
-	positionMirrorModifier_ = bMirrored ? -1 : 1;
+	positionMirrorModifier_ = bMirrored ? -1 : 1; // Multiplies the delta for generated node positions by -1, so offsets them in the opposite direction.
 	hingePositionInDomain = intoDomain->PositionAlongBoundaryToCoordinate(boundary, positionAlongBoundary, 0);
 	holeEndPositionAlongBoundary = positionAlongBoundary + (lengthOfFixedSections + lengthOfFreeSection) * positionMirrorModifier_;
 	holeEndPositionInDomain = intoDomain->PositionAlongBoundaryToCoordinate(boundary, holeEndPositionAlongBoundary , 0);
@@ -36,8 +33,7 @@ ReedValve::ReedValve(Domain* intoDomain, Domain* outOfDomain, const EFace bounda
 	hingePositionIndex_ = intoDomain->InvertPositionToIndex(hingePositionInDomain);
 	holeEndPositionIndex_ = intoDomain->InvertPositionToIndex(holeEndPositionInDomain);
 
-	// Instead, only create it at Register().
-	//fem_ = FemDeformation(amountOfFreeSections, amountOfFixedNodes, beamProfile, lengthOfFreeSection, lengthOfFixedSections, intoDomain->simCase->dt, Opposite(boundary));
+	// Note that a FEM object still needs to be created before it's ready to simulate. This is done in Register();
 }
 
 void ReedValve::CalculateForceOnNodesFromPressure(std::vector<double>& forceVectorOut, const EFieldQuantityBuffer bufferName) const
@@ -114,7 +110,7 @@ void ReedValve::CalculateForceOnNodesFromPressure(std::vector<double>& forceVect
 
 void ReedValve::OnRegister()
 {
-	fem_ = FemDeformation(amountOfFreeNodes, amountOfFixedNodes, lengthOfFixedSections, reedValveGeometry_, reedValveEmpiricalParameters_, intoDomain_->simCase->dt, boundary_);
+	fem_ = FemDeformation(amountOfFreeNodes, amountOfFixedNodes, lengthOfFixedSections, reedValveGeometry_, reedValveEmpiricalParameters_, materialProperties, intoDomain_->simCase->dt, boundary_);
 	FillCellIndexArrayWithLine(sourceCellsIndices_, boundary_, positionAlongBoundary_, lengthOfFreeSection, lengthOfFixedSections);
 
 	/*	     0	    					posAlongBoundary		posAlongBoundary+lengthOfValveSection			lengthOfSide
@@ -130,7 +126,7 @@ void ReedValve::OnRegister()
 void ReedValve::FillCellIndexArrayWithLine(std::vector<CellIndex>& sourceCellIndicesOut, const EFace boundary, double positionAlongBoundary, const double lengthOfFreeSection, const double lengthOfFixedSections) const
 {
 	// calculate the 'starting position' based on the position along the boundary as provided, offsetting with the hole size etc.
-	double posAlongBoundaryStart = positionAlongBoundary + lengthOfFixedSections + lengthOfFreeSection * (1 - HOLE_FACTOR);
+	double posAlongBoundaryStart = positionAlongBoundary + lengthOfFixedSections + lengthOfFreeSection * (1 - reedValveEmpiricalParameters_.holeFactor);
 	auto posStart = intoDomain_->PositionAlongBoundaryToCoordinate(boundary, posAlongBoundaryStart, 0);
 	double posAlongBoundaryEnd = positionAlongBoundary + lengthOfFixedSections + lengthOfFreeSection;
 	auto posEnd = intoDomain_->PositionAlongBoundaryToCoordinate(boundary, posAlongBoundaryEnd, 0);
@@ -408,9 +404,9 @@ void ReedValve::CalculateAerodynamicDamping(std::vector<double> &forceVectorOut)
 
 		double dampingFactor; // Called epsilon in Florian (2017)
 		if (dyDt >= 0)
-			dampingFactor = DAMPING_C1 + DAMPING_C2 * dyDt;
+			dampingFactor = reedValveEmpiricalParameters_.dampingC1 + reedValveEmpiricalParameters_.dampingC2 * dyDt;
 		else // dy < 0
-			dampingFactor = DAMPING_C3 * posNow.y;
+			dampingFactor = reedValveEmpiricalParameters_.dampingC3 * posNow.y;
 
 		const double naturalFrequency = reedValveEmpiricalParameters_.naturalFrequency;
 		double dampingForce = -2 * naturalFrequency / mass * dyDt * dampingFactor;
