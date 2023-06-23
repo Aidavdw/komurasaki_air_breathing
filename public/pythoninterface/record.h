@@ -2,7 +2,7 @@
 #include "conversion_functions.h"
 #include "2dArray.h"
 
-// Records are the way how this program handles returning data. Making a record of a property means you are interested in it, so its value will be stored for every time step. Represents a saved value, that can later be accessed throught the python interface.
+// Records are the way how this program handles returning data. Making a record of a property means you are interested in it, so its value will be stored for every time step. Represents a saved value, that can later be accessed through the python interface.
 class TwoDimensionalArrayRecord
 {
 public:

@@ -37,7 +37,7 @@ protected:
 	// values only saved here to be given to fem_
 	ReedValveGeometry reedValveGeometry_;
 	ReedValveEmpiricalParameters reedValveEmpiricalParameters_;
-	MaterialProperties materialProperties; // Right now, constant material properties for entire valve. This needs to be changed if material is anisotropic or if the material changes as a function of moving towards the tip.
+	MaterialProperties materialProperties_; // Right now, constant material properties for entire valve. This needs to be changed if material is anisotropic or if the material changes as a function of moving towards the tip.
 
 public:
 

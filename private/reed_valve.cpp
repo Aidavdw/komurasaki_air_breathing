@@ -23,7 +23,7 @@ ReedValve::ReedValve(Domain* intoDomain, Domain* outOfDomain, const EFace bounda
 	lengthOfFixedSections(lengthOfFixedSections),
 	reedValveGeometry_(reedValveGeometry),
 	reedValveEmpiricalParameters_(reedValveEmpiricalParameters),
-	materialProperties(materialProperties)
+	materialProperties_(materialProperties)
 {
 	positionMirrorModifier_ = bMirrored ? -1 : 1; // Multiplies the delta for generated node positions by -1, so offsets them in the opposite direction.
 	hingePositionInDomain = intoDomain->PositionAlongBoundaryToCoordinate(boundary, positionAlongBoundary, 0);
@@ -110,7 +110,7 @@ void ReedValve::CalculateForceOnNodesFromPressure(std::vector<double>& forceVect
 
 void ReedValve::OnRegister()
 {
-	fem_ = FemDeformation(amountOfFreeNodes, amountOfFixedNodes, lengthOfFixedSections, reedValveGeometry_, reedValveEmpiricalParameters_, materialProperties, intoDomain_->simCase->dt, boundary_);
+	fem_ = FemDeformation(amountOfFreeNodes, amountOfFixedNodes, lengthOfFixedSections, reedValveGeometry_, reedValveEmpiricalParameters_, materialProperties_, intoDomain_->simCase->dt, boundary_);
 	FillCellIndexArrayWithLine(sourceCellsIndices_, boundary_, positionAlongBoundary_, lengthOfFreeSection, lengthOfFixedSections);
 
 	/*	     0	    					posAlongBoundary		posAlongBoundary+lengthOfValveSection			lengthOfSide
@@ -318,7 +318,7 @@ void ReedValve::FillBuffer()
 void ReedValve::SetInitialConditions()
 {
 	#ifdef _DEBUG
-	if (fem_.dt == 0)
+	if (IsCloseToZero(fem_.dt))
 		throw std::logic_error("FEM module is not initialised.");
 	#endif
 
