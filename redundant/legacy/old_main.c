@@ -537,7 +537,7 @@ int main()
 
             if (SOLID_ON==1)
             {
-                // #pragma omp parallel for num_threads(N_VALVE) (bug if activated?)
+                // #pragma omp parallel for num_threads(N_VALVE)
                 for (int k = 0; k < N_VALVE; ++k)
                 {
                     // Compute mean pressure on each side and mass-flow rate at valve

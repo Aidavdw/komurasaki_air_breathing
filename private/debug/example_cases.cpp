@@ -18,8 +18,7 @@ void LoadExampleCaseWithoutReedValves(SimCase* simCase) {
 	                                  {0,0},
 	                                  {lengthOfTube,heightOfTube},
 	                                  {xMeshSpacing, yMeshSpacing },
-	                                  EInitialisationMethod::FROM_CHAPMAN_JOUGET_SOLUTION,
-	                                  simCase->solverSettings.nGhost
+	                                  EInitialisationMethod::FROM_CHAPMAN_JOUGET_SOLUTION
 	);
 	tube->SetBoundaryType(EFace::LEFT, EBoundaryCondition::SLIP);
 	tube->SetBoundaryType(EFace::TOP, EBoundaryCondition::SLIP);
@@ -30,8 +29,7 @@ void LoadExampleCaseWithoutReedValves(SimCase* simCase) {
 	                                     {lengthOfTube,0},
 	                                     {lengthOfTube,heightOfTube},
 	                                     {xMeshSpacing, yMeshSpacing },
-	                                     EInitialisationMethod::AMBIENT_CONDITIONS,
-	                                     simCase->solverSettings.nGhost
+	                                     EInitialisationMethod::AMBIENT_CONDITIONS
 	);
 	ambient->SetBoundaryType(EFace::RIGHT, EBoundaryCondition::SLIP);
 	ambient->SetBoundaryType(EFace::TOP, EBoundaryCondition::SLIP);
@@ -55,8 +53,7 @@ void LoadExampleCaseWithReedValves(SimCase* simCase)
 								  {0,0},
 								  {lengthOfTube,heightOfTube},
 								  {xMeshSpacing, yMeshSpacing },
-								  EInitialisationMethod::FROM_CHAPMAN_JOUGET_SOLUTION,
-								  simCase->solverSettings.nGhost
+								  EInitialisationMethod::FROM_CHAPMAN_JOUGET_SOLUTION
 	);
 	tube->SetBoundaryType(EFace::LEFT, EBoundaryCondition::SLIP);
 	tube->SetBoundaryType(EFace::TOP, EBoundaryCondition::SLIP);
@@ -67,8 +64,7 @@ void LoadExampleCaseWithReedValves(SimCase* simCase)
 										 {lengthOfTube,0},
 										 {lengthOfTube,heightOfTube},
 										 {xMeshSpacing, yMeshSpacing },
-										 EInitialisationMethod::AMBIENT_CONDITIONS,
-										 simCase->solverSettings.nGhost
+										 EInitialisationMethod::AMBIENT_CONDITIONS
 	);
 	ambient->SetBoundaryType(EFace::RIGHT, EBoundaryCondition::SLIP);
 	ambient->SetBoundaryType(EFace::BOTTOM, EBoundaryCondition::SLIP);
@@ -78,8 +74,7 @@ void LoadExampleCaseWithReedValves(SimCase* simCase)
 									  {0,0},
 									  {lengthOfTube,heightOfTube},
 									  {xMeshSpacing, yMeshSpacing },
-									  EInitialisationMethod::AMBIENT_CONDITIONS,
-									  simCase->solverSettings.nGhost
+									  EInitialisationMethod::AMBIENT_CONDITIONS
 	);
 	topLeft->SetBoundaryType(EFace::LEFT, EBoundaryCondition::SLIP);
 	topLeft->SetBoundaryType(EFace::TOP, EBoundaryCondition::SLIP);
@@ -90,8 +85,7 @@ void LoadExampleCaseWithReedValves(SimCase* simCase)
 										 {lengthOfTube,0},
 										 {lengthOfTube,heightOfTube},
 										 {xMeshSpacing, yMeshSpacing },
-										 EInitialisationMethod::AMBIENT_CONDITIONS,
-										 simCase->solverSettings.nGhost
+										 EInitialisationMethod::AMBIENT_CONDITIONS
 	);
 	topRight->SetBoundaryType(EFace::RIGHT, EBoundaryCondition::SLIP);
 	topRight->SetBoundaryType(EFace::TOP, EBoundaryCondition::SLIP);

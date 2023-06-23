@@ -31,7 +31,7 @@ void SimCase::AddReedValve(const std::string& domainIntoName, const std::string&
 	AddReedValve(domainInto, domainOutOf, boundary, positionAlongBoundary, reedValveGeometry, reedValveEmpiricalParameters, materialProperties, lengthOfFixedSections, bMirrored, amountOfFreeSections, amountOfFixedNodes);
 }
 
-Domain* SimCase::AddDomain(const int id, const std::string& name, const Position& position, const std::pair<double, double> sizeArg, const std::pair<MeshSpacing, MeshSpacing>& meshSpacingArg, const EInitialisationMethod initialisationMethod, const int ghostCellDepth)
+Domain* SimCase::AddDomain(const int id, const std::string& name, const Position& position, const std::pair<double, double> sizeArg, const std::pair<MeshSpacing, MeshSpacing>& meshSpacingArg, const EInitialisationMethod initialisationMethod)
 {
 	// todo: remove GhostCellDepth argument, because it's already available inside of the domain that this function is called from.
 	
@@ -52,7 +52,7 @@ Domain* SimCase::AddDomain(const int id, const std::string& name, const Position
 	//todo: switch this to an emplace constructor so that it doesn't have to be copied over
 	//auto newDomain = Domain(name, this, position, sizeArg, meshSpacingArg, initialisationMethod, ghostCellDepth);
 	//auto it = domains.emplace({id, newDomain});
-	auto it = domains.emplace(std::piecewise_construct, std::forward_as_tuple(id), std::forward_as_tuple(name, this, position, sizeArg, meshSpacingArg, initialisationMethod, ghostCellDepth));
+	auto it = domains.emplace(std::piecewise_construct, std::forward_as_tuple(id), std::forward_as_tuple(name, this, position, sizeArg, meshSpacingArg, initialisationMethod, solverSettings.nGhost));
 	domainIDS.insert({ name, id });
 	return &it.first->second;
 }
