@@ -57,7 +57,7 @@ void IValve::FillBuffer()
     throw std::logic_error("PopulateValveDeltaBuffer() is not overridden for this type of valve!");
 }
 
-void IValve::AddBufferTermsToSourceCells(const EFieldQuantityBuffer buffer)
+void IValve::AddCachedTermsToSourceCells(const EFieldQuantityBuffer bufferToWriteInto)
 {
 #ifdef _DEBUG
     assert(sourceCellsIndices_.size() == sourceTermBuffer_.size());
@@ -80,21 +80,23 @@ void IValve::AddBufferTermsToSourceCells(const EFieldQuantityBuffer buffer)
 
 #endif
 
-    TwoDimensionalArray& rhom = intoDomain_->rho.Buffer(buffer);
-    TwoDimensionalArray& um = intoDomain_->u.Buffer(buffer);
-    TwoDimensionalArray& vm = intoDomain_->v.Buffer(buffer);
-    TwoDimensionalArray& pm = intoDomain_->p.Buffer(buffer);
-    TwoDimensionalArray& em = intoDomain_->E.Buffer(buffer);
-    TwoDimensionalArray& tm = intoDomain_->T.Buffer(buffer);
-    TwoDimensionalArray& hm = intoDomain_->H.Buffer(buffer);
+    // References to the domains it will be added into
+    TwoDimensionalArray& rhom = intoDomain_->rho.Buffer(bufferToWriteInto);
+    TwoDimensionalArray& um = intoDomain_->u.Buffer(bufferToWriteInto);
+    TwoDimensionalArray& vm = intoDomain_->v.Buffer(bufferToWriteInto);
+    TwoDimensionalArray& pm = intoDomain_->p.Buffer(bufferToWriteInto);
+    TwoDimensionalArray& em = intoDomain_->E.Buffer(bufferToWriteInto);
+    TwoDimensionalArray& tm = intoDomain_->T.Buffer(bufferToWriteInto);
+    TwoDimensionalArray& hm = intoDomain_->H.Buffer(bufferToWriteInto);
 
-    TwoDimensionalArray& rhos = intoDomain_->rho.Buffer(buffer);
-    TwoDimensionalArray& us = intoDomain_->u.Buffer(buffer);
-    TwoDimensionalArray& vs = intoDomain_->v.Buffer(buffer);
-    TwoDimensionalArray& ps = intoDomain_->p.Buffer(buffer);
-    TwoDimensionalArray& es = intoDomain_->E.Buffer(buffer);
-    TwoDimensionalArray& ts = intoDomain_->T.Buffer(buffer);
-    TwoDimensionalArray& hs = intoDomain_->H.Buffer(buffer);
+    // References to the domains it will be subtracted from
+    TwoDimensionalArray& rhos = outOfDomain_->rho.Buffer(bufferToWriteInto);
+    TwoDimensionalArray& us = outOfDomain_->u.Buffer(bufferToWriteInto);
+    TwoDimensionalArray& vs = outOfDomain_->v.Buffer(bufferToWriteInto);
+    TwoDimensionalArray& ps = outOfDomain_->p.Buffer(bufferToWriteInto);
+    TwoDimensionalArray& es = outOfDomain_->E.Buffer(bufferToWriteInto);
+    TwoDimensionalArray& ts = outOfDomain_->T.Buffer(bufferToWriteInto);
+    TwoDimensionalArray& hs = outOfDomain_->H.Buffer(bufferToWriteInto);
     
     for (size_t i = 0; i < sourceCellsIndices_.size(); i++)
     {
@@ -123,7 +125,7 @@ void IValve::AddBufferTermsToSourceCells(const EFieldQuantityBuffer buffer)
         const EulerContinuity sinkTerms = sinkTermBuffer_[i];
         
 #ifdef _DEBUG
-        assert(intoDomain_->ValidateCellIndex(sinkCellsIndices_.at(i), false));
+        assert(outOfDomain_->ValidateCellIndex(sinkCellsIndices_.at(i), false));
         if (sinkTerms == EulerContinuity())
             throw std::logic_error("sink term is not initialised.");
 #endif
@@ -136,7 +138,7 @@ void IValve::AddBufferTermsToSourceCells(const EFieldQuantityBuffer buffer)
         hs(cixSink) = sinkTerms.h;
 
         //todo: set temperature based on the other values of state
-        tm(cixSink) = 0;
+        ts(cixSink) = 0;
     }
     
 }

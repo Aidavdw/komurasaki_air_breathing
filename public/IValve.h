@@ -38,7 +38,7 @@ public:
 	virtual void UpdateValveState();		// Samples the environment, calculates forces etc, and updates how open a valve is.
 	virtual void SetInitialConditions();	
 
-	virtual void AddBufferTermsToSourceCells(const EFieldQuantityBuffer bufferToWriteInto);	// Sets the source terms in sourceTermBuffer_ as calculated with CalculateFlowFromValve(), and puts them in the sourceCellsIndices in the intoDomain_. Excepts if it cannot do this.
+	virtual void AddCachedTermsToSourceCells(const EFieldQuantityBuffer bufferToWriteInto);	// Uses the values cached into sourceTermBuffer_ as calculated with CalculateFlowFromValve(), and puts them in the sourceCellsIndices in the intoDomain_. Excepts if it cannot do this.
 	virtual void EmptyBuffer();				// Sets the sourceTermBuffer and sinkTermBuffer back to zeros.
 
 	std::string ToString() const;

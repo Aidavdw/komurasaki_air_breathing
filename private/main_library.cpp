@@ -77,7 +77,7 @@ void DoSimulation(SimCase& simCase)
             for (std::unique_ptr<IValve>& valve : simCase.valves)
             {
                 // Add the delta due to the valve sourcing into the delta flow buffer.
-                valve->AddBufferTermsToSourceCells(EFieldQuantityBuffer::FLUX);
+                valve->AddCachedTermsToSourceCells(EFieldQuantityBuffer::FLUX);
             }
 
 #ifdef _DEBUG
