@@ -11,7 +11,7 @@ PYBIND11_MODULE(komurasakiairbreathing, m)
 {
     // Simcase
     py::class_<SimCase>(m, "SimCase")
-        .def(py::init<double, double>()) // constructor
+        .def(py::init<>()) // default constructor
         .def("AddDomain", &SimCase::AddDomain)
         .def("ConnectBoundariesByName", &SimCase::ConnectBoundariesByName)
         .def("ConnectBoundariesById", &SimCase::ConnectBoundariesById)
@@ -19,7 +19,9 @@ PYBIND11_MODULE(komurasakiairbreathing, m)
         .def("GetDomainByName", &SimCase::GetDomainByName)
         .def("AddRecord", &SimCase::AddRecord)
         .def_readonly("domains", &SimCase::domains)
-        .def_readonly("two_dimensional_array_records", &SimCase::twoDimensionalArrayRecords);
+        .def_readonly("two_dimensional_array_records", &SimCase::twoDimensionalArrayRecords)
+        .def_readwrite("dt", &SimCase::dt)
+        .def_readwrite("simulation_duration", &SimCase::simulationDuration);
         //.def_readonly("valve_interfaces", &SimCase::valves);
     
 
@@ -52,12 +54,12 @@ PYBIND11_MODULE(komurasakiairbreathing, m)
         .def_readonly("size_y", &TwoDimensionalArray::nY);
 
     py::class_<MaterialProperties>(m, "MaterialProperties")
-        .def(py::init<MaterialProperties>()) // constructor
+        .def(py::init<>()) // default constructor
         .def_readwrite("youngs_modulus", &MaterialProperties::youngsModulus)
         .def_readwrite("density", &MaterialProperties::density);
 
     py::class_<ReedValveEmpiricalParameters>(m, "ReedValveEmpiricalParameters")
-        .def(py::init<ReedValveEmpiricalParameters>()) // constructor
+        .def(py::init<>()) // default constructor
         .def_readwrite("natural_frequency", &ReedValveEmpiricalParameters::naturalFrequency)
         .def_readwrite("rayleigh_damping_alpha", &ReedValveEmpiricalParameters::rayleighDampingAlpha)
         .def_readwrite("rayleigh_damping_beta", &ReedValveEmpiricalParameters::rayleighDampingBeta)
@@ -67,7 +69,7 @@ PYBIND11_MODULE(komurasakiairbreathing, m)
         .def_readwrite("hole_factor", &ReedValveEmpiricalParameters::holeFactor);
 
     py::class_<ReedValveGeometry>(m, "ReedValveGeometry")
-        .def(py::init<ReedValveGeometry>()) // constructor
+        .def(py::init<>()) // default constructor
         .def_readwrite("free_length", &ReedValveGeometry::freeLength)
         .def_readwrite("root_thickness", &ReedValveGeometry::rootThickness)
         .def_readwrite("tip_thickness", &ReedValveGeometry::tipThickness)
@@ -75,6 +77,7 @@ PYBIND11_MODULE(komurasakiairbreathing, m)
         .def_readwrite("tip_width", &ReedValveGeometry::tipWidth);
 
     py::class_<SolverSettings>(m, "SolverSettings")
+        .def(py::init<>()) // default constructor
         .def_readwrite("ausm_switch_bias", &SolverSettings::AUSMSwitchBias)
         .def_readwrite("muscl_bias", &SolverSettings::MUSCLBias)
         .def_readwrite("entropy_fix", &SolverSettings::entropyFix)
@@ -91,6 +94,7 @@ PYBIND11_MODULE(komurasakiairbreathing, m)
         .export_values();
     
     py::class_<AmbientConditions>(m, "AmbientConditions")
+        .def(py::init<>()) // default constructor
         .def_readwrite("mach",&AmbientConditions::mach)
         .def_readwrite("temperature",&AmbientConditions::temperature)
         .def_readwrite("static_pressure",&AmbientConditions::staticPressure)
@@ -98,12 +102,14 @@ PYBIND11_MODULE(komurasakiairbreathing, m)
         .def_readwrite("free_flow_y_velocity",&AmbientConditions::v);
 
     py::class_<ChapmanJougetInitialConditionParameters>(m, "ChapmanJougetInitialConditionParameters")
+        .def(py::init<>()) // default constructor
         .def_readwrite("beam_power",&ChapmanJougetInitialConditionParameters::beamPower)
         .def_readwrite("energy_absorption_coefficient",&ChapmanJougetInitialConditionParameters::energyAbsorptionCoefficient)
         .def_readwrite("specific_heat_ratio",&ChapmanJougetInitialConditionParameters::gamma)
         .def_readwrite("ideal_gas_constant",&ChapmanJougetInitialConditionParameters::idealGasConstant);
 
     py::class_<RuntimeParameters>(m, "RuntimeParameters")
+        .def(py::init<>()) // default constructor
         .def_readwrite("time_steps_between_data_export", &RuntimeParameters::numberOfTimeStepsBetweenDataExport);
 
     py::class_<Boundary>(m,"Boundary")
@@ -119,7 +125,7 @@ PYBIND11_MODULE(komurasakiairbreathing, m)
 
     // MeshSpacing
     py::class_<MeshSpacing>(m,"MeshSpacing")
-        .def(py::init<EMeshSpacingType, int, double, double>()) // constructor
+        .def(py::init<>()) // constructor
         .def_readwrite("type", &MeshSpacing::spacingType)
         .def_readwrite("left", &MeshSpacing::left)
         .def_readwrite("right", &MeshSpacing::right)
@@ -160,7 +166,7 @@ PYBIND11_MODULE(komurasakiairbreathing, m)
         .export_values();
 
     py::enum_<EBeamProfile>(m, "BeamProfile")
-        .value("straigh_double_tapered",EBeamProfile::STRAIGHT_DOUBLE_TAPERED)
+        .value("straight_double_tapered",EBeamProfile::STRAIGHT_DOUBLE_TAPERED)
         .export_values();
     
 

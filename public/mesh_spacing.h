@@ -52,6 +52,7 @@ private:
 
 struct MeshSpacing
 {
+	MeshSpacing() = default;
 	MeshSpacing(const EMeshSpacingType meshSpacingType,const int amountOfElements, const double resolutionLeft, const double resolutionRight) :
 		spacingType(meshSpacingType),
 		left(resolutionLeft),
@@ -59,7 +60,7 @@ struct MeshSpacing
 		amountOfElements(amountOfElements)
 	{}
 
-	EMeshSpacingType spacingType;
+	EMeshSpacingType spacingType = EMeshSpacingType::CONSTANT;
 	double left = 0;
 	double right = 0;
 	int amountOfElements = 0;

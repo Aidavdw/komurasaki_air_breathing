@@ -10,7 +10,10 @@ SimCase::SimCase(const double simulationDuration, const double dt) :
 	simulationDuration(simulationDuration),
 	dt(dt)
 {
-	totalSimulationTimeStepCount = static_cast<int>(1 + simulationDuration / dt);  // Number of time steps
+}
+
+SimCase::SimCase()
+{
 }
 
 void SimCase::AddReedValve(Domain* domainThisValveFeedsInto, Domain* domainSourceFrom, const EFace boundary, const double positionAlongBoundary, const ReedValveGeometry& reedValveGeometry, const ReedValveEmpiricalParameters& reedValveEmpiricalParameters, const MaterialProperties materialProperties, const double lengthOfFixedSections, const bool bMirrored, const int amountOfFreeSections, const int amountOfFixedNodes)
@@ -29,6 +32,11 @@ void SimCase::AddReedValve(const std::string& domainIntoName, const std::string&
 	Domain* domainInto = &domains.at(domainIDS.at(domainIntoName));
 	Domain* domainOutOf = &domains.at(domainIDS.at(domainOutOfName));
 	AddReedValve(domainInto, domainOutOf, boundary, positionAlongBoundary, reedValveGeometry, reedValveEmpiricalParameters, materialProperties, lengthOfFixedSections, bMirrored, amountOfFreeSections, amountOfFixedNodes);
+}
+
+int SimCase::GetTotalSimulationTimeStepCount() const
+{
+	return static_cast<int>(1 + simulationDuration / dt);
 }
 
 Domain* SimCase::AddDomain(const int id, const std::string& name, const Position& position, const std::pair<double, double> sizeArg, const std::pair<MeshSpacing, MeshSpacing>& meshSpacingArg, const EInitialisationMethod initialisationMethod)

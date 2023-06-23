@@ -24,7 +24,7 @@ void DoSimulation(SimCase& simCase)
 
     /* DISPLAY INFORMATION ON TERMINAL */
     auto timeAtStartOfCalculations = std::chrono::system_clock::now();
-    std::cout << "Total length of the simulation is " << simCase.simulationDuration << "s, with dt = " << simCase.dt/1000 << " ms (" << simCase.totalSimulationTimeStepCount << " steps)." << std::endl;
+    std::cout << "Total length of the simulation is " << simCase.simulationDuration << "s, with dt = " << simCase.dt/1000 << " ms (" << simCase.GetTotalSimulationTimeStepCount() << " steps)." << std::endl;
     //std::cout << "CFL will be displayed every " << simCase.runtimeParameters.numberOfIterationsBetweenCFLLog << "timesteps (" << simCase.runtimeParameters.numberOfIterationsBetweenCFLLog * DT*1000 <<"ms)." << std::endl;
     //std::cout << "Field properties will be exported every " << simCase.runtimeParameters.numberOfIterationsBetweenDataExport << "timesteps (" << simCase.runtimeParameters.numberOfIterationsBetweenDataExport * DT*1000 <<"ms)." << std::endl;
     
@@ -33,9 +33,9 @@ void DoSimulation(SimCase& simCase)
     
     std::cout << "Starting time loop." << std::endl;
     /* START TIME LOOP */
-    for (int timeStepNumber = 1; timeStepNumber < simCase.totalSimulationTimeStepCount; ++timeStepNumber)
+    for (int timeStepNumber = 1; timeStepNumber < simCase.GetTotalSimulationTimeStepCount(); ++timeStepNumber)
     {
-        std::cout << "Advanced to time step " << timeStepNumber*simCase.dt << " [ t = " << timeStepNumber << " / " << simCase.totalSimulationTimeStepCount <<"], " << timeStepNumber/simCase.totalSimulationTimeStepCount*100 <<"% done"  << std::endl;
+        std::cout << "Advanced to time step " << timeStepNumber*simCase.dt << " [ t = " << timeStepNumber << " / " << simCase.GetTotalSimulationTimeStepCount() <<"], " << timeStepNumber/simCase.GetTotalSimulationTimeStepCount()*100 <<"% done"  << std::endl;
         // Set the starting runge-kutta conditions to be that of the solution of the previous time step.
         for (auto& domainIter : simCase.domains)
         {

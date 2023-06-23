@@ -50,6 +50,7 @@ struct RuntimeParameters
 class SimCase {
 public:
 	SimCase(const double simulationDuration, const double dt);
+	SimCase();
 	
 	RuntimeParameters runtimeParameters;
 	SolverSettings solverSettings;
@@ -61,11 +62,8 @@ public:
 	std::vector<std::unique_ptr<IValve>> valves;				// The valves that are part of this simulation. Add more using InsertValve-like functions, defind at the bottom. Holds unique pointers to the base class, so that they can be memory-tracked.
 	std::map<std::string, TwoDimensionalArrayRecord> twoDimensionalArrayRecords;	// Contains all the records, indicating which values are tracked and saved so that they can be analysed after running the simulation.
 
-	double simulationDuration;				// Total amount of time to run the simulation for
-	double dt;								// The amount of time between two time steps.
-	int totalSimulationTimeStepCount;		// The total amount of time steps that are in this simulation, = simulationDuration/dt
-
-
+	double simulationDuration = 10.0E-3;				// Total amount of time to run the simulation for
+	double dt = 10E-7;								// The amount of time between two time steps.
 
 	Domain* AddDomain(const int id, const std::string& name, const Position& position, const std::pair<double, double> sizeArg, const std::pair<MeshSpacing, MeshSpacing>& meshSpacingArg, const EInitialisationMethod initialisationMethod); // Adds a new domain to simulation.
 
@@ -85,6 +83,8 @@ public:
 	                  lengthOfFixedSections, const bool bMirrored, const int amountOfFreeSections = 30, const int amountOfFixedNodes = 3);
 
 	void AddReedValve(const std::string& domainIntoName, const std::string& domainOutOfName, const EFace boundary, const double positionAlongBoundary, const ReedValveGeometry& reedValveGeometry, const ReedValveEmpiricalParameters& reedValveEmpiricalParameters, const MaterialProperties materialProperties, const double lengthOfFixedSections, const bool bMirrored, const int amountOfFreeSections = 30, const int amountOfFixedNodes = 3);
+	
+	int GetTotalSimulationTimeStepCount() const;
 	
 	
 	 
