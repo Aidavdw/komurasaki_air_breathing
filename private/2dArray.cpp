@@ -22,7 +22,11 @@ void TwoDimensionalArray::SetAllToValue(const double value)
 
 void TwoDimensionalArray::Resize(const int sizeX, const int sizeY, const double initialValue)
 {
-	// todo: early exit if already this size
+	if (sizeX == nX && sizeY == nY)
+	{
+		SetAllToValue(initialValue);
+		return;
+	}
 	data_ = std::vector<double>((sizeX) * (sizeY), initialValue);
 }
 
@@ -168,23 +172,6 @@ bool TwoDimensionalArray::HasDiagonalGrainsOnly(const int kernelSize) const
 		}
 	}
 	return true;
-}
-
-std::pair<int, int> TwoDimensionalArray::GetIndexFromIndexOnBoundary(const EFace boundary, const int indexOnBoundary) const
-{
-	switch (boundary)
-	{
-	case EFace::LEFT:
-		return std::make_pair(0, indexOnBoundary);
-	case EFace::RIGHT:
-		return std::make_pair(nX - 1, indexOnBoundary);
-	case EFace::BOTTOM:
-		return std::make_pair(indexOnBoundary, 0);
-	case EFace::TOP:
-		return std::make_pair(indexOnBoundary, nY - 1);
-	default:
-		throw std::logic_error("FlattenIndexOnBoundary is not implemented for this boundary location.");
-	}
 }
 
 void TwoDimensionalArray::ElementWiseCopy(const TwoDimensionalArray& from, TwoDimensionalArray& to)

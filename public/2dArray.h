@@ -30,9 +30,7 @@ public:
 	bool IsUpperTriangular() const;
 	bool IsDiagonallySymmetric() const;
 	bool HasDiagonalGrainsOnly(const int kernelSize) const; // Checks if the array only has nonzero entries on the diagonal, or a distance of kernelSize away from the diagonal.
-	
-	//todo: replace by CellIndex
-	std::pair<int, int> GetIndexFromIndexOnBoundary(const EFace boundary, const int indexOnBoundary) const; // Gets the index of a cell given a position on a boundary
+
 
 	/******* INLINE ACCESSORS: reading off the value/slicing  ************/
 
