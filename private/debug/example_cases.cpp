@@ -25,7 +25,7 @@ void LoadExampleCaseWithoutReedValves(SimCase* simCase) {
 	tube->SetBoundaryType(EFace::BOTTOM, EBoundaryCondition::SLIP);
 	
 	Domain* ambient = simCase->AddDomain(2,
-	                                     "ambient",
+	                                     "Ambient",
 	                                     {lengthOfTube,0},
 										{lengthOfTube, heightOfTube},
 	                                     {xMeshSpacing, yMeshSpacing },
@@ -36,7 +36,7 @@ void LoadExampleCaseWithoutReedValves(SimCase* simCase) {
 	ambient->SetBoundaryType(EFace::BOTTOM, EBoundaryCondition::SLIP);
 
 	// Alternative way: simCase->ConnectBoundaries(1, EBoundaryLocation::RIGHT, 2, EBoundaryLocation::LEFT);
-	simCase->ConnectBoundariesByName("Tube", EFace::RIGHT, "ambient", EFace::LEFT);
+	simCase->ConnectBoundariesByName("Tube", EFace::RIGHT, "Ambient", EFace::LEFT);
 }
 
 void LoadExampleCaseWithReedValves(SimCase* simCase)
@@ -60,7 +60,7 @@ void LoadExampleCaseWithReedValves(SimCase* simCase)
 	tube->SetBoundaryType(EFace::BOTTOM, EBoundaryCondition::SLIP);
 	
 	Domain* ambient = simCase->AddDomain(2,
-										 "ambient",
+										 "Ambient",
 										 {lengthOfTube,0},
 										 {lengthOfTube, heightOfTube},
 										 {xMeshSpacing, yMeshSpacing },
@@ -80,7 +80,7 @@ void LoadExampleCaseWithReedValves(SimCase* simCase)
 	topLeft->SetBoundaryType(EFace::TOP, EBoundaryCondition::SLIP);
 	topLeft->SetBoundaryType(EFace::BOTTOM, EBoundaryCondition::SLIP);
 	
-	Domain* topRight = simCase->AddDomain(2,
+	Domain* topRight = simCase->AddDomain(4,
 										 "AboveAmbient",
 										 {lengthOfTube,heightOfTube},
 										 {lengthOfTube, heightOfTube},
@@ -90,8 +90,8 @@ void LoadExampleCaseWithReedValves(SimCase* simCase)
 	topRight->SetBoundaryType(EFace::RIGHT, EBoundaryCondition::SLIP);
 	topRight->SetBoundaryType(EFace::TOP, EBoundaryCondition::SLIP);
 
-	simCase->ConnectBoundariesByName("ambient", EFace::TOP, "aboveAmbient", EFace::BOTTOM);
-	simCase->ConnectBoundariesByName("aboveTube", EFace::RIGHT, "aboveAmbient", EFace::LEFT);
+	simCase->ConnectBoundariesByName("Ambient", EFace::TOP, "AboveAmbient", EFace::BOTTOM);
+	simCase->ConnectBoundariesByName("AboveTube", EFace::RIGHT, "AboveAmbient", EFace::LEFT);
 
 	
 	ReedValveGeometry reedValveGeometry;

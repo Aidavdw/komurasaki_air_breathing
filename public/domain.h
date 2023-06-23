@@ -44,7 +44,7 @@ public:
 	// returns the cell indices that this position is in.
 	CellIndex InvertPositionToIndex(const Position& pos) const
 	{
-		Position blank;
+		Position blank(0,0);
 		return InvertPositionToIndex(pos, blank);
 	}
 
