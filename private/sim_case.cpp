@@ -31,10 +31,8 @@ void SimCase::AddReedValve(const std::string& domainIntoName, const std::string&
 	AddReedValve(domainInto, domainOutOf, boundary, positionAlongBoundary, reedValveGeometry, reedValveEmpiricalParameters, materialProperties, lengthOfFixedSections, bMirrored, amountOfFreeSections, amountOfFixedNodes);
 }
 
-Domain* SimCase::AddDomain(const int id, const std::string& name, const Position& position, const std::pair<double, double> sizeArg, const std::pair<MeshSpacing, MeshSpacing>& meshSpacingArg, const EInitialisationMethod initialisationMethod)
-{
-	// todo: remove GhostCellDepth argument, because it's already available inside of the domain that this function is called from.
-	
+Domain* SimCase::AddDomain(const int id, const std::string& name, const Position& position, const std::pair<MeshSpacing, MeshSpacing>& meshSpacingArg, const EInitialisationMethod initialisationMethod)
+{	
 	// Ensure it doesn't have the same name or id
 	if (domainIDS.count(name) > 0)
 		throw std::logic_error("Cannot add two domains with the same name");
@@ -45,14 +43,10 @@ Domain* SimCase::AddDomain(const int id, const std::string& name, const Position
 		if (iter.second == id)
 			throw std::logic_error("Cannot add two domains with the same id");
 #endif
-
-	// todo: check that the MeshSpacing size and the actual size are the same, or change SizeArg to only take in MeshSpacingArg.
 	
+	std::pair<double, double> sizes = {meshSpacingArg.first.length, meshSpacingArg.second.length};
 	
-	//todo: switch this to an emplace constructor so that it doesn't have to be copied over
-	//auto newDomain = Domain(name, this, position, sizeArg, meshSpacingArg, initialisationMethod, ghostCellDepth);
-	//auto it = domains.emplace({id, newDomain});
-	auto it = domains.emplace(std::piecewise_construct, std::forward_as_tuple(id), std::forward_as_tuple(name, this, position, sizeArg, meshSpacingArg, initialisationMethod, solverSettings.nGhost));
+	auto it = domains.emplace(std::piecewise_construct, std::forward_as_tuple(id), std::forward_as_tuple(name, this, position, sizes, meshSpacingArg, initialisationMethod, solverSettings.nGhost));
 	domainIDS.insert({ name, id });
 	return &it.first->second;
 }

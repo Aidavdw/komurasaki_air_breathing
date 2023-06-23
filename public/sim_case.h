@@ -67,7 +67,7 @@ public:
 
 
 
-	Domain* AddDomain(const int id, const std::string& name, const Position& position, const std::pair<double, double> sizeArg, const std::pair<MeshSpacing, MeshSpacing>& meshSpacingArg, const EInitialisationMethod initialisationMethod); // Adds a new domain to simulation.
+	Domain* AddDomain(const int id, const std::string& name, const Position& position, const std::pair<MeshSpacing, MeshSpacing>& meshSpacingArg, const EInitialisationMethod initialisationMethod); // Adds a new domain to simulation.
 
 	void ConnectBoundariesById(const int domainOneIdx, const EFace domainOneLocation, const int domainTwoIdx, const EFace domainTwoLocation); // Sets two boundaries on two different domains to be connected, meaning that flow going out of one goes into the other (and vice versa).
 	void ConnectBoundariesByName(const std::string& domainOneName, const EFace domainOneLocation, const std::string& domainTwoName, const EFace domainTwoLocation); // Sets two boundaries on two different domains to be connected, meaning that flow going out of one goes into the other (and vice versa).
