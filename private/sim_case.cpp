@@ -31,7 +31,7 @@ void SimCase::AddReedValve(const std::string& domainIntoName, const std::string&
 	AddReedValve(domainInto, domainOutOf, boundary, positionAlongBoundary, reedValveGeometry, reedValveEmpiricalParameters, materialProperties, lengthOfFixedSections, bMirrored, amountOfFreeSections, amountOfFixedNodes);
 }
 
-Domain* SimCase::AddDomain(const int id, const std::string& name, const Position& position, const std::pair<MeshSpacing, MeshSpacing>& meshSpacingArg, const EInitialisationMethod initialisationMethod)
+Domain* SimCase::AddDomain(const int id, const std::string& name, const Position& position, const std::pair<double, double> sizeArg, const std::pair<MeshSpacing, MeshSpacing>& meshSpacingArg, const EInitialisationMethod initialisationMethod)
 {	
 	// Ensure it doesn't have the same name or id
 	if (domainIDS.count(name) > 0)
@@ -44,9 +44,9 @@ Domain* SimCase::AddDomain(const int id, const std::string& name, const Position
 			throw std::logic_error("Cannot add two domains with the same id");
 #endif
 	
-	std::pair<double, double> sizes = {meshSpacingArg.first.length, meshSpacingArg.second.length};
+	std::pair<MeshSpacingSolution, MeshSpacingSolution> meshSpacingSolution = {meshSpacingArg.first.Solve(sizeArg.first), meshSpacingArg.second.Solve(sizeArg.second)};
 	
-	auto it = domains.emplace(std::piecewise_construct, std::forward_as_tuple(id), std::forward_as_tuple(name, this, position, sizes, meshSpacingArg, initialisationMethod, solverSettings.nGhost));
+	auto it = domains.emplace(std::piecewise_construct, std::forward_as_tuple(id), std::forward_as_tuple(name, this, position, sizeArg, meshSpacingSolution, initialisationMethod, solverSettings.nGhost));
 	domainIDS.insert({ name, id });
 	return &it.first->second;
 }
@@ -70,7 +70,8 @@ void SimCase::ConnectBoundariesById(const int domainOneIdx, const EFace domainOn
 	if (domains.at(domainTwoIdx).boundaries.count(domainTwoLocation))
 		throw std::logic_error("Cannot link boundaries, as boundary 2 has already been set.");
 
-	//todo: add test to see if their positions are aligned in x or y axis depending on face direction to catch more user errors.
+	//todo: add test to see if their positions are aligned in x or y axis depending on face direction, and log a warning if it is (not fatal)
+	// Note that this does not enforce that they are on the same axis; this might be useful if you want to do like a duct at a right angle, but could also be dangerous.
 	const int axis1 = (domainOneLocation == TOP || domainOneLocation == BOTTOM) ? 0 : 1;
 	const int axis2 = (domainTwoLocation == TOP || domainTwoLocation == BOTTOM) ? 0 : 1;
 	

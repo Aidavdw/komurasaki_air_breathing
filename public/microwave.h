@@ -32,7 +32,6 @@ double eval_msd_function(double x, double c);
 /* Derivative of function to solve to find MSD Mach number */
 double eval_msd_deriv(double x, double c);
 
-//todo: rename R0 parameter, as its confusing.
 /* Compute initial pressure, density and temperature conditions based on Newton-Raphson's method. First return is the solution post-detonation, aka sol_1, and second return is the solution post-expansion, aka sol_2. */
 ChapmanJougetDetonationSolution SolveChapmanJougetDetonationProblem(const double temperatureAmbient, const double pressureAmbient, const double eta, const double s0, const double idealGasConstant, const double gamma, const double lengthOfCombustionTube, const double radiusOfCombustionTube, const double convergenceThreshold = 1.0E-10);
 

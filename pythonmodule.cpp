@@ -119,11 +119,11 @@ PYBIND11_MODULE(komurasakiairbreathing, m)
 
     // MeshSpacing
     py::class_<MeshSpacing>(m,"MeshSpacing")
-        .def(py::init<EMeshSpacingType, double, int, double, double>()) // constructor
-        .def_readonly("left", &MeshSpacing::left)
-        .def_readonly("right", &MeshSpacing::right)
-        .def_readonly("length", &MeshSpacing::length)
-        .def_readonly("amount_of_elements", &MeshSpacing::amountOfElements);
+        .def(py::init<EMeshSpacingType, int, double, double>()) // constructor
+        .def_readwrite("type", &MeshSpacing::spacingType)
+        .def_readwrite("left", &MeshSpacing::left)
+        .def_readwrite("right", &MeshSpacing::right)
+        .def_readwrite("amount_of_elements", &MeshSpacing::amountOfElements);
 
     // EInitialisationMethod
     py::enum_<EInitialisationMethod>(m, "InitialisationMethod")

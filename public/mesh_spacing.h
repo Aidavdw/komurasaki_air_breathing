@@ -15,18 +15,18 @@ enum class EMeshSpacingType
 
 };
 
-// todo: remove double dependency on 'length'. Make a proxy MeshSpacingWithoutSize, which gets constructed using the dimensions of the domain itself.
+
 
 // Contains information and calculations for the internal distribution of cells in a domain (mesh). Be sure to supply an adequate amount of spacing parameters for the desired mesh spacing type, as to not over-constrain the problem.
-struct MeshSpacing
+struct MeshSpacingSolution
 {
 	// Could be implemented with polymorphism as well, but that would mean more lookups in the vtable based on virtual functions. Therefore, just state based on an enum.
 
 	// Needs to have an empty constructor because of passing by val
-	MeshSpacing() = default;
+	MeshSpacingSolution() = default;
 
 	
-	MeshSpacing(const EMeshSpacingType meshSpacingType, const double length, const int amountOfElements, const double resolutionLeft, const double resolutionRight);
+	MeshSpacingSolution(const EMeshSpacingType meshSpacingType, const double length, const int amountOfElements, const double resolutionLeft, const double resolutionRight);
 
 	EMeshSpacingType spacingType = EMeshSpacingType::CONSTANT;
 	
@@ -38,7 +38,7 @@ struct MeshSpacing
 
 	double GetCellWidth(const int i) const;
 
-	bool operator== (const MeshSpacing& other) const
+	bool operator== (const MeshSpacingSolution& other) const
 	{
 		return (IsCloseToZero(left - other.left) && IsCloseToZero(right - other.right) && IsCloseToZero(length - other.length) && amountOfElements == other.amountOfElements);
 	}
@@ -50,6 +50,25 @@ private:
 	
 };
 
+struct MeshSpacing
+{
+	MeshSpacing(const EMeshSpacingType meshSpacingType,const int amountOfElements, const double resolutionLeft, const double resolutionRight) :
+		spacingType(meshSpacingType),
+		left(resolutionLeft),
+		right(resolutionRight),
+		amountOfElements(amountOfElements)
+	{}
+
+	EMeshSpacingType spacingType;
+	double left = 0;
+	double right = 0;
+	int amountOfElements = 0;
+
+	MeshSpacingSolution Solve(const double length) const
+	{
+		return MeshSpacingSolution(spacingType, length, amountOfElements, left, right);
+	}
+};
 
 
 

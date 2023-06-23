@@ -17,7 +17,7 @@ class SimCase;
 class Domain
 {
 public:
-	Domain(const std::string& name, SimCase* simCase, const Position& position, const std::pair<double, double> sizeArg, const std::pair<MeshSpacing, MeshSpacing> meshSpacingArg, const EInitialisationMethod initialisationMethod, const int ghostCellDepth);
+	Domain(const std::string& name, SimCase* simCase, const Position& position, const std::pair<double, double> sizeArg, const std::pair<MeshSpacingSolution, MeshSpacingSolution> meshSpacingArg, const EInitialisationMethod initialisationMethod, const int ghostCellDepth);
 
 	std::string name;
 	SimCase* simCase;
@@ -27,7 +27,7 @@ public:
 	double size[2] = {0,0};								// The total extents of the domain
 	int amountOfCells[2] = {0,0};						// total amount of cells in the axis direction. This includes the ghost cells.
 	std::map<EFace, Boundary> boundaries;	// Left, right, bottom, and up boundaries.
-	MeshSpacing meshSpacing[2];							// How the grid spacing looks; first in x-direction, then in y-direction.
+	MeshSpacingSolution meshSpacing[2];							// How the grid spacing looks; first in x-direction, then in y-direction.
 	int nGhost;											// How many ghost cells are generated on each side.
 
 	FieldQuantity rho;							// Density

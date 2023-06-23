@@ -7,7 +7,7 @@
 #include "AuxFunctions.h"
 #include "gradient_descent.h"
 
-MeshSpacing::MeshSpacing(const EMeshSpacingType meshSpacingType, const double length, const int amountOfElements, const double resolutionLeft, const double resolutionRight) :
+MeshSpacingSolution::MeshSpacingSolution(const EMeshSpacingType meshSpacingType, const double length, const int amountOfElements, const double resolutionLeft, const double resolutionRight) :
 	spacingType(meshSpacingType),
 	left(resolutionLeft),
 	right(resolutionRight),
@@ -19,7 +19,7 @@ MeshSpacing::MeshSpacing(const EMeshSpacingType meshSpacingType, const double le
 	FitSpacingToParameters();
 }
 
-double MeshSpacing::GetCellWidth(const int i) const
+double MeshSpacingSolution::GetCellWidth(const int i) const
 {
 	switch(spacingType)
 	{
@@ -32,7 +32,7 @@ double MeshSpacing::GetCellWidth(const int i) const
 	}
 }
 
-void MeshSpacing::FitSpacingToParameters()
+void MeshSpacingSolution::FitSpacingToParameters()
 {
 	const bool bLeft = !IsCloseToZero(left);
 	const bool bRight = !IsCloseToZero(right);
@@ -112,7 +112,7 @@ void MeshSpacing::FitSpacingToParameters()
 
 }
 
-double MeshSpacing::SpacingObjectiveFunction(std::vector<double>& funcLoc) const
+double MeshSpacingSolution::SpacingObjectiveFunction(std::vector<double>& funcLoc) const
 {
 	// Regardless of the actual function that is being optimised, there are 3 constraints, directly given by the input conditions
 	// 
