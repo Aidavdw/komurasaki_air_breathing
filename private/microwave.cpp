@@ -67,13 +67,13 @@ ChapmanJougetDetonationSolution SolveChapmanJougetDetonationProblem(const double
     sol.m1 = (std::pow(Mnext, 2) - 1.0) / (1.0 + gamma * std::pow(Mnext, 2));
 
     // Post-detonation conditions, immediately behind the detonation front (subscript 1). These are required for calculating the plateau conditions, and afterwards discarded. The calculation of the values behind the shockwave is x-location dependent, and is defined in ChapmanJougetDetonationSolution::FieldPropertiesAtPosition()
-    EulerContinuity postDetonation;           // The values of the flow after the expansion
+    CellValues postDetonation;           // The values of the flow after the expansion
     postDetonation.p = (1.0 + gamma * std::pow(Mnext, 2)) / (gamma + 1) * pressureAmbient;
     postDetonation.u = a0 * Mnext * (std::pow(Mnext, 2.0) - 1.0) / std::pow(Mnext, 2.0) / (gamma + 1.0);
     postDetonation.density = (1.0 + gamma) * std::pow(Mnext, 2) / (1.0 + gamma * std::pow(Mnext, 2)) * rho0;
 
     // Post-expansion wave conditions subscript 2
-    EulerContinuity postExpansion;           // The values of the flow after the expansion
+    CellValues postExpansion;           // The values of the flow after the expansion
     postExpansion.p = std::pow(1.0 - 0.5 * (gamma - 1) * (sol.m1), 2.0 * gamma / (gamma - 1)) * (postDetonation.p);
     postExpansion.density = std::pow((1.0 - 0.5 * (gamma - 1) * (sol.m1)), 2.0 / (gamma - 1)) * (postDetonation.density);
     double a2 = (1.0 - 0.5 * (gamma - 1.0) * (sol.m1)) / (gamma + 1.0) * (std::pow(Mnext, 2) * gamma + 1.0) / std::pow(Mnext, 2) * Mnext * a0;
@@ -100,7 +100,7 @@ void InitialiseDomainFromChapmanJougetDetonationSolution(Domain* domain, const C
     for (int xIndex = 0; xIndex < domain->amountOfCells[0]; xIndex++)
     {
         double xPos = domain->localCellCenterPositions[0].at(xIndex);
-        EulerContinuity cellValues = sol.FieldPropertiesAtPosition(xPos, gamma, tubeRadius);
+        CellValues cellValues = sol.FieldPropertiesAtPosition(xPos, gamma, tubeRadius);
 #ifdef _DEBUG
         // Make sure we're not setting fields to 0.
         assert(!IsCloseToZero(cellValues.density));
@@ -125,7 +125,7 @@ void InitialiseDomainFromChapmanJougetDetonationSolution(Domain* domain, const C
     }
 }
 
-EulerContinuity ChapmanJougetDetonationSolution::FieldPropertiesAtPosition(const double xPosition, const double gamma, const double tubeRadius) const
+CellValues ChapmanJougetDetonationSolution::FieldPropertiesAtPosition(const double xPosition, const double gamma, const double tubeRadius) const
 {
     // See if this is the plateau region or if this is the region where stuff gradually increases.
     /*     |           /
@@ -144,7 +144,7 @@ EulerContinuity ChapmanJougetDetonationSolution::FieldPropertiesAtPosition(const
     }
     else // It's in the expansion region- Note that the solution is only valid up until the actual x position at the end of the tube.
     {
-        EulerContinuity c;
+        CellValues c;
         c.p = postExpansion.p* std::pow(1.0 - (gamma - 1.0) / (gamma + 1.0) * (1.0 - xPosition / l_exp), 2.0 * gamma / (gamma - 1.0));
         c.density = postExpansion.density * std::pow(postExpansion.p / c.p, 1.0 / gamma);
         c.t = postExpansion.p / (postExpansion.density * tubeRadius) * std::pow(c.density / postExpansion.density, gamma - 1.0);

@@ -6,7 +6,7 @@
 */
 
 #pragma once
-#include "euler_container.h"
+#include "cell_values_container.h"
 
 // forward declarations
 class Domain;
@@ -20,10 +20,10 @@ struct ChapmanJougetDetonationSolution
     double detonation_velocity = 0;     // Velocity of the detonation front
     double l_exp = 0;                   // The position of the tail of the expansion region
 
-    EulerContinuity postDetonation;          // Post-detonation conditions, immediately behind the detonation front. This is what holds at the thrust wall. (subscript 1). Not serialised as of now.
-    EulerContinuity postExpansion;           // Post-expansion conditions. This is what 'creeps in' from the rear, going towards the thrust wall.
+    CellValues postDetonation;          // Post-detonation conditions, immediately behind the detonation front. This is what holds at the thrust wall. (subscript 1). Not serialised as of now.
+    CellValues postExpansion;           // Post-expansion conditions. This is what 'creeps in' from the rear, going towards the thrust wall.
 
-    EulerContinuity FieldPropertiesAtPosition(const double xPosition, const double gamma, const double tubeRadius) const;
+    CellValues FieldPropertiesAtPosition(const double xPosition, const double gamma, const double tubeRadius) const;
 };
 
 /* Function to solve to find MSD Mach number */
