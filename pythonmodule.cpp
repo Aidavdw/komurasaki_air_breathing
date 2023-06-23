@@ -46,6 +46,30 @@ PYBIND11_MODULE(komurasakiairbreathing, m)
         .def_readonly("size_x", &TwoDimensionalArray::nX)
         .def_readonly("size_y", &TwoDimensionalArray::nY);
 
+    py::class_<MaterialProperties>(m, "MaterialProperties")
+        .def(py::init<MaterialProperties>()) // constructor
+        .def_readwrite("youngs_modulus", &MaterialProperties::youngsModulus)
+        .def_readwrite("density", &MaterialProperties::density);
+
+    py::class_<ReedValveEmpiricalParameters>(m, "ReedValveEmpiricalParameters")
+        .def(py::init<ReedValveEmpiricalParameters>()) // constructor
+        .def_readwrite("natural_frequency", &ReedValveEmpiricalParameters::naturalFrequency)
+        .def_readwrite("rayleigh_damping_alpha", &ReedValveEmpiricalParameters::rayleighDampingAlpha)
+        .def_readwrite("rayleigh_damping_beta", &ReedValveEmpiricalParameters::rayleighDampingBeta)
+        .def_readwrite("aerodynamic_damping_c1", &ReedValveEmpiricalParameters::dampingC1)
+        .def_readwrite("aerodynamic_damping_c2", &ReedValveEmpiricalParameters::dampingC2)
+        .def_readwrite("aerodynamic_damping_c3", &ReedValveEmpiricalParameters::dampingC3)
+        .def_readwrite("hole_factor", &ReedValveEmpiricalParameters::holeFactor);
+
+    py::class_<ReedValveGeometry>(m, "ReedValveGeometry")
+        .def(py::init<ReedValveGeometry>()) // constructor
+        .def_readwrite("free_length", &ReedValveGeometry::freeLength)
+        .def_readwrite("root_thickness", &ReedValveGeometry::rootThickness)
+        .def_readwrite("tip_thickness", &ReedValveGeometry::tipThickness)
+        .def_readwrite("root_width", &ReedValveGeometry::rootWidth)
+        .def_readwrite("tip_width", &ReedValveGeometry::tipWidth);
+    
+
     // Todo: add these jetsers
     // SolverSettings
     // AmbientConditions
@@ -104,6 +128,10 @@ PYBIND11_MODULE(komurasakiairbreathing, m)
         .value("parabolic",EMeshSpacingType::PARABOLIC)
         .value("exponential",EMeshSpacingType::EXPONENTIAL)
         .export_values();
+
+    py::enum_<EBeamProfile>(m, "BeamProfile")
+    .value("straigh_double_tapered",EBeamProfile::STRAIGHT_DOUBLE_TAPERED)
+    .export_values();
     
 
     // define all standalone functions
