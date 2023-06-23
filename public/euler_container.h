@@ -5,7 +5,7 @@
 struct EulerContinuity
 {
     EulerContinuity() :
-        density(0), u(0), v(0), e(0), h(0), t(0)
+        density(0), u(0), v(0), e(0), p(0), h(0), t(0)
     {}
 
     EulerContinuity(const double density, const double xAxisVelocity, const double yAxisVelocity, const double specificInternalEnergy, const double specificEnthalpy, const double staticPressure, const double staticTemperature) :

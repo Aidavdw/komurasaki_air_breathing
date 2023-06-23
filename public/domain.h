@@ -88,14 +88,14 @@ public:
 	
 
 private:
-	// Caches the domain dimensions, and asves them in cellLengths and localCellCenterPositions.
+	// Caches the domain dimensions, and saves them in cellLengths and localCellCenterPositions.
 	void CacheCellSizes();
 
 	void PopulateSlipConditionGhostCells(const EFace boundary);
 	void PopulateNoSlipConditionGhostCells(const EFace boundary);
 	void PopulateConnectedGhostCells(const EFace boundary);
-	void PopulateSupersonicInletGhostCells(const EFace boundary);
-	void PopulateSupersonicOutletGhostCells(const EFace boundary);
+	//void PopulateSupersonicInletGhostCells(const EFace boundary);
+	//void PopulateSupersonicOutletGhostCells(const EFace boundary);
 };
 
 

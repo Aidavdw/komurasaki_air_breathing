@@ -98,8 +98,8 @@ PYBIND11_MODULE(komurasakiairbreathing, m)
         .def_readwrite("free_flow_y_velocity",&AmbientConditions::v);
 
     py::class_<ChapmanJougetInitialConditionParameters>(m, "ChapmanJougetInitialConditionParameters")
-        .def_readwrite("beam_power",&ChapmanJougetInitialConditionParameters::S0)
-        .def_readwrite("energy_absorption_coefficient",&ChapmanJougetInitialConditionParameters::ETA)
+        .def_readwrite("beam_power",&ChapmanJougetInitialConditionParameters::beamPower)
+        .def_readwrite("energy_absorption_coefficient",&ChapmanJougetInitialConditionParameters::energyAbsorptionCoefficient)
         .def_readwrite("specific_heat_ratio",&ChapmanJougetInitialConditionParameters::gamma)
         .def_readwrite("ideal_gas_constant",&ChapmanJougetInitialConditionParameters::idealGasConstant);
 

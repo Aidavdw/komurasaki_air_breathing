@@ -28,8 +28,8 @@ public:
 	double lengthOfFixedSections;
 
 protected:
-	CellIndex hingePositionIndex_;		// A cached inverted position-to-cellindex of where the hinge is, aka where the reed valve starts.
-	CellIndex holeEndPositionIndex_;	// A cached inverted position-to-cellindex of where the hole of this reed valve ends.
+	CellIndex hingePositionIndex_;		// A cached inverted position-to-cellIndex of where the hinge is, aka where the reed valve starts.
+	CellIndex holeEndPositionIndex_;	// A cached inverted position-to-cellIndex of where the hole of this reed valve ends.
 	int positionMirrorModifier_;		// As shorthand modifier that is 1 if the valve is not mirrored, or is -1 if the valve is mirrored.
 	
 	FemDeformation fem_;
@@ -57,9 +57,9 @@ public:
 
 protected:
 	// Used in constructor; Sets the source cell indices based on the given 
-	void FillCellIndexArrayWithLine(std::vector<CellIndex>& sourceCellIndicesOut, const EFace boundary, const double positionAlongBoundary, const  double lengthOfFreeSection, const double lengthOfFixedSections) const;
+	void FillCellIndexArrayWithElementsSpacedInLine(std::vector<CellIndex>& sourceCellIndicesOut, const EFace boundary, const double positionAlongBoundary) const;
 
-	// Gets teh average field quantity in the region incscribed between the the start- and end point of the valve on the boundary and a point projected normal form this boundary. If bInwards=true, this extends into the intoDomain, if bInwards=false, this extends into the outOfDomain. 
+	// Gets teh average field quantity in the region inscribed between the the start- and end point of the valve on the boundary and a point projected normal form this boundary. If bInwards=true, this extends into the intoDomain, if bInwards=false, this extends into the outOfDomain. 
 	double GetAverageFieldQuantityAroundValve(const FieldQuantity& fieldQuantity, const EFieldQuantityBuffer bufferName, const bool bInwards = true) const;
 	
 	void CalculateAerodynamicDamping(std::vector<double>& forceVectorOut);
@@ -67,7 +67,7 @@ protected:
 	// Calculates the approximate area that the air can pass through given a certain opening of the valve, based on Fukanari (2015)
 	double FukanariReferenceArea() const;
 
-	// Gets the discharge coeffient based on Florian (2017).
+	// Gets the discharge coefficient based on Florian (2017).
 	double DischargeCoefficient() const;
 	
 };

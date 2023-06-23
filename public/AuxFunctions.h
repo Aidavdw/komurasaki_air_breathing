@@ -14,7 +14,7 @@ bool IsCloseToZero(const double x, const double tolerance=std::numeric_limits<do
 
 std::pair<Position, Position> ExtrudeAlongNormal(const Position startPos, const Position endPos, const double depth); // Takes a line between two points, and extends it orthogonally up to a depth, creating a square. The output pair are the two newly created points.
 
-size_t FindIndexLeftOfValueByBisection(const std::vector<double>& field, const double valueToFind); // Given a vector of doubles, returns the index of the element  that is the closest to- while also being lower than the value to find. [10,11,12,13,14], tofind = 12.5 -> returns 2
+size_t FindIndexLeftOfValueByBisection(const std::vector<double>& field, const double valueToFind); // Given a vector of doubles, returns the index of the element  that is the closest to- while also being lower than the value to find. [10,11,12,13,14], to find = 12.5 -> returns 2
 
 bool IsCloserToLeftThanToRight(const double valueToFind, const double lValue, const double rValue); // Given two reference values, checks which one it is closest to. input: 20, l=15, r=40 -> return true;
 

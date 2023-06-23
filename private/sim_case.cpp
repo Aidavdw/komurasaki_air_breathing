@@ -1,6 +1,4 @@
 #include "sim_case.h"
-
-#include <algorithm>
 #include <iostream>
 #include <stdexcept>
 
@@ -12,7 +10,7 @@ SimCase::SimCase(const double simulationDuration, const double dt) :
 	simulationDuration(simulationDuration),
 	dt(dt)
 {
-	totalSimulationTimeStepCount = (int)(1 + simulationDuration / dt);  // Number of time steps
+	totalSimulationTimeStepCount = static_cast<int>(1 + simulationDuration / dt);  // Number of time steps
 }
 
 void SimCase::AddReedValve(Domain* domainThisValveFeedsInto, Domain* domainSourceFrom, const EFace boundary, const double positionAlongBoundary, const ReedValveGeometry& reedValveGeometry, const ReedValveEmpiricalParameters& reedValveEmpiricalParameters, const MaterialProperties materialProperties, const double lengthOfFixedSections, const bool bMirrored, const int amountOfFreeSections, const int amountOfFixedNodes)
@@ -33,7 +31,7 @@ void SimCase::AddReedValve(const std::string& domainIntoName, const std::string&
 	AddReedValve(domainInto, domainOutOf, boundary, positionAlongBoundary, reedValveGeometry, reedValveEmpiricalParameters, materialProperties, lengthOfFixedSections, bMirrored, amountOfFreeSections, amountOfFixedNodes);
 }
 
-Domain* SimCase::AddDomain(const int id, const std::string name, const Position& position, const std::pair<double, double> sizeArg, const std::pair<MeshSpacing, MeshSpacing> meshSpacingArg, const EInitialisationMethod initialisationMethod, const int ghostCellDepth)
+Domain* SimCase::AddDomain(const int id, const std::string& name, const Position& position, const std::pair<double, double> sizeArg, const std::pair<MeshSpacing, MeshSpacing>& meshSpacingArg, const EInitialisationMethod initialisationMethod, const int ghostCellDepth)
 {
 	// todo: remove GhostCellDepth argument, because it's already available inside of the domain that this function is called from.
 	
@@ -104,7 +102,7 @@ void SimCase::ConnectBoundariesById(const int domainOneIdx, const EFace domainOn
 	
 }
 
-void SimCase::ConnectBoundariesByName(const std::string domainOneName, const EFace domainOneLocation, const std::string domainTwoName, const EFace domainTwoLocation)
+void SimCase::ConnectBoundariesByName(const std::string& domainOneName, const EFace domainOneLocation, const std::string& domainTwoName, const EFace domainTwoLocation)
 {
 	int domainOneIdx = domainIDS.at(domainOneName);
 	int domainTwoIdx = domainIDS.at(domainTwoName);
@@ -133,7 +131,7 @@ void SimCase::ApplyInitialConditionsToDomainsAndValves()
 			{
 				// TODO: Move logic for determining tube length and radius to this level to allow for standing-up rockets too.
 				const double tubeLength = domain.size[0];
-				ChapmanJougetDetonationSolution detonationConditions = SolveChapmanJougetDetonationProblem(ambientConditions.temperature, ambientConditions.staticPressure, chapmanJougetInitialConditionParameters.ETA, chapmanJougetInitialConditionParameters.S0, chapmanJougetInitialConditionParameters.idealGasConstant, chapmanJougetInitialConditionParameters.gamma, tubeLength, domain.size[1]);
+				ChapmanJougetDetonationSolution detonationConditions = SolveChapmanJougetDetonationProblem(ambientConditions.temperature, ambientConditions.staticPressure, chapmanJougetInitialConditionParameters.energyAbsorptionCoefficient, chapmanJougetInitialConditionParameters.beamPower, chapmanJougetInitialConditionParameters.idealGasConstant, chapmanJougetInitialConditionParameters.gamma, tubeLength, domain.size[1]);
 				InitialiseDomainFromChapmanJougetDetonationSolution(&domain, detonationConditions, chapmanJougetInitialConditionParameters.gamma);
 				break;
 			}
@@ -184,7 +182,7 @@ void SimCase::ApplyInitialConditionsToDomainsAndValves()
 	
 }
 
-void SimCase::AddRecord(const TwoDimensionalArray& src, const std::string tag)
+void SimCase::AddRecord(const TwoDimensionalArray& src, const std::string& tag)
 {
 	// Verify the tag does not yet already exist
 	if (twoDimensionalArrayRecords.count(tag))

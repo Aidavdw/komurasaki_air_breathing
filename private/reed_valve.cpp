@@ -111,7 +111,7 @@ void ReedValve::CalculateForceOnNodesFromPressure(std::vector<double>& forceVect
 void ReedValve::OnRegister()
 {
 	fem_ = FemDeformation(amountOfFreeNodes, amountOfFixedNodes, lengthOfFixedSections, reedValveGeometry_, reedValveEmpiricalParameters_, materialProperties_, intoDomain_->simCase->dt, boundary_);
-	FillCellIndexArrayWithLine(sourceCellsIndices_, boundary_, positionAlongBoundary_, lengthOfFreeSection, lengthOfFixedSections);
+	FillCellIndexArrayWithElementsSpacedInLine(sourceCellsIndices_, boundary_, positionAlongBoundary_);
 
 	/*	     0	    					posAlongBoundary		posAlongBoundary+lengthOfValveSection			lengthOfSide
 	 *		 +---------------------------------+----------------------------------+-----------------------------------+
@@ -119,11 +119,11 @@ void ReedValve::OnRegister()
 	 */
 	
 	const double complementPositionAlongBoundary = intoDomain_->GetLengthOfSide(boundary_) - (positionAlongBoundary_+lengthOfFreeSection+lengthOfFixedSections);
-	FillCellIndexArrayWithLine(sinkCellsIndices_, Opposite(boundary_), complementPositionAlongBoundary, lengthOfFreeSection, lengthOfFixedSections);
+	FillCellIndexArrayWithElementsSpacedInLine(sinkCellsIndices_, Opposite(boundary_), complementPositionAlongBoundary);
 	
 }
 
-void ReedValve::FillCellIndexArrayWithLine(std::vector<CellIndex>& sourceCellIndicesOut, const EFace boundary, double positionAlongBoundary, const double lengthOfFreeSection, const double lengthOfFixedSections) const
+void ReedValve::FillCellIndexArrayWithElementsSpacedInLine(std::vector<CellIndex>& sourceCellIndicesOut, const EFace boundary, double positionAlongBoundary) const
 {
 	// calculate the 'starting position' based on the position along the boundary as provided, offsetting with the hole size etc.
 	double posAlongBoundaryStart = positionAlongBoundary + lengthOfFixedSections + lengthOfFreeSection * (1 - reedValveEmpiricalParameters_.holeFactor);

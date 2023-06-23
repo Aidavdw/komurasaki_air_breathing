@@ -31,8 +31,8 @@ struct AmbientConditions
 // The vales that are used if an initial condition is calculated using Chapman Jouget theory.
 struct ChapmanJougetInitialConditionParameters
 {
-	double S0          = 2000.0E3;   // Total microwave beam power (W)
-	double ETA         = 1.0;        // Energy absorption coefficient
+	double beamPower          = 2000.0E3;   // Total microwave beam power (W)
+	double energyAbsorptionCoefficient         = 1.0;        // Energy absorption coefficient
 
 	// Note that these are fixed, not calculated.
 	double gamma	   = 1.4;
@@ -67,14 +67,14 @@ public:
 
 
 
-	Domain* AddDomain(const int id, const std::string name, const Position& position, const std::pair<double, double> sizeArg, const std::pair<MeshSpacing, MeshSpacing> meshSpacingArg, const EInitialisationMethod initialisationMethod, const int ghostCellDepth); // Adds a new domain to simulation.
+	Domain* AddDomain(const int id, const std::string& name, const Position& position, const std::pair<double, double> sizeArg, const std::pair<MeshSpacing, MeshSpacing>& meshSpacingArg, const EInitialisationMethod initialisationMethod, const int ghostCellDepth); // Adds a new domain to simulation.
 
 	void ConnectBoundariesById(const int domainOneIdx, const EFace domainOneLocation, const int domainTwoIdx, const EFace domainTwoLocation); // Sets two boundaries on two different domains to be connected, meaning that flow going out of one goes into the other (and vice versa).
-	void ConnectBoundariesByName(const std::string domainOneName, const EFace domainOneLocation, const std::string domainTwoName, const EFace domainTwoLocation); // Sets two boundaries on two different domains to be connected, meaning that flow going out of one goes into the other (and vice versa).
+	void ConnectBoundariesByName(const std::string& domainOneName, const EFace domainOneLocation, const std::string& domainTwoName, const EFace domainTwoLocation); // Sets two boundaries on two different domains to be connected, meaning that flow going out of one goes into the other (and vice versa).
 	
 	void ApplyInitialConditionsToDomainsAndValves(); // Sets initial conditions for all domains based on their initialisation method, then puts the reed valves in a neutral position inside of them.
 
-	void AddRecord(const TwoDimensionalArray& src, const std::string tag);	// Add a record to a specific variable, meaning that it will be saved for every time step so that it can be analysed after the simulation finishes.
+	void AddRecord(const TwoDimensionalArray& src, const std::string& tag);	// Add a record to a specific variable, meaning that it will be saved for every time step so that it can be analysed after the simulation finishes.
 	Domain& GetDomainByID(const int id) {return domains.at(id);}
 	Domain& GetDomainByName(const std::string& name) {return GetDomainByID(domainIDS.at(name));}
 
