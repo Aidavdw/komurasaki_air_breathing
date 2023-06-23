@@ -47,13 +47,12 @@ public:
 	/********* Overrides from Valve interface **********/
 	// Actually sets up the valve inside of the domain.
 	void OnRegister() override;
-	void UpdateValveState() override;
-	void FillBuffer() override;
+	void UpdateValveState() override; // Calculates forces on all the nodes based on the flow properties in the domain (at the location of the nodes), and uses that instantaneous force to calculate an acceleration and time integrate it to achieve a new deflection.
+	void FillSourceTermBuffer() override;
 
-	// Reads off the field, and solves the FEM equations a first time to determine the initial deflection for the FEM members.
-	void SetInitialConditions() override;
 	
-	double GetTipDeflection() const;
+	void SetInitialConditions() override; // Reads off the field, and solves the FEM equations a first time to determine the initial deflection for the FEM members.
+	double GetTipDeflection() const; // Gets the position for the very last node of the FEM representation.
 
 protected:
 	// Used in constructor; Sets the source cell indices based on the given 
@@ -62,7 +61,7 @@ protected:
 	// Gets teh average field quantity in the region inscribed between the the start- and end point of the valve on the boundary and a point projected normal form this boundary. If bInwards=true, this extends into the intoDomain, if bInwards=false, this extends into the outOfDomain. 
 	double GetAverageFieldQuantityAroundValve(const FieldQuantity& fieldQuantity, const EFieldQuantityBuffer bufferName, const bool bInwards = true) const;
 	
-	void CalculateAerodynamicDamping(std::vector<double>& forceVectorOut);
+	void ApplyAerodynamicDamping(std::vector<double>& forceVectorOut);
 
 	// Calculates the approximate area that the air can pass through given a certain opening of the valve, based on Fukanari (2015)
 	double FukanariReferenceArea() const;

@@ -180,15 +180,15 @@ void ReedValve::UpdateValveState()
 	std::vector<double> forcesOnNodes; // The forces on each node in the local vertical (y positive!) direction.
 	std::vector<double> newDeflection; // The solution to the FEM will be here. it goes [x_node1, y_node1, x_node2, y_node2, (...)]
 	CalculateForceOnNodesFromPressure(forcesOnNodes, EFieldQuantityBuffer::RUNGE_KUTTA);
-	CalculateAerodynamicDamping(forcesOnNodes);
+	ApplyAerodynamicDamping(forcesOnNodes);
 	fem_.CalculateNewDeflections(newDeflection, forcesOnNodes);
 	fem_.UpdatePositions(newDeflection);
 }
 
-void ReedValve::FillBuffer()
+void ReedValve::FillSourceTermBuffer()
 {
 	// First part: calculating the total mass flow rate. in legacy code, equal to calculate_mfr function.
-	double tipDeflection = GetTipDeflection();
+	const double tipDeflection = GetTipDeflection();
 
 	// Early exit with zeroes if the valve is closed.
 	if (IsCloseToZero(tipDeflection) || tipDeflection < 0)
@@ -385,7 +385,7 @@ double ReedValve::GetAverageFieldQuantityAroundValve(const FieldQuantity& fieldQ
 	return totalSum / (sizeX * sizeY);	
 }
 
-void ReedValve::CalculateAerodynamicDamping(std::vector<double> &forceVectorOut) //const
+void ReedValve::ApplyAerodynamicDamping(std::vector<double> &forceVectorOut) //const
 {
 	#ifdef _DEBUG
 	assert(forceVectorOut.size() == static_cast<size_t>(fem_.amountOfNodes * N_DOF_PER_NODE));

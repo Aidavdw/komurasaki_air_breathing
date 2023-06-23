@@ -33,7 +33,7 @@ void IValve::CalculateFlow()
     }
 #endif
     
-    FillBuffer();
+    FillSourceTermBuffer();
 }
 
 void IValve::OnRegister()
@@ -52,7 +52,7 @@ void IValve::SetInitialConditions()
     throw std::logic_error("SetInitialConditions() is not overridden for this type of valve!");
 }
 
-void IValve::FillBuffer()
+void IValve::FillSourceTermBuffer()
 {
     throw std::logic_error("PopulateValveDeltaBuffer() is not overridden for this type of valve!");
 }
