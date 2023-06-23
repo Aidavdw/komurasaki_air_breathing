@@ -42,8 +42,8 @@ struct ChapmanJougetInitialConditionParameters
 // Contains parameters related to the runtime; how the simulation is run, and reported back to the user.
 struct RuntimeParameters
 {
-	int numberOfTimeStepsBetweenCflLog = 10;
-	int numberOfTimeStepsBetweenDataExport = 10;
+	int numberOfTimeStepsBetweenCflLog = 10; 
+	int numberOfTimeStepsBetweenDataExport = 10; // todo: actually respect this, and not dump data EVERY time step.
 };
 
 // Master container for configuration settings for the simulation, domains, and valves.
@@ -83,6 +83,8 @@ public:
 	                  ReedValveGeometry& reedValveGeometry, const ReedValveEmpiricalParameters& reedValveEmpiricalParameters, const
 	                  MaterialProperties materialProperties, const double
 	                  lengthOfFixedSections, const bool bMirrored, const int amountOfFreeSections = 30, const int amountOfFixedNodes = 3);
+
+	void AddReedValve(const std::string& domainIntoName, const std::string& domainOutOfName, const EFace boundary, const double positionAlongBoundary, const ReedValveGeometry& reedValveGeometry, const ReedValveEmpiricalParameters& reedValveEmpiricalParameters, const MaterialProperties materialProperties, const double lengthOfFixedSections, const bool bMirrored, const int amountOfFreeSections = 30, const int amountOfFixedNodes = 3);
 	
 	
 	 

@@ -1,4 +1,5 @@
 ﻿#include "main_library.h"
+#include "reed_valve.h"
 #include "sim_case.h"
 #include "extern/pybind11/include/pybind11/pybind11.h"
 #include "pythoninterface/conversion_functions.h"
@@ -41,6 +42,10 @@ PYBIND11_MODULE(komurasakiairbreathing, m)
         .def_readonly("current_time_step", &FieldQuantity::currentTimeStep)
         .def_readonly("rungeKuttaBuffer", &FieldQuantity::currentTimeStep);
 
+    py::class_<ReedValve>(m, "ReedValve")
+        .def_readonly("hinge_position_in_domain", &ReedValve::hingePositionInDomain)
+        .def_readonly("hole_end_position_in_domain", &ReedValve::holeEndPositionInDomain);
+
     py::class_<TwoDimensionalArray>(m, "TwoDimensionalArray")
         .def("GetAt", &TwoDimensionalArray::GetAtPythonProxy)
         .def_readonly("size_x", &TwoDimensionalArray::nX)
@@ -68,13 +73,38 @@ PYBIND11_MODULE(komurasakiairbreathing, m)
         .def_readwrite("tip_thickness", &ReedValveGeometry::tipThickness)
         .def_readwrite("root_width", &ReedValveGeometry::rootWidth)
         .def_readwrite("tip_width", &ReedValveGeometry::tipWidth);
-    
 
-    // Todo: add these jetsers
-    // SolverSettings
-    // AmbientConditions
-    // ChapmanJougetInitialConditionParameters
-    // RuntimeParameters
+    py::class_<SolverSettings>(m, "SolverSettings")
+        .def_readwrite("ausm_switch_bias", &SolverSettings::AUSMSwitchBias)
+        .def_readwrite("muscl_bias", &SolverSettings::MUSCLBias)
+        .def_readwrite("entropy_fix", &SolverSettings::entropyFix)
+        .def_readwrite("runge_kutta_order", &SolverSettings::rungeKuttaOrder)
+        .def_readwrite("amount_of_ghost_cells", &SolverSettings::nGhost)
+        .def_readwrite("flux_limiter_type", &SolverSettings::nGhost);
+
+    py::enum_<EFluxLimiterType>(m, "FluxLimiterType")
+        .value("none",EFluxLimiterType::NONE)
+        .value("min_mod",EFluxLimiterType::MIN_MOD)
+        .value("super_bee",EFluxLimiterType::SUPER_BEE)
+        .value("van_albada_one",EFluxLimiterType::VAN_ALBADA_ONE)
+        .value("van_albada_two",EFluxLimiterType::VAN_ALBADA_TWO)
+        .export_values();
+    
+    py::class_<AmbientConditions>(m, "AmbientConditions")
+        .def_readwrite("mach",&AmbientConditions::mach)
+        .def_readwrite("temperature",&AmbientConditions::temperature)
+        .def_readwrite("static_pressure",&AmbientConditions::staticPressure)
+        .def_readwrite("free_flow_x_velocity",&AmbientConditions::u)
+        .def_readwrite("free_flow_y_velocity",&AmbientConditions::v);
+
+    py::class_<ChapmanJougetInitialConditionParameters>(m, "ChapmanJougetInitialConditionParameters")
+        .def_readwrite("beam_power",&ChapmanJougetInitialConditionParameters::S0)
+        .def_readwrite("energy_absorption_coefficient",&ChapmanJougetInitialConditionParameters::ETA)
+        .def_readwrite("specific_heat_ratio",&ChapmanJougetInitialConditionParameters::gamma)
+        .def_readwrite("ideal_gas_constant",&ChapmanJougetInitialConditionParameters::idealGasConstant);
+
+    py::class_<RuntimeParameters>(m, "RuntimeParameters")
+        .def_readwrite("time_steps_between_data_export", &RuntimeParameters::numberOfTimeStepsBetweenDataExport);
 
     py::class_<Boundary>(m,"Boundary")
         .def_readonly("boundary_type", &Boundary::boundaryType);
@@ -130,8 +160,8 @@ PYBIND11_MODULE(komurasakiairbreathing, m)
         .export_values();
 
     py::enum_<EBeamProfile>(m, "BeamProfile")
-    .value("straigh_double_tapered",EBeamProfile::STRAIGHT_DOUBLE_TAPERED)
-    .export_values();
+        .value("straigh_double_tapered",EBeamProfile::STRAIGHT_DOUBLE_TAPERED)
+        .export_values();
     
 
     // define all standalone functions

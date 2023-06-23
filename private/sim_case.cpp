@@ -22,6 +22,17 @@ void SimCase::AddReedValve(Domain* domainThisValveFeedsInto, Domain* domainSourc
 	valves.back()->OnRegister();
 }
 
+void SimCase::AddReedValve(const std::string& domainIntoName, const std::string& domainOutOfName, const EFace boundary,
+	const double positionAlongBoundary, const ReedValveGeometry& reedValveGeometry,
+	const ReedValveEmpiricalParameters& reedValveEmpiricalParameters, const MaterialProperties materialProperties,
+	const double lengthOfFixedSections, const bool bMirrored, const int amountOfFreeSections,
+	const int amountOfFixedNodes)
+{
+	Domain* domainInto = &domains.at(domainIDS.at(domainIntoName));
+	Domain* domainOutOf = &domains.at(domainIDS.at(domainOutOfName));
+	AddReedValve(domainInto, domainOutOf, boundary, positionAlongBoundary, reedValveGeometry, reedValveEmpiricalParameters, materialProperties, lengthOfFixedSections, bMirrored, amountOfFreeSections, amountOfFixedNodes);
+}
+
 Domain* SimCase::AddDomain(const int id, const std::string name, const Position& position, const std::pair<double, double> sizeArg, const std::pair<MeshSpacing, MeshSpacing> meshSpacingArg, const EInitialisationMethod initialisationMethod, const int ghostCellDepth)
 {
 	// todo: remove GhostCellDepth argument, because it's already available inside of the domain that this function is called from.
