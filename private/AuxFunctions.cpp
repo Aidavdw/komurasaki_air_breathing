@@ -1,7 +1,12 @@
 ﻿#include "AuxFunctions.h"
+
+#include <algorithm>
 #include <cassert>
+#include <string>
 
 #include "pos2d.h"
+
+#define BISECTION_TOLERANCE_FACTOR 1.3
 
 
 bool IsCloseToZero(const double x, const double tolerance)
@@ -30,28 +35,25 @@ size_t FindIndexLeftOfValueByBisection(const std::vector<double>& field, const d
 {
 #ifdef _DEBUG
     assert(!field.empty());
+    auto maxOfAll = std::max_element(field.begin(), field.end());
+    auto minOfAll = std::min_element(field.begin(), field.end());
+    if (!IsCloseToZero(*maxOfAll - field.back()) || !IsCloseToZero(*minOfAll - field.front()))
+        throw std::logic_error("FindIndexLeftOfValueByBisection() can only be used on an array that is increasing left to right.");
+    if (!std::is_sorted(field.begin(), field.end()))
+        throw std::logic_error("FindIndexLeftOfValueByBisection() can only be used on an array that is sorted.");
 #endif
 
+    double min = field.front();
+    double max = field.back();
     size_t l = 0;   // The current left index.
-    size_t r = field.size() - 1;   // The current right index.
-    
-    double lValue = field.front();
-    double rValue = field.back();
+    size_t r = field.size() - 1;   // The current right index.   
 
-    bool bLeftLowerThanRight;
-    if (lValue < rValue)
-    {
-        bLeftLowerThanRight = true;
-        // Ensure that the value to find is actually between the lValue and the rValue. This assumes the field is ever increasing (in either direction), and hence the values at the borders are the highest.
-        if (valueToFind < lValue || valueToFind > rValue)
-            throw std::range_error("Value to find is outside of the extremes of the input vector.");
-    }
-    else // lValue < rValue
-    {
-        bLeftLowerThanRight = false;
-        if (valueToFind < rValue || valueToFind > lValue)
-            throw std::range_error("Value to find is outside of the extremes of the input vector.");
-    }
+    // Ensure that the value to find is actually between the lValue and the rValue. This assumes the field is ever increasing (in either direction), and hence the values at the borders are the highest.
+    // If it's just slightly above or below the max/min, also allow it.
+    double minWithDelta = min - std::abs(field.front() + field.at(1))/2;
+    double maxWithDelta = max + std::abs(field.back() + field.at(field.size()-2) )/2;
+    if (valueToFind < minWithDelta || valueToFind > maxWithDelta)
+        throw std::range_error("Value to find should be between the max and min value of the vector ( " + std::to_string(max) +"-> " + std::to_string(min) + ")");
 
 #ifdef _DEBUG
     int nIters = 0; // Debug value to make sure the bisection does not loop indefinitely.
@@ -63,28 +65,17 @@ size_t FindIndexLeftOfValueByBisection(const std::vector<double>& field, const d
         if (nIters > 1000)
             throw std::range_error("Bisection took more than 1000 tries to converge. Are you doing this right?");
         nIters++;
+        // todo: implement test to see if the array is actually sorted. > or < does not flip
 #endif
 
         size_t c = l + static_cast<size_t>((r - l)/2); // The index of the cell in between l and r
         double cValue = field.at(c);
-
-        if (bLeftLowerThanRight) // lValue < rValue
-        {
-            if (valueToFind < cValue)
-                r = c;
-            else
-                l = c;
-        }
-        else // lValue > rValue
-        {
-            if (valueToFind > cValue)
-                r = c;
-            else
-                l = c;
-        }
+        if (valueToFind < cValue)
+            r = c;
+        else
+            l = c;
     }
         return l;
-
 }
 
 bool IsCloserToLeftThanToRight(const double valueToFind, const double lValue, const double rValue)
