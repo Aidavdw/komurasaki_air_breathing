@@ -373,7 +373,7 @@ void FemDeformation::NewmarkSolve(std::vector<double>& u2Out, const TwoDimension
 	#ifdef _DEBUG
 	for (int i = 0; i < N_DOF; ++i)
 	{
-		if (isnan(u2Out[i]))
+		if (std::isnan(u2Out[i]))
 			throw std::logic_error("Encountered a NaN in newmark solving!");
 	}
 	#endif
@@ -424,7 +424,7 @@ void FemDeformation::SolveCholeskySystem(std::vector<double> &deflectionVectorOu
 
 	#ifdef _DEBUG
 	for (const auto num : deflectionVectorOut)
-		if(isnan(num))
+		if(std::isnan(num))
 			throw std::logic_error("Cholesky solution contains an NAN");
 	#endif
 }

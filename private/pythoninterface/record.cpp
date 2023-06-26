@@ -1,4 +1,5 @@
-﻿#include "..\..\public\pythoninterface\record.h"
+﻿#include "pythoninterface/record.h"
+
 
 void TwoDimensionalArrayRecord::SaveRecord()
 {

@@ -47,16 +47,6 @@ public:
 	
 	bool IsValidIndex(const CellIndex& cellIndex, const bool bAllowGhostCells) const;	// Checks whether a given index is inside of the domain.
 
-	// todo: remove in favor if direct access.
-	// operator overloaded accessor. Note that this is not the fastest way to set, so if possible do that directly on the 2d arrays level.
-	inline double& operator () (const int xIdx, const int yIdx, const EFieldQuantityBuffer buffer);
-
-	// operator overloaded accessor. Note that this is not the fastest way to set, so if possible do that directly on the 2d arrays level.
-	inline double& operator () (const CellIndex& cellIndex, const EFieldQuantityBuffer buffer)
-	{
-		return operator()(cellIndex.x, cellIndex.y, buffer);
-	}
-
 private:
 	int nX_ = 0; // Amount of fields in the x-direction, not counting ghost cells.
 	int nY_ = 0; // Amount of fields in the y-direction, not counting ghost cells.

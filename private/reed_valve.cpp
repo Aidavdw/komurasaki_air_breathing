@@ -236,7 +236,7 @@ void ReedValve::FillSourceTermBuffer()
 		totalMassFlowRate = dischargeCoefficient*referenceArea*averageDensityOutOfDomain*std::pow(averagePressureRatio,1.0/gamma)*sqrt(2.0*gamma*averagePressureOutOfDomain/averageDensityOutOfDomain/(gamma-1.0)*(1.0-std::pow(averagePressureRatio,(gamma-1.0)/gamma)));
 
 #ifdef _DEBUG
-		assert(!isnan(totalMassFlowRate));
+		assert(!std::isnan(totalMassFlowRate));
 #endif
 	}
 	else // pressureRatio > 0.0 && pressureRatio <= criticalPressureRatio, flow is not choked.
@@ -244,7 +244,7 @@ void ReedValve::FillSourceTermBuffer()
 		totalMassFlowRate = dischargeCoefficient*referenceArea*gamma*averagePressureOutOfDomain/sqrt(gamma*averagePressureOutOfDomain/averageDensityOutOfDomain)*std::pow(2.0/(gamma+1.0),0.5*(gamma+1.0)/(gamma-1.0));
 
 #ifdef _DEBUG
-		assert(!isnan(totalMassFlowRate));
+		assert(!std::isnan(totalMassFlowRate));
 #endif
 	}
 

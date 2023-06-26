@@ -4,10 +4,13 @@ project(AirBreathing VERSION 1.1)
 
 set(CMAKE_CXX_STANDARD 14)
 
+set(CMAKE_STATIC_LIBRARY_SUFFIX ".pyd")
+
 file(GLOB_RECURSE SRC_LIB private/*.cpp)
 
 include_directories(
 	${CMAKE_SOURCE_DIR}/public
+	${CMAKE_SOURCE_DIR}/pythoninterface
 )
 
 add_subdirectory(extern/pybind11)

@@ -7,6 +7,7 @@
 #include "domain.h"
 #include <stdexcept>
 #include <cmath>
+#include <algorithm>
 
 #include "muscl.h"
 
@@ -106,18 +107,6 @@ void FieldQuantity::PopulateMUSCLBuffers(const EFieldQuantityBuffer sourceBuffer
 		}
 	}
 	
-}
-
-double& FieldQuantity::operator()(const int xIdx, const int yIdx, const EFieldQuantityBuffer buffer)
-{
-#ifdef _DEBUG
-	const CellIndex c = {xIdx, yIdx};
-	if (!IsValidIndex(c, false))
-		throw std::logic_error("Cannot access field quantity at index" + c.ToString());
-#endif
-		
-	auto& buf = Buffer(buffer);
-	return buf(xIdx, yIdx);
 }
 
 inline int FieldQuantity::GetFlattenedIndex(const int xIdx, const int yIdx) const
