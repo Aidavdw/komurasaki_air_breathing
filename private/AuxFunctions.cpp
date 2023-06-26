@@ -6,7 +6,7 @@
 
 #include "pos2d.h"
 
-#define BISECTION_TOLERANCE_FACTOR 1.3
+#define MATCHING_TOLERANCE 1.0E-4
 
 
 bool IsCloseToZero(const double x, const double tolerance)
@@ -50,9 +50,8 @@ size_t FindIndexLeftOfValueByBisection(const std::vector<double>& field, const d
 
     // Ensure that the value to find is actually between the lValue and the rValue. This assumes the field is ever increasing (in either direction), and hence the values at the borders are the highest.
     // If it's just slightly above or below the max/min, also allow it.
-    double minWithDelta = min - std::abs(field.front() + field.at(1))/2;
-    double maxWithDelta = max + std::abs(field.back() + field.at(field.size()-2) )/2;
-    if (valueToFind < minWithDelta || valueToFind > maxWithDelta)
+    auto withDelta = GetBoundsWithDelta(field);
+    if (valueToFind < withDelta.first || valueToFind > withDelta.second)
         throw std::range_error("Value to find should be between the max and min value of the vector ( " + std::to_string(max) +"-> " + std::to_string(min) + ")");
 
 #ifdef _DEBUG
@@ -78,39 +77,21 @@ size_t FindIndexLeftOfValueByBisection(const std::vector<double>& field, const d
         return l;
 }
 
-bool IsCloserToLeftThanToRight(const double valueToFind, const double lValue, const double rValue)
+bool IsCloserToLeftThanToRight(const double valueToFind, const double lValue, const double rValue, const bool bOnlyAllowBetweenTheseTwoValues)
 {
-    bool bLeftLowerThanRight;
-    if (lValue < rValue)
+    if (bOnlyAllowBetweenTheseTwoValues)
     {
-        bLeftLowerThanRight = true;
-        // Ensure that the value to find is actually between the lValue and the rValue. This assumes the field is ever increasing (in either direction), and hence the values at the borders are the highest.
-        if (valueToFind < lValue || valueToFind > rValue)
+        // Ensure that the value to find is actually between the lValue and the rValue. This assumes the field is ever increasing (in either direction), and hence the values at the borders are the highest. Applies a delta to deal with floating-point.
+        if (valueToFind < (lValue - MATCHING_TOLERANCE) || valueToFind > (rValue + MATCHING_TOLERANCE))
             throw std::range_error("Value to find is outside of the extremes of the input vector.");
     }
-    else // lValue < rValue
-        {
-        bLeftLowerThanRight = false;
-        if (valueToFind < rValue || valueToFind > lValue)
-            throw std::range_error("Value to find is outside of the extremes of the input vector.");
-        }
     
     // See which of two points it is closer to
     double avg = (lValue + rValue)/2;
-    if (bLeftLowerThanRight) // lValue < rValue
-        {
-        if (valueToFind < avg)
-            return true;
-        else
-            return false;
-        }
-    else // lValue > rValue
-        {
-        if (valueToFind > avg)
-            return true;
-        else
-            return false;
-        }
+    if (valueToFind < avg)
+        return true;
+    else
+        return false;
 }
 
 int AmountOfNinetyDegreeRotationsBetweenOrientations(const EFace from, const EFace to)
@@ -195,4 +176,12 @@ int AmountOfNinetyDegreeRotationsBetweenOrientations(const EFace from, const EFa
 #endif
 
     return amountOfCounterClockwiseQuarterRotations;
+}
+
+std::pair<double, double> GetBoundsWithDelta(const std::vector<double>& field)
+{
+    double minWithDelta = field.front() - std::abs(field.front() + field.at(1))/2 - MATCHING_TOLERANCE;
+    double maxWithDelta = field.back() + std::abs(field.back() + field.at(field.size()-2) )/2 + MATCHING_TOLERANCE;
+
+    return {minWithDelta, maxWithDelta};
 }

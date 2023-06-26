@@ -42,6 +42,10 @@ Domain::Domain(const std::string& name, SimCase* simCase, const Position& positi
 
 CellIndex Domain::InvertPositionToIndex(const Position pos, Position& distanceFromCenterOut) const
 {
+#ifdef _DEBUG
+	if (pos.x < 0 || pos.x > size[0] || pos.y < 0 || pos.y > size[1])
+		throw std::logic_error("Cannot invert position that is outside of the bounds of the domain.");
+#endif
 	CellIndex out;
 	// Do a bisection between centre positions on both axes until the distance in steps is equal to one.
 	// todo: implement are more efficient method than bisection.
@@ -59,16 +63,17 @@ CellIndex Domain::InvertPositionToIndex(const Position pos, Position& distanceFr
 		}
 	}
 	{
+		// LEFT OFF
 		const size_t leftFromIndex = FindIndexLeftOfValueByBisection(localCellCenterPositions[1], pos.y);
-		if (IsCloserToLeftThanToRight(pos.y, localCellCenterPositions[0].at(leftFromIndex), localCellCenterPositions[0].at(leftFromIndex+1 )))
+		if (IsCloserToLeftThanToRight(pos.y, localCellCenterPositions[1].at(leftFromIndex), localCellCenterPositions[1].at(leftFromIndex+1 )))
 		{
 			out.y = out.x = static_cast<int>(leftFromIndex);
-			distanceFromCenterOut.y = pos.y - localCellCenterPositions[0].at(leftFromIndex);
+			distanceFromCenterOut.y = pos.y - localCellCenterPositions[1].at(leftFromIndex);
 		}
 		else
 		{
 			out.y = static_cast<int>(leftFromIndex) + 1;
-			distanceFromCenterOut.y = pos.y - localCellCenterPositions[0].at(leftFromIndex + 1);
+			distanceFromCenterOut.y = pos.y - localCellCenterPositions[1].at(leftFromIndex + 1);
 		}
 	}
 
