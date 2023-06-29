@@ -174,7 +174,9 @@ void FemDeformation::AssembleGlobalMassMatrix(TwoDimensionalArray& matrixOut) co
 			for (int j = 0; j < 4; ++j)
 			{
 				// superimposing all 4
-				matrixOut(N_DOF_PER_NODE * beamIdx + k, N_DOF_PER_NODE * beamIdx + j) += beamSection.density * beamSection.massMatrix[k][j];
+				const int globalX = N_DOF_PER_NODE * beamIdx + k;
+				const int globalY = N_DOF_PER_NODE * beamIdx + j;
+				matrixOut(globalX, globalY) += beamSection.density * beamSection.massMatrix[k][j];
 			}
 		}
 	}

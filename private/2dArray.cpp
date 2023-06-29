@@ -28,6 +28,8 @@ void TwoDimensionalArray::Resize(const int sizeX, const int sizeY, const double 
 		return;
 	}
 	data_ = std::vector<double>((sizeX) * (sizeY), initialValue);
+	nX = sizeX;
+	nY = sizeY;
 }
 
 TwoDimensionalArray TwoDimensionalArray::Transpose() const
@@ -169,6 +171,54 @@ bool TwoDimensionalArray::HasDiagonalGrainsOnly(const int kernelSize) const
 			if (xIndex < grainStartIndex || xIndex > grainEndIndex)
 				if (!IsCloseToZero(GetAt(xIndex,yIndex)))
 					return false;
+		}
+	}
+	return true;
+}
+
+bool TwoDimensionalArray::IsDiagonalBlockMatrix(const int blockSize) const
+{
+	/* looks like (blockSize=2)
+	 * 1 1 0 0 0 0
+	 * 1 1 0 0 0 0
+	 * 0 0 1 1 0 0
+	 * 0 0 1 1 0 0
+	 * 0 0 0 0 1 1
+	 * 0 0 0 0 1 1
+	 */
+	if (!IsSquare())
+		throw std::logic_error("Array is not square.");
+	if (nX % blockSize != 0)
+		return false;
+	
+
+	// Create a copy of just the ones in the block places, then check if they're equal.
+	auto blockOnlyCopy = TwoDimensionalArray(nX, nY, nGhostCells);
+	int nBlocks = nX/blockSize;
+	for (int blockIdx = 0; blockIdx < nBlocks; blockIdx++)
+	{
+		for (int i = 0; i < blockSize; i++)
+		{
+			for (int j = 0; j < blockSize; j++)
+			{
+				blockOnlyCopy(blockSize*blockIdx + i, blockSize*blockIdx + j) = GetAt(blockSize*blockIdx + i, blockSize*blockIdx + j);
+			}
+		}
+	}
+	return (*this == blockOnlyCopy);
+}
+
+bool TwoDimensionalArray::operator==(const TwoDimensionalArray& other) const
+{
+	if (nX != other.nX || nY != other.nY || nGhostCells != other.nGhostCells)
+		return false;
+
+	for (int i = 0; i < nX; i++)
+	{
+		for (int j = 0; j < nY; j++)
+		{
+			if (!IsCloseToZero(GetAt(i, j) - other.GetAt(i,j)))
+				return false;
 		}
 	}
 	return true;

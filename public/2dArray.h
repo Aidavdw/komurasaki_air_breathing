@@ -30,9 +30,12 @@ public:
 	bool IsUpperTriangular() const;
 	bool IsDiagonallySymmetric() const;
 	bool HasDiagonalGrainsOnly(const int kernelSize) const; // Checks if the array only has nonzero entries on the diagonal, or a distance of kernelSize away from the diagonal.
+	bool IsDiagonalBlockMatrix(const int blockSize) const;
 
 
 	/******* INLINE ACCESSORS: reading off the value/slicing  ************/
+
+	inline bool operator == (const TwoDimensionalArray& other) const;
 
 	
 	inline double& operator () (const CellIndex& cellIndex)						{ return operator()(cellIndex.x, cellIndex.y); }
