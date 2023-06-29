@@ -21,3 +21,5 @@ bool IsCloserToLeftThanToRight(const double valueToFind, const double lValue, co
 int AmountOfNinetyDegreeRotationsBetweenOrientations(const EFace from, const EFace to); // Returns how many times you would have to rotate the 'from' direction to get to 'to'.
 
 std::pair<double, double> GetBoundsWithDelta(const std::vector<double>& sortedVector); // Returns the inside-extrapolated left- and right bound of the vector.
+
+EFace GetUpDirectionOfBoundary(const EFace boundary);
