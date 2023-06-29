@@ -18,7 +18,7 @@ public:
 	bool bMirrored;			// The reed valve always generates its geometry in the direction that goes along with the edge, preserving  aright handed coordinate system. This flag sets the geometry to be generated exactly the other way around. Note that the FEMDeformation itself is unaware of the mirroring, as it just assumes everything is in local space.
 	
 	double holeEndPositionAlongBoundary;	// The hole start pos and boundary are inherited from IValve, now just the end pos.
-	Position hingePositionInDomain;			// The exact position in the intoDomain where the hinge is, aka where the reed valve starts.
+	Position hingePositionInDomain;			// pos = The exact position in the intoDomain where the hinge is, aka where the reed valve starts.
 	Position holeEndPositionInDomain;		// The exact position in the intoDomain where the hole of this reed valve ends.
 
 	int amountOfFixedNodes;

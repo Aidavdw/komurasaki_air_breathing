@@ -15,7 +15,7 @@
 #define SAMPLING_DEPTH_FOR_OUT_OF_DOMAIN 2
 
 ReedValve::ReedValve(Domain* intoDomain, Domain* outOfDomain, const EFace boundary, const double positionAlongBoundary, const ReedValveGeometry& reedValveGeometry , const ReedValveEmpiricalParameters& reedValveEmpiricalParameters, const MaterialProperties materialProperties, const bool bMirrored, const double lengthOfFixedSections, const int amountOfFreeSections, const int amountOfFixedNodes) :
-	IValve(intoDomain, outOfDomain, boundary, positionAlongBoundary),
+	IValve(intoDomain, outOfDomain, boundary, positionAlongBoundary), // Base class constructor
 	bMirrored(bMirrored),
 	amountOfFixedNodes(amountOfFixedNodes),
 	amountOfFreeNodes(amountOfFreeSections),
@@ -25,11 +25,12 @@ ReedValve::ReedValve(Domain* intoDomain, Domain* outOfDomain, const EFace bounda
 	reedValveEmpiricalParameters_(reedValveEmpiricalParameters),
 	materialProperties_(materialProperties)
 {
+	
 	positionMirrorModifier_ = bMirrored ? -1 : 1; // Multiplies the delta for generated node positions by -1, so offsets them in the opposite direction.
-	hingePositionInDomain = intoDomain->PositionAlongBoundaryToCoordinate(boundary, positionAlongBoundary, 0);
+	
 	holeEndPositionAlongBoundary = positionAlongBoundary + (lengthOfFixedSections + lengthOfFreeSection) * positionMirrorModifier_;
 	holeEndPositionInDomain = intoDomain->PositionAlongBoundaryToCoordinate(boundary, holeEndPositionAlongBoundary , 0);
-
+	hingePositionInDomain = pos; // Alias for the main position.
 	hingePositionIndex_ = intoDomain->InvertPositionToIndex(hingePositionInDomain);
 	holeEndPositionIndex_ = intoDomain->InvertPositionToIndex(holeEndPositionInDomain);
 

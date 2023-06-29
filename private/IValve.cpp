@@ -15,7 +15,7 @@ IValve::IValve(Domain* intoDomain, Domain* outOfDomain, const EFace boundary, do
     outOfDomain_(outOfDomain),
     intoDomain_(intoDomain)
 {
-    
+    pos = intoDomain->PositionAlongBoundaryToCoordinate(boundary, positionAlongBoundary, 0);
 }
 
 void IValve::CalculateFlow()

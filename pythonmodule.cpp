@@ -45,7 +45,7 @@ PYBIND11_MODULE(komurasakiairbreathing, m)
         .def_readonly("rungeKuttaBuffer", &FieldQuantity::currentTimeStep);
 
     py::class_<ReedValve>(m, "ReedValve")
-        .def_readonly("hinge_position_in_domain", &ReedValve::hingePositionInDomain)
+        .def_readonly("pos", &ReedValve::pos)
         .def_readonly("hole_end_position_in_domain", &ReedValve::holeEndPositionInDomain);
 
     py::class_<TwoDimensionalArray>(m, "TwoDimensionalArray")

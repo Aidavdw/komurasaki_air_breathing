@@ -17,6 +17,8 @@ public:
 	virtual ~IValve();
 	IValve(Domain* intoDomain, Domain* outOfDomain, const EFace boundary, double positionAlongBoundary);
 
+	Position pos;
+
 
 protected:
 	EFace boundary_;										// which side of the domain the valve is attached to
