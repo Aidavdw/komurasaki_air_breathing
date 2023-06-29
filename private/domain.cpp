@@ -63,7 +63,6 @@ CellIndex Domain::InvertPositionToIndex(const Position pos, Position& distanceFr
 		}
 	}
 	{
-		// LEFT OFF
 		const size_t leftFromIndex = FindIndexLeftOfValueByBisection(localCellCenterPositions[1], pos.y);
 		if (IsCloserToLeftThanToRight(pos.y, localCellCenterPositions[1].at(leftFromIndex), localCellCenterPositions[1].at(leftFromIndex+1 )))
 		{

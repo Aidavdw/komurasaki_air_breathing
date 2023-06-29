@@ -2,11 +2,11 @@
 #include <cmath>
 #include <stdexcept>
 
-BeamSection::BeamSection(const double length, const std::pair<double,double> width, const std::pair<double,double> thickness, const double density, const double youngsModulus, const EBeamProfile beamProfile, const bool bIsFixed, const int leftNodeIndex) :
+BeamSection::BeamSection(const double length, const std::pair<double,double> width, const std::pair<double,double> thickness, const double density, const double youngsModulus, const EBeamProfile beamProfile, const bool bCalculatePressureLoad, const int leftNodeIndex) :
 	leftNodeIndex(leftNodeIndex),
 	rightNodeIndex(leftNodeIndex+1),
 	beamProfile(beamProfile),
-	bHasPressureLoad(bIsFixed),
+	bHasPressureLoad(bCalculatePressureLoad),
 	length(length),
 	density(density),
 	youngsModulus(youngsModulus)

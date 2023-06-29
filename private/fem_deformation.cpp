@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <vector>
 #include <cmath>
+#include <iostream>
 
 #include "AuxFunctions.h"
 
@@ -101,10 +102,14 @@ void FemDeformation::CalculateNewDeflections(std::vector<double> &u2Out, const s
 
 void FemDeformation::CreateBeamSections()
 {
-
-	//todo: Propogate density and YoungsModulus here, as well as bIsFixed.
+#ifdef _DEBUG
 	if (!beamSections.empty())
+	{
+		std::cout << "Valve already had BeamSections. Deleting the ones that are here now." <<std::endl; 
 		beamSections.clear();
+	}
+#endif
+	
 
 	double currentNodePosX = 0;
 	double length, leftWidth, rightWidth, leftThickness, rightThickness;
@@ -139,13 +144,12 @@ void FemDeformation::CreateBeamSections()
 			default:
 				throw std::logic_error("Determining beam properties is not implemented for this type of beam profile!");
 			}
-			// TODO: Right now, all nodes are exactly equidistant, and the same size. Make this variable?
+			// TODO: Right now, all nodes are exactly equidistant, and the same size. Make this variable with a spacing parameter.
 			length = freeLength / freeNodes;
-			
-			BeamSection beamSection = BeamSection(length, {leftWidth, rightWidth}, {leftThickness, rightThickness}, material.density, material.youngsModulus, geometry.beamProfile, bIsFixed, nodeIndex );
-			beamSections.emplace_back(beamSection);
-			
 		}
+		bool bCalculatePressureLoad = !bIsFixed; // if it is considered 'fixed', it means that one or two of the nodes it is connected to cannot move. Then don't calculate a pressure load, as this load will be distributed to the two nodes around it.
+		BeamSection beamSection = BeamSection(length, {leftWidth, rightWidth}, {leftThickness, rightThickness}, material.density, material.youngsModulus, geometry.beamProfile, bIsFixed, nodeIndex ); //If you want material density and youngsModulus to be variable over the different sections, this is where you need to propogate the values to.
+		beamSections.emplace_back(beamSection);
 
 		// Advancing & resetting the values so it's easier to spot if there's a mistake.
 		currentNodePosX += length;

@@ -11,7 +11,7 @@ enum class EBeamProfile
 class BeamSection
 {
 public:
-	BeamSection(const double length, const std::pair<double,double> width, const std::pair<double,double> thickness, const double density, const double youngsModulus, const EBeamProfile beamProfile, const bool bIsFixed, const int leftNodeIndex);
+	BeamSection(const double length, const std::pair<double,double> width, const std::pair<double,double> thickness, const double density, const double youngsModulus, const EBeamProfile beamProfile, const bool bCalculatePressureLoad, const int leftNodeIndex);
 
 	int leftNodeIndex;
 	int rightNodeIndex;
