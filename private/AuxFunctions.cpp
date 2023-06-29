@@ -186,12 +186,12 @@ std::pair<double, double> GetBoundsWithDelta(const std::vector<double>& field)
     return {minWithDelta, maxWithDelta};
 }
 
-EFace GetUpDirectionOfBoundary(const EFace boundary)
+EDirection GetUpDirectionOfBoundary(const EFace boundary)
 {
     if (boundary == TOP || boundary == BOTTOM)
-        return TOP;
+        return EDirection::UP;
     if (boundary == LEFT || boundary == RIGHT)
-        return RIGHT;
+        return EDirection::RIGHT;
     else
         throw std::invalid_argument("Cannot give up direction of this type of boundary");
 }

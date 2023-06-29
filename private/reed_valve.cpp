@@ -111,7 +111,7 @@ void ReedValve::CalculateForceOnNodesFromPressure(std::vector<double>& forceVect
 
 void ReedValve::OnRegister()
 {
-	fem_ = FemDeformation(amountOfFreeNodes, amountOfFixedNodes, lengthOfFixedSections, reedValveGeometry_, reedValveEmpiricalParameters_, materialProperties_, intoDomain_->simCase->dt, boundary_);
+	fem_ = FemDeformation(amountOfFreeNodes, amountOfFixedNodes, lengthOfFixedSections, reedValveGeometry_, reedValveEmpiricalParameters_, materialProperties_, intoDomain_->simCase->dt, GetUpDirectionOfBoundary(boundary_));
 	FillCellIndexArrayWithElementsSpacedInLine(sourceCellsIndices_, boundary_, positionAlongBoundary_);
 
 	/*	     0	    					posAlongBoundary		posAlongBoundary+lengthOfValveSection			lengthOfSide
@@ -126,6 +126,7 @@ void ReedValve::OnRegister()
 
 void ReedValve::FillCellIndexArrayWithElementsSpacedInLine(std::vector<CellIndex>& sourceCellIndicesOut, const EFace boundary, double positionAlongBoundary) const
 {
+	//todo: remove boundary & positionAlongBoundary arguments, as they are member vars and shouldn't shadow.
 	// calculate the 'starting position' based on the position along the boundary as provided, offsetting with the hole size etc.
 	double posAlongBoundaryStart = positionAlongBoundary + lengthOfFixedSections + lengthOfFreeSection * (1 - reedValveEmpiricalParameters_.holeFactor);
 	auto posStart = intoDomain_->PositionAlongBoundaryToCoordinate(boundary, posAlongBoundaryStart, 0);

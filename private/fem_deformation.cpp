@@ -9,7 +9,7 @@
 
 #include "AuxFunctions.h"
 
-FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const double fixedLength, const ReedValveGeometry& reedValveGeometry , const ReedValveEmpiricalParameters& reedValveEmpiricalParameters, const MaterialProperties& materialProperties, const double dt, const EFace upDirection) :
+FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const double fixedLength, const ReedValveGeometry& reedValveGeometry , const ReedValveEmpiricalParameters& reedValveEmpiricalParameters, const MaterialProperties& materialProperties, const double dt, const EDirection upDirection) :
 	fixedNodes(amountOfFixedNodes),
 	geometry(reedValveGeometry),
 	empiricalParameters(reedValveEmpiricalParameters),

@@ -20,6 +20,7 @@ void SimCase::AddReedValve(Domain* domainThisValveFeedsInto, Domain* domainSourc
 {
 	// SimCase::valves holds unique pointer references so it can dynamically cast them. So, create them on heap and save unique pointer.
 	valves.push_back(std::make_unique<ReedValve>(domainThisValveFeedsInto, domainSourceFrom, boundary, positionAlongBoundary, reedValveGeometry , reedValveEmpiricalParameters, materialProperties, bMirrored, lengthOfFixedSections, amountOfFreeSections, amountOfFixedNodes));
+	// LEFT OFF
 	valves.back()->OnRegister();
 }
 
@@ -59,7 +60,7 @@ Domain* SimCase::AddDomain(const int id, const std::string& name, const Position
 	return &it.first->second;
 }
 
-void SimCase::ConnectBoundariesById(const int domainOneIdx, const EFace domainOneLocation, const int domainTwoIdx, const EFace domainTwoLocation)
+void SimCase::ConnectBoundariesById(const int domainOneIdx, const EFace domainOneFace, const int domainTwoIdx, const EFace domainTwoFace)
 {
 	if (domainOneIdx == domainTwoIdx)
 	{
@@ -67,21 +68,21 @@ void SimCase::ConnectBoundariesById(const int domainOneIdx, const EFace domainOn
 	}
 
 	// Boundaries can only be connected if they align axis-wise.
-	if (domainOneLocation != Opposite(domainTwoLocation))
+	if (domainOneFace != Opposite(domainTwoFace))
 	{
 		throw std::logic_error("Right now, linking two non-opposite faces has been disabled, as this operation is not fully tested yet");
 	}
 	
 	// Check if they are already set- if so, throw error.
-	if (domains.at(domainOneIdx).boundaries.count(domainOneLocation))
+	if (domains.at(domainOneIdx).boundaries.count(domainOneFace))
 		throw std::logic_error("Cannot link boundaries, as boundary 1 has already been set.");
-	if (domains.at(domainTwoIdx).boundaries.count(domainTwoLocation))
+	if (domains.at(domainTwoIdx).boundaries.count(domainTwoFace))
 		throw std::logic_error("Cannot link boundaries, as boundary 2 has already been set.");
 
 	//todo: add test to see if their positions are aligned in x or y axis depending on face direction, and log a warning if it is (not fatal)
 	// Note that this does not enforce that they are on the same axis; this might be useful if you want to do like a duct at a right angle, but could also be dangerous.
-	const int axis1 = (domainOneLocation == TOP || domainOneLocation == BOTTOM) ? 0 : 1;
-	const int axis2 = (domainTwoLocation == TOP || domainTwoLocation == BOTTOM) ? 0 : 1;
+	const int axis1 = (domainOneFace == TOP || domainOneFace == BOTTOM) ? 0 : 1;
+	const int axis2 = (domainTwoFace == TOP || domainTwoFace == BOTTOM) ? 0 : 1;
 	
 	// Can only connect if they have the same size
 	if (!IsCloseToZero(domains.at(domainOneIdx).size[axis1] - domains.at(domainTwoIdx).size[axis1]))
@@ -91,10 +92,10 @@ void SimCase::ConnectBoundariesById(const int domainOneIdx, const EFace domainOn
 	if (domains.at(domainOneIdx).amountOfCells[axis1] != domains.at(domainTwoIdx).amountOfCells[axis2])
 		throw std::invalid_argument("Cannot connect two boundaries that do not have the same amount of cells.");
 
-	domains.at(domainOneIdx).boundaries[domainOneLocation] = Boundary();
-	auto& b1 = domains.at(domainOneIdx).boundaries.at(domainOneLocation);
-	domains.at(domainTwoIdx).boundaries[domainTwoLocation] = Boundary();
-	auto& b2 = domains.at(domainTwoIdx).boundaries.at(domainTwoLocation);
+	domains.at(domainOneIdx).boundaries[domainOneFace] = Boundary();
+	auto& b1 = domains.at(domainOneIdx).boundaries.at(domainOneFace);
+	domains.at(domainTwoIdx).boundaries[domainTwoFace] = Boundary();
+	auto& b2 = domains.at(domainTwoIdx).boundaries.at(domainTwoFace);
 
 	b1.boundaryType = EBoundaryCondition::CONNECTED;
 	b2.boundaryType = EBoundaryCondition::CONNECTED;

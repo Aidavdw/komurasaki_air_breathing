@@ -263,11 +263,11 @@ void Domain::UpdateGhostCells()
 	// These can all be parallelized!
 	for (const auto& it : boundaries)
 	{
-		const EFace location = it.first;
+		const EFace face = it.first;
 		const Boundary& boundary = it.second;
 
 #ifdef _DEBUG
-		std::cout << "Updating Ghost Cells for domain '" << name << "', side" << FaceToString(location) << std::endl;
+		std::cout << "Updating Ghost Cells for domain '" << name << "', side" << FaceToString(face) << std::endl;
 #endif
 
 		// Note that the below functions all work in relative coordinate frames.
@@ -276,13 +276,13 @@ void Domain::UpdateGhostCells()
 		case EBoundaryCondition::NOT_SET:
 				throw std::logic_error("Cannot update Ghost cell if boundary condition is not set.");
 			case EBoundaryCondition::SLIP:
-				PopulateSlipConditionGhostCells(location);
+				PopulateSlipConditionGhostCells(face);
 				break;
 			case EBoundaryCondition::NO_SLIP:
-				PopulateNoSlipConditionGhostCells(location);
+				PopulateNoSlipConditionGhostCells(face);
 				break;
 			case EBoundaryCondition::CONNECTED:
-				PopulateConnectedGhostCells(location);
+				PopulateConnectedGhostCells(face);
 				break;
 		default:
 				throw std::logic_error("Updating ghost cells is not implemented for this type of boundary.");

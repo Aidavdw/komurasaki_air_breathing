@@ -26,23 +26,32 @@ enum class EBoundaryCondition
  *	Note about the definition of coordinate systems along the boundaries!
  *	Positive axes are defined to ensure that a right-handed coordinate system is maintained and that the normals of the boundary-local coordinate systems always point inwards.
  *
- *				    TOP
- *		 + -- > --- > --- > --- +
- *	L	 |			|			|	R
- *	E	/\			\/			\/	I
- *	F	 | ->				 <- |	G
- *	T	/\          /\			\/	H
- *		 |          |			|	T
- *		 + -- < --- < --- < --- +
- *				  BOTTOM
- *		 
- */
+*
+*				    TOP
+*					/\
+*					|
+*		 + -- > --- > --- > --- +
+*	L	 |			 			|		R
+*	E	/\			 			/\		I
+*	F	 | ->					|  ->	G
+*	T	/\          /\			/\		H
+*		 |          |			|		T
+*		 + -- > --- > --- > --- +
+*				  BOTTOM
+*/
 enum EFace
 {
 	LEFT,
 	RIGHT,
 	TOP,
 	BOTTOM
+};
+
+// Different from a face, this shows the direction of a vector!
+enum class EDirection
+{
+	UP,
+	RIGHT
 };
 
 // Small auxiliary function to get the name of the enum. For printing purposes.

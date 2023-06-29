@@ -22,4 +22,4 @@ int AmountOfNinetyDegreeRotationsBetweenOrientations(const EFace from, const EFa
 
 std::pair<double, double> GetBoundsWithDelta(const std::vector<double>& sortedVector); // Returns the inside-extrapolated left- and right bound of the vector.
 
-EFace GetUpDirectionOfBoundary(const EFace boundary);
+EDirection GetUpDirectionOfBoundary(const EFace boundary);
