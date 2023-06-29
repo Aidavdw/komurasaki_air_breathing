@@ -31,8 +31,7 @@ FemDeformation::FemDeformation(const int amountOfFreeSections, const int amountO
 	nodePositionsRelativeToRoot.emplace_back(0,0);
 	for (int i = 0; i < beamSections.size(); i++)
 	{
-		//todo: check if upDirection should not be mirrored, due to the new coordinate way of handling
-		nodePositionsRelativeToRoot.emplace_back(nodePositionsRelativeToRoot[i].x + beamSections[i].length, 0, upDirection);
+		nodePositionsRelativeToRoot.emplace_back(nodePositionsRelativeToRoot[i].x + beamSections[i].length, 0);
 	}
 
 	AssembleGlobalMassMatrix(globalMassMatrix);

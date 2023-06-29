@@ -29,8 +29,8 @@ public:
 
 	double dt;									// Time step used to assemble the newmark matrices.
 	
-	std::vector<Position> nodePositionsRelativeToRoot;	// The current positions of the nodes, in a local coordinate space.
-	std::vector<Position> positionsInPreviousTimeStep;
+	std::vector<Position> nodePositionsRelativeToRoot;	// The current positions of the nodes, in a local coordinate space (not rotated for the face it is located on)
+	std::vector<Position> positionsInPreviousTimeStep; // The positions of the nodes in the timestep t-1, in a local coordinate space (not rotated for the face it is located on)
 
 	double rootWidth;
 	double tipWidth;

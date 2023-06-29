@@ -116,7 +116,7 @@ void LoadExampleCaseWithReedValves(SimCase* simCase)
 	valveMaterialProperties.density = 4400.0;
 	valveMaterialProperties.youngsModulus = 110.0E9;
 	
-	simCase->AddReedValve(tube, topLeft, TOP, lengthOfTube/3, reedValveGeometry, reedValveEmpiricalParameters, valveMaterialProperties, 6.0E-3, false);
+	simCase->AddReedValve(tube, topLeft, TOP, lengthOfTube/3, reedValveGeometry, reedValveEmpiricalParameters, valveMaterialProperties, 6.0E-3, false, 4);
 	
 	
 }

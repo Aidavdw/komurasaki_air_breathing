@@ -28,10 +28,10 @@ public:
 	double density;
 	double youngsModulus;			// The Young's modulus E expressed in Pa(scals)
 
-	double crossSectionalArea[2]{};	// cross-sectional area of the beam section, orthogonal to the bending plane.
-	double areaMomentOfInertia[2]{};	// the area moment of inertia I, in m^4.
-	double massMatrix[4][4]{};
-	double stiffnessMatrix[4][4]{};
+	double crossSectionalArea[2];	// cross-sectional area of the beam section, orthogonal to the bending plane.
+	double areaMomentOfInertia[2];	// the area moment of inertia I, in m^4.
+	double massMatrix[4][4];
+	double stiffnessMatrix[4][4];
 
 private:
 	void PopulateMassMatrix();

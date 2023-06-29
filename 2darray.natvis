@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010" >
+    <Type Name="TwoDimensionalArray">
+        <DisplayString IncludeView="noparens">{nX}, {nY}</DisplayString>
+        <item Name="nX">nX</item>
+        <item Name="nY">nY</item>
+        <Expand>
+            <CustomListItems>
+                <Variable Name="i" InitialValue="0"/>
+                <Loop Condition="i  &lt; nY">
+                    <Item Name="{i}">&amp;data_[i * nY],[nX]ena</Item>
+                    <Exec>++i</Exec>
+                </Loop>
+            </CustomListItems>
+        </Expand>
+    </Type>
+</AutoVisualizer>

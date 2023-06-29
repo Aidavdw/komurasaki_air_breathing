@@ -154,6 +154,9 @@
   <ItemGroup>
     <ClCompile Include="private\debug\2darrayserialiser.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="2darray.natvis" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{93FF7062-0839-4D6E-B713-59CA920304E9}</ProjectGuid>
