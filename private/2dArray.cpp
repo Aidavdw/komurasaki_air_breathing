@@ -115,7 +115,7 @@ bool TwoDimensionalArray::IsDiagonallySymmetric() const
 	{
 		for (int xIndex = 0; xIndex < yIndex; xIndex++)
 		{
-			if (IsCloseToZero(GetAt(xIndex, yIndex) - GetAt(yIndex, xIndex)))
+			if (!IsCloseToZero(GetAt(xIndex, yIndex) - GetAt(yIndex, xIndex)))
 				return false;
 		}
 	}
