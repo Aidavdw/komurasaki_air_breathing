@@ -2,10 +2,11 @@
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010" >
     <Type Name="TwoDimensionalArray">
         <Expand>
+            <!--https://stackoverflow.com/questions/63966135/how-to-visualize-a-column-order-matrix-with-natvis-like-a-2d-array. Could potentially implement https://learn.microsoft.com/en-us/visualstudio/debugger/create-custom-views-of-native-objects?view=vs-2022#BKMK_ArrayItems_expansion, but I have no idea how this works. -->
             <CustomListItems>
                 <Variable Name="i" InitialValue="0"/>
                 <Loop Condition="i  &lt; nY">
-                    <Item Name="{i}">&amp;data_[i * nY],[nX]ena</Item>
+                    <Item Name="{i}">&amp;data_[i * nY],[nX] </Item>
                     <Exec>++i</Exec>
                 </Loop>
             </CustomListItems>

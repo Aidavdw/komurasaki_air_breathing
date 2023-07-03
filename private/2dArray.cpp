@@ -7,11 +7,10 @@
 #include "AuxFunctions.h"
 
 TwoDimensionalArray::TwoDimensionalArray(const int sizeX, const int sizeY, const int nGhostCells, const double initialValue) :
-	nX(sizeX),
-	nY(sizeY),
 	nGhostCells(nGhostCells)
 {
 	Resize(sizeX + 2*nGhostCells, sizeY + 2*nGhostCells, initialValue);
+	// nX and nY don't have to be set, they will be set in Resize.
 }
 
 void TwoDimensionalArray::SetAllToValue(const double value)
@@ -156,24 +155,26 @@ bool TwoDimensionalArray::HasDiagonalGrainsOnly(const int kernelSize) const
 	if (kernelSize % 2 != 0)
 		throw std::logic_error("Diagonal grains check only works for even numbered grain sizes!");
 
-
-	const int amountOfGrains = (2*nX/kernelSize);
-	for (int yIndex = 0; yIndex < nX; yIndex++)
+	const int amountOfGrains = (2*nX/kernelSize)-1;
+	// Make a copy of only one entries that are inside the grain
+	auto correctShape = TwoDimensionalArray(nX, nY, nGhostCells);
+	for (int grain = 0; grain < amountOfGrains; grain++)
 	{
-		// Check if we're inside the kernel
-		const int offsetNumber = static_cast<int>(kernelSize/2) * static_cast<int>(std::floor(2*yIndex/kernelSize)); // little bit of a magic function, please check the drawings above!
-			
-		int grainStartIndex = kernelSize + offsetNumber;
-		int grainEndIndex = yIndex - kernelSize / 2 + offsetNumber;
-		
-		for (int xIndex = 0; xIndex < yIndex; xIndex++)
+		for (int k = 0; k < 4; ++k)
 		{
-			if (xIndex < grainStartIndex || xIndex > grainEndIndex)
-				if (!IsCloseToZero(GetAt(xIndex,yIndex)))
-					return false;
+			for (int j = 0; j < 4; ++j)
+			{
+				//LEFT OFF
+				// superimposing all 4
+				const int globalX = kernelSize/2 * grain + k;
+				const int globalY = kernelSize/2 * grain + j;
+				correctShape(globalX, globalY) = GetAt(globalX, globalY);
+			}
 		}
 	}
-	return true;
+
+	bool eval = (*this == correctShape);
+	return eval;
 }
 
 bool TwoDimensionalArray::IsDiagonalBlockMatrix(const int blockSize) const
