@@ -213,6 +213,8 @@ void FemDeformation::AssembleDampingMatrix(TwoDimensionalArray& matrixOut)
 	if (globalStiffnessMatrix.IsEmpty() || globalMassMatrix.IsEmpty())
 		throw std::logic_error("Cannot assemble damping matrix, as the stiffness matrix or mass matrix has not yet been initialised.");
 
+	matrixOut.Resize(N_DOF, N_DOF);
+
 	for (int i = 0; i < N_DOF; ++i)
 	{
 		for (int j = 0; j < N_DOF; ++j)
@@ -259,12 +261,12 @@ void FemDeformation::AssembleNewmarkMatrix(TwoDimensionalArray& R1CholeskyOut, T
 std::vector<int> FemDeformation::GetDOFVector() const
 {
 	int dofIndex = 0;
-	std::vector<int> DOFVector(freeNodes, 0);
+	std::vector<int> DOFVector(freeNodes*N_DOF_PER_NODE, 0);
 	for (int i = fixedNodes; i < amountOfNodes; ++i)
 	{
 		for (int j = 0; j < N_DOF_PER_NODE; ++j)
 		{
-			DOFVector[dofIndex] = N_DOF_PER_NODE * i + j;
+			DOFVector.at(dofIndex) = N_DOF_PER_NODE * i + j;
 			dofIndex++;
 		}
 	}
