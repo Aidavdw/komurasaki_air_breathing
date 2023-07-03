@@ -288,14 +288,13 @@ void FemDeformation::GetDeflectionVectorFromPositions(std::vector<double>& defle
 TwoDimensionalArray FemDeformation::CholeskyDecomposition(const TwoDimensionalArray& matrix, const std::vector<int>& DOFVector)
 {
 	#ifdef _DEBUG
-	// Technically, the matrix m ust be positive-definite, which is a subset of symmetric matrices where all the local determinants are positive. However, testing that is relatively costly for a big matrix and its a big long algorithm, so it's left out- this is just to catch the obvious cases anyway!
+	// Technically, the matrix must be positive-definite, which is a subset of symmetric matrices where all the local determinants are positive. However, testing that is relatively costly for a big matrix and its a big long algorithm, so it's left out- this is just to catch the obvious cases anyway!
 	if (!matrix.IsDiagonallySymmetric())
 		throw std::logic_error("An matrix that is not diagonally symmetric cannot be cholesky decomposed.");
 	#endif
 	
 	// This is a variation on the Cholesky-Crout algorithm?
-	//const int activeDegreesOfFreedom = freeNodes * N_DOF_PER_NODE; <- the original thing, but should work like this too.
-	const int activeDegreesOfFreedom = matrix.nX;
+	const int activeDegreesOfFreedom = static_cast<int>(DOFVector.size());
 	TwoDimensionalArray out(matrix.nX, matrix.nX, 0);
 	for (int i = 0; i < activeDegreesOfFreedom; ++i)
 	{
@@ -304,10 +303,10 @@ TwoDimensionalArray FemDeformation::CholeskyDecomposition(const TwoDimensionalAr
 		{
 			out(i,i) -= out(k,i) * out(k,i);
 		}
+		
 		if (out(i,i) <= 0)
-		{
 			throw std::logic_error("While Cholesky decomposing, got a non-positive definite matrix!");
-		}
+
 		out(i,i) = std::sqrt(out(i, i));
 
 		for (int j = i + 1; j < activeDegreesOfFreedom; ++j)

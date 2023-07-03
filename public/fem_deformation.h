@@ -75,7 +75,7 @@ protected:
 	void AssembleGlobalMassMatrix(TwoDimensionalArray& matrixOut) const;
 	void AssembleGlobalStiffnessMatrix(TwoDimensionalArray& matrixOut) const;
 
-	std::vector<int> GetDOFVector() const;
+	std::vector<int> GetDOFVector() const; // Todo: Replace by simple GetDOFIndex() function, as only 1 index at a time is used anyway.
 	
 
 	// Build Damping matrix based on Rayleigh's damping model. ALPHA and BETA factors (respectively of M and K) should be specified by the user. These coefficients can be known from experiment.
