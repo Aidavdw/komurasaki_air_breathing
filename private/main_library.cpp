@@ -134,8 +134,7 @@ void DoSimulation(SimCase& simCase)
         }
             
 
-
-        // todo: export flow data of domains
+        
         // todo: export valve data
         //todo: implement displaying/calculating cfl
     } // END OF TIME LOOP
@@ -146,7 +145,6 @@ void DoSimulation(SimCase& simCase)
     auto timeAtFinishOfProgram = std::chrono::system_clock::now();
     std::cout << "End of time loop!" << std::endl;
     std::cout << "Simulation finished \\(^-^)/" << std::endl;
-    // todo: implement timing and intermediate output.
 
 #ifdef _DEBUG
     std::cout << "Saved records: " << std::endl;
