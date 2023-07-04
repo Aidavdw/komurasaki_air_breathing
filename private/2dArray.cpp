@@ -84,14 +84,24 @@ bool TwoDimensionalArray::IsLowerTriangular() const
 
 bool TwoDimensionalArray::IsUpperTriangular() const
 {
+	/* What an upper triangular matrix looks like: example (5x5), here N is any number, including 0.
+	 *
+	 * N 0 0 0 0
+	 * N N 0 0 0
+	 * N N N 0 0
+	 * N N N N 0
+	 * N N N N N
+	 *
+	 */
+	
 	if (!IsSquare())
 		throw std::logic_error("Array is not square.");
 	
-	for (int yIndex = 0; yIndex < nX; yIndex++)
+	for (int yIndex = 0; yIndex < nY; yIndex++)
 	{
-		for (int xIndex = 0; xIndex < yIndex; xIndex++)
+		for (int xIndex = yIndex +1 ; xIndex < nX; xIndex++)
 		{
-			if (IsCloseToZero(GetAt(xIndex, yIndex)))
+			if (!IsCloseToZero(GetAt(xIndex, yIndex)))
 				return false;
 		}
 	}
