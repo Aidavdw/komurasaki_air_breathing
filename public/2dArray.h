@@ -20,7 +20,7 @@ public:
 	
 	void SetAllToValue(const double value); // Sets all the values in the field to this value. Useful for initialisation or resetting.
 	static void ElementWiseCopy(const TwoDimensionalArray& from, TwoDimensionalArray& to); // Copies all the information from one array to another. Requires the arrays to be the same size.
-	void Resize(const int sizeX, const int sizeY, const double initialValue=0); // Changes the size of the array. Really only used for initialisation.
+	void Resize(const int sizeX, const int sizeY, const int setGhostCellCount = 0, const double initialValue = 0); // Changes the size of the array. Really only used for initialisation.
 	TwoDimensionalArray Transpose() const; // Returns a transposed copy of this array.
 	
 	bool IsFilledWithZeroes() const; // Returns whether or not all the entries are (approximately) zero. Note that this is an expensive operation, and should only be used for debugging, as it iterates over all the cells.

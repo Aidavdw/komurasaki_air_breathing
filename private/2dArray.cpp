@@ -9,7 +9,7 @@
 TwoDimensionalArray::TwoDimensionalArray(const int sizeX, const int sizeY, const int nGhostCells, const double initialValue) :
 	nGhostCells(nGhostCells)
 {
-	Resize(sizeX + 2*nGhostCells, sizeY + 2*nGhostCells, initialValue);
+	Resize(sizeX, sizeY, nGhostCells, initialValue);
 	// nX and nY don't have to be set, they will be set in Resize.
 }
 
@@ -19,16 +19,17 @@ void TwoDimensionalArray::SetAllToValue(const double value)
 		i = value;
 }
 
-void TwoDimensionalArray::Resize(const int sizeX, const int sizeY, const double initialValue)
+void TwoDimensionalArray::Resize(const int sizeX, const int sizeY, const int setGhostCellCount, const double initialValue)
 {
 	if (sizeX == nX && sizeY == nY)
 	{
 		SetAllToValue(initialValue);
 		return;
 	}
-	data_ = std::vector<double>((sizeX) * (sizeY), initialValue);
+	data_ = std::vector<double>((sizeX+2*setGhostCellCount) * (sizeY+2*setGhostCellCount), initialValue);
 	nX = sizeX;
 	nY = sizeY;
+	nGhostCells=setGhostCellCount;
 }
 
 TwoDimensionalArray TwoDimensionalArray::Transpose() const
