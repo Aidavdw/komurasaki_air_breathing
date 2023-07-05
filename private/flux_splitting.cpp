@@ -4,8 +4,9 @@
 #include <cmath>
 
 #include "AuxFunctions.h"
+#include "cell_values_container.h"
 
-EulerContinuity HanelFluxSplitting(const EulerContinuity& l, const EulerContinuity& r, const double gamma, const double entropyFix)
+EulerContinuity HanelFluxSplitting(const CellValues& l, const CellValues& r, const double gamma, const double entropyFix)
 {
 #ifdef _DEBUG
     if (IsCloseToZero(l.density))
@@ -69,31 +70,31 @@ EulerContinuity HanelFluxSplitting(const EulerContinuity& l, const EulerContinui
     // Hänel scheme for sonic points (shock fix)
     const double pHalf=pLplus+pRminus;
     EulerContinuity flux;
-    flux.density = uLplus*l.density+uRminus*r.density;
-    flux.u = uLplus*l.density*l.u+uRminus*r.density*r.u+pHalf;
-    flux.v = uLplus*l.density*l.v+uRminus*r.density*r.v;
-    flux.e = uLplus*l.density*l.h+uRminus*r.density*r.h;
+    flux.mass = uLplus*l.density+uRminus*r.density;
+    flux.momentumX = uLplus*l.density*l.u+uRminus*r.density*r.u+pHalf;
+    flux.momentumY = uLplus*l.density*l.v+uRminus*r.density*r.v;
+    flux.energy = uLplus*l.density*l.h+uRminus*r.density*r.h;
 
     // Entropy fix (numerical dissipation for single expansion waves)
     if ( (l.u-cLeft<0 && r.u-cRight>0) && !(l.u+cLeft<0 && r.u+cRight>0))
     {
-        flux.density = flux.density - entropyFix * (r.u - cRight - l.u + cLeft) * (r.density - l.density);
-        flux.u = flux.u - entropyFix * (r.u - cRight - l.u + cLeft) * (r.density * r.u - l.density * l.u);
-        flux.v = flux.v - entropyFix * (r.u - cRight - l.u + cLeft) * (r.density * r.v - l.density * l.v);
-        flux.e = flux.e - entropyFix * (r.u - cRight - l.u + cLeft) * (r.density * r.h - l.density * l.h);
+        flux.mass = flux.mass - entropyFix * (r.u - cRight - l.u + cLeft) * (r.density - l.density);
+        flux.momentumX = flux.momentumX - entropyFix * (r.u - cRight - l.u + cLeft) * (r.density * r.u - l.density * l.u);
+        flux.momentumY = flux.momentumY - entropyFix * (r.u - cRight - l.u + cLeft) * (r.density * r.v - l.density * l.v);
+        flux.energy = flux.energy - entropyFix * (r.u - cRight - l.u + cLeft) * (r.density * r.h - l.density * l.h);
     }
     else if( !(l.u-cLeft<0 && r.u-cRight>0) && (l.u+cLeft<0 && r.u+cRight>0) )
     {
-        flux.density = flux.density - entropyFix * (r.u + cRight - l.u - cLeft) * (r.density - l.density);
-        flux.u = flux.u - entropyFix * (r.u + cRight - l.u - cLeft) * (r.density * r.u - l.density * l.u);
-        flux.v = flux.v - entropyFix * (r.u + cRight - l.u - cLeft) * (r.density * r.v - l.density * l.v);
-        flux.e = flux.e - entropyFix * (r.u + cRight - l.u - cLeft) * (r.density * r.h - l.density * l.h);
+        flux.mass = flux.mass - entropyFix * (r.u + cRight - l.u - cLeft) * (r.density - l.density);
+        flux.momentumX = flux.momentumX - entropyFix * (r.u + cRight - l.u - cLeft) * (r.density * r.u - l.density * l.u);
+        flux.momentumY = flux.momentumY - entropyFix * (r.u + cRight - l.u - cLeft) * (r.density * r.v - l.density * l.v);
+        flux.energy = flux.energy - entropyFix * (r.u + cRight - l.u - cLeft) * (r.density * r.h - l.density * l.h);
     }
 
     return flux;
 }
 
-EulerContinuity AUSMDVFluxSplitting(const EulerContinuity& l, const EulerContinuity& r, const double gamma, const double AUSMkFactor, const double entropyFix)
+EulerContinuity AUSMDVFluxSplitting(const CellValues& l, const CellValues& r, const double gamma, const double AUSMkFactor, const double entropyFix)
 {
     const double alphaLPartial=l.p/l.density;
     const double alphaRPartial=r.p/r.density;
@@ -141,25 +142,25 @@ EulerContinuity AUSMDVFluxSplitting(const EulerContinuity& l, const EulerContinu
 
     EulerContinuity flux;
     // AUSM-DV otherwise
-    flux.density = uLplus*l.density+uRminus*r.density;
-    flux.u = (0.5+s)*rhou2Mv+(0.5-s)*rhoU2Md+phalf;
-    flux.v = 0.5*(rhoUHalf*(l.v+r.v)-abs(rhoUHalf)*(r.v-l.v));
-    flux.e = 0.5*(rhoUHalf*(l.h+r.h)-abs(rhoUHalf)*(r.h-l.h));
+    flux.mass = uLplus*l.density+uRminus*r.density;
+    flux.momentumX = (0.5+s)*rhou2Mv+(0.5-s)*rhoU2Md+phalf;
+    flux.momentumY = 0.5*(rhoUHalf*(l.v+r.v)-abs(rhoUHalf)*(r.v-l.v));
+    flux.energy = 0.5*(rhoUHalf*(l.h+r.h)-abs(rhoUHalf)*(r.h-l.h));
 
     // Entropy fix (numerical dissipation for single expansion waves)
     if((l.u-cL<0.0 && r.u-cR>0.0)&(!(l.u+cL<0.0 && r.u+cR>0.0)))
     {
-        flux.density = flux.density - entropyFix * (r.u - cR - l.u + cL) * (r.density - l.density);
-        flux.u = flux.u - entropyFix * (r.u - cR - l.u + cL) * (r.density * r.u - l.density * l.u);
-        flux.v = flux.v - entropyFix * (r.u - cR - l.u + cL) * (r.density * r.v - l.density * l.v);
-        flux.e = flux.e - entropyFix * (r.u - cR - l.u + cL) * (r.density * r.h - l.density * l.h);
+        flux.mass = flux.mass - entropyFix * (r.u - cR - l.u + cL) * (r.density - l.density);
+        flux.momentumX = flux.momentumX - entropyFix * (r.u - cR - l.u + cL) * (r.density * r.u - l.density * l.u);
+        flux.momentumY = flux.momentumY - entropyFix * (r.u - cR - l.u + cL) * (r.density * r.v - l.density * l.v);
+        flux.energy = flux.energy - entropyFix * (r.u - cR - l.u + cL) * (r.density * r.h - l.density * l.h);
     }
     else if((!(l.u-cL<0.0 && r.u-cR>0.0))&(l.u+cL<0.0 && r.u+cR>0.0))
     {
-        flux.density = flux.density - entropyFix * (r.u + cR - l.u - cL) * (r.density - l.density);
-        flux.u = flux.u - entropyFix * (r.u + cR - l.u - cL) * (r.density * r.u - l.density * l.u);
-        flux.v = flux.v - entropyFix * (r.u + cR - l.u - cL) * (r.density * r.v - l.density * l.v);
-        flux.e = flux.e - entropyFix * (r.u + cR - l.u - cL) * (r.density * r.h - l.density * l.h);
+        flux.mass = flux.mass - entropyFix * (r.u + cR - l.u - cL) * (r.density - l.density);
+        flux.momentumX = flux.momentumX - entropyFix * (r.u + cR - l.u - cL) * (r.density * r.u - l.density * l.u);
+        flux.momentumY = flux.momentumY - entropyFix * (r.u + cR - l.u - cL) * (r.density * r.v - l.density * l.v);
+        flux.energy = flux.energy - entropyFix * (r.u + cR - l.u - cL) * (r.density * r.h - l.density * l.h);
     }
 
     return flux;

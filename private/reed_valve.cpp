@@ -293,10 +293,10 @@ void ReedValve::FillSourceTermBuffer()
 			double outerSurfaceArea = (2.0*M_PI*cellR*cellDx);
 			double volumeFlowRate = normalisedMassFlowRate/averageDensityOutOfDomain/outerSurfaceArea;
 		
-			sourceTermBuffer_.at(i).density = normalisedMassFlowRate/sourceCellVolumes.at(i);
-			sourceTermBuffer_.at(i).u = (normalisedMassFlowRate*averageUOutside)/sourceCellVolumes.at(i);
-			sourceTermBuffer_.at(i).v = (normalisedMassFlowRate*averageVOutside)/sourceCellVolumes.at(i);
-			sourceTermBuffer_.at(i).e = (gamma/(gamma-1.0)*averagePressureOutOfDomain/averageDensityOutOfDomain + 0.5*volumeFlowRate*sqrt(std::pow(averageUOutside, 2) + std::pow(averageVOutside,2)))*normalisedMassFlowRate/sourceCellVolumes.at(i);
+			sourceTermBuffer_.at(i).mass = normalisedMassFlowRate/sourceCellVolumes.at(i);
+			sourceTermBuffer_.at(i).momentumX = (normalisedMassFlowRate*averageUOutside)/sourceCellVolumes.at(i);
+			sourceTermBuffer_.at(i).momentumY = (normalisedMassFlowRate*averageVOutside)/sourceCellVolumes.at(i);
+			sourceTermBuffer_.at(i).energy = (gamma/(gamma-1.0)*averagePressureOutOfDomain/averageDensityOutOfDomain + 0.5*volumeFlowRate*sqrt(std::pow(averageUOutside, 2) + std::pow(averageVOutside,2)))*normalisedMassFlowRate/sourceCellVolumes.at(i);
 		}
 
 		// The sink terms, the outOfDomain_.
@@ -309,10 +309,10 @@ void ReedValve::FillSourceTermBuffer()
 			double volumeFlowRate = normalisedMassFlowRate/averageDensityOutOfDomain/outerSurfaceArea;
 
 			// Note that as it is a sink, the flux is negative!
-			sinkTermBuffer_.at(i).density = -normalisedMassFlowRate/sinkCellVolumes.at(i);
-			sinkTermBuffer_.at(i).u = -(normalisedMassFlowRate*averageUOutside)/sinkCellVolumes.at(i);
-			sinkTermBuffer_.at(i).v = -(normalisedMassFlowRate*averageVOutside)/sinkCellVolumes.at(i);
-			sinkTermBuffer_.at(i).e = -(gamma/(gamma-1.0)*averagePressureOutOfDomain/averageDensityOutOfDomain + 0.5*volumeFlowRate*sqrt(std::pow(averageUOutside, 2) + std::pow(averageVOutside,2)))*normalisedMassFlowRate/sinkCellVolumes.at(i);
+			sinkTermBuffer_.at(i).mass = -normalisedMassFlowRate/sinkCellVolumes.at(i);
+			sinkTermBuffer_.at(i).momentumX = -(normalisedMassFlowRate*averageUOutside)/sinkCellVolumes.at(i);
+			sinkTermBuffer_.at(i).momentumY = -(normalisedMassFlowRate*averageVOutside)/sinkCellVolumes.at(i);
+			sinkTermBuffer_.at(i).energy = -(gamma/(gamma-1.0)*averagePressureOutOfDomain/averageDensityOutOfDomain + 0.5*volumeFlowRate*sqrt(std::pow(averageUOutside, 2) + std::pow(averageVOutside,2)))*normalisedMassFlowRate/sinkCellVolumes.at(i);
 		}
 	}
 }

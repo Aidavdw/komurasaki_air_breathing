@@ -6,6 +6,7 @@
 #include <iostream>
 #include <cmath>
 
+#include "cell_values_container.h"
 #include "euler_container.h"
 #include "flux_splitting.h"
 
@@ -368,52 +369,50 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 				*/
 
 				// Get the left- and right bound fluxes at the specific face we're considering now.
-				EulerContinuity continuityInNegativeDirection;
+				CellValues valuesEntering;
 				const EFace anti = Opposite(face);
-				continuityInNegativeDirection.density = rho.MUSCLBuffer[anti].GetAt(rf);
-				continuityInNegativeDirection.u = u.MUSCLBuffer[anti].GetAt(rf);
-				continuityInNegativeDirection.v = v.MUSCLBuffer[anti].GetAt(rf);
-				continuityInNegativeDirection.e = eLeft;
-				continuityInNegativeDirection.h = hLeft;
-				continuityInNegativeDirection.p = p.MUSCLBuffer[anti].GetAt(rf);
+				valuesEntering.density = rho.MUSCLBuffer[anti].GetAt(rf);
+				valuesEntering.u = u.MUSCLBuffer[anti].GetAt(rf);
+				valuesEntering.v = v.MUSCLBuffer[anti].GetAt(rf);
+				valuesEntering.e = eLeft;
+				valuesEntering.h = hLeft;
+				valuesEntering.p = p.MUSCLBuffer[anti].GetAt(rf);
 				
-				EulerContinuity continuityPositiveDirection;
-				continuityPositiveDirection.density = rho.MUSCLBuffer[face].GetAt(rf);
-				continuityPositiveDirection.u = u.MUSCLBuffer[face].GetAt(rf);
-				continuityPositiveDirection.v = v.MUSCLBuffer[face].GetAt(rf);
-				continuityPositiveDirection.e = eRight;
-				continuityPositiveDirection.h = hLeft;
-				continuityPositiveDirection.p = p.MUSCLBuffer[face].GetAt(rf);
+				CellValues valuesLeaving;
+				valuesLeaving.density = rho.MUSCLBuffer[face].GetAt(rf);
+				valuesLeaving.u = u.MUSCLBuffer[face].GetAt(rf);
+				valuesLeaving.v = v.MUSCLBuffer[face].GetAt(rf);
+				valuesLeaving.e = eRight;
+				valuesLeaving.h = hLeft;
+				valuesLeaving.p = p.MUSCLBuffer[face].GetAt(rf);
 
 				// Set the flux split for this side (declared above in the array).
 				if (v.MUSCLBuffer[RIGHT].GetAt(rf) > speedOfSound)
 				{
 					// It's sonic, use Hanel.
-					fluxSplit[face] = HanelFluxSplitting(continuityInNegativeDirection, continuityPositiveDirection, gamma, solverSettings.entropyFix);
+					fluxSplit[face] = HanelFluxSplitting(valuesEntering, valuesLeaving, gamma, solverSettings.entropyFix);
 				}
 				else
 				{
 					// It's subsonic, use AUSM_DV.
-					fluxSplit[face] = AUSMDVFluxSplitting(continuityInNegativeDirection, continuityPositiveDirection, gamma, solverSettings.AUSMSwitchBias, solverSettings.entropyFix);
+					fluxSplit[face] = AUSMDVFluxSplitting(valuesEntering, valuesLeaving, gamma, solverSettings.AUSMSwitchBias, solverSettings.entropyFix);
 				}
 
 				// If it's a vertical flux, then the u and v are in the local reference frame, and hence they must be inverted.
 				if (face == TOP || face == BOTTOM)
 				{
-					double buf = fluxSplit[face].u;
-					fluxSplit[face].u = fluxSplit[face].v;
-					fluxSplit[face].v = buf;
+					double buf = fluxSplit[face].momentumX;
+					fluxSplit[face].momentumX = fluxSplit[face].momentumY;
+					fluxSplit[face].momentumY = buf;
 				}
 			}
 
 			// Total accumulation is what goes in - what goes out
 			const CellIndex currentCell(xIdx, yIdx);
 			auto cellSizes = GetCellSizes(currentCell);
-			//EulerContinuity accumulation = ((rightFlux - leftFlux)/cellSizes.first + (upFlux - downFlux)/cellSizes.second)*dt; // dy = dr in this case, if you compensate for the squashification.
-			const double rhoFlux = ((fluxSplit[RIGHT].density - fluxSplit[LEFT].density)/cellSizes.first + (fluxSplit[TOP].density - fluxSplit[BOTTOM].density)/cellSizes.second)*dt;
-			const double vFlux = ((fluxSplit[RIGHT].v - fluxSplit[LEFT].v)/cellSizes.first + (fluxSplit[TOP].v - fluxSplit[BOTTOM].v)/cellSizes.second)*dt;
-			const double uFlux = ((fluxSplit[RIGHT].u - fluxSplit[LEFT].u)/cellSizes.first + (fluxSplit[TOP].u - fluxSplit[BOTTOM].u)/cellSizes.second)*dt;
-			const double eFlux = ((fluxSplit[RIGHT].e - fluxSplit[LEFT].e)/cellSizes.first + (fluxSplit[TOP].e - fluxSplit[BOTTOM].e)/cellSizes.second)*dt;
+			EulerContinuity accumulation = ((fluxSplit[RIGHT] - fluxSplit[LEFT])/cellSizes.first + (fluxSplit[TOP] - fluxSplit[BOTTOM])/cellSizes.second)*dt; // dy = dr in this case, if you compensate for the squashification.
+
+			// Replace flux buffer by std::vector<TwodimensionalArray>[4] for each of the terms.
 			rho.flux(xIdx,yIdx) = rhoFlux;
 			v.flux(xIdx,yIdx) = vFlux;
 			u.flux(xIdx,yIdx) = uFlux;

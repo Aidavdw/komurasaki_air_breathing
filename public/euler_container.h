@@ -5,30 +5,24 @@
 struct EulerContinuity
 {
     EulerContinuity() :
-        density(0), u(0), v(0), e(0), p(0), h(0), t(0)
+        mass(0), momentumX(0), momentumY(0), energy(0)
     {}
 
-    EulerContinuity(const double density, const double xAxisVelocity, const double yAxisVelocity, const double specificInternalEnergy, const double specificEnthalpy, const double staticPressure, const double staticTemperature) :
-        density(density),
-        u(xAxisVelocity),
-        v(yAxisVelocity),
-        e(specificInternalEnergy),
-        p(staticPressure),
-        h(specificEnthalpy),
-        t(staticTemperature)
+    EulerContinuity(const double mass, const double momentumX, const double momentumY, const double energy) :
+        mass(mass),
+        momentumX(momentumX),
+        momentumY(momentumY),
+        energy(energy)
     {}
-
-    double density;
-    double u;           // x-axis velocity
-    double v;           // y-axis velocity
-    double e;           // specific internal energy
-    double p;           // static pressure
-    double h;           // enthalpy.
-    double t;           // static temperature
+    
+    double mass; // Conservation of mass, first term of the euler continuity.
+    double momentumX; // Conservation of momentum in the x-direction, second term of the euler continuity.
+    double momentumY; // Conservation of momentum in the y-direction, third term of the euler continuity.
+    double energy;  // Conservation of energy, fourth term in the euler continuity.
 
     inline EulerContinuity operator+ (const EulerContinuity& other) const
     {
-        return {density + other.density, u + other.u, v + other.v, e + other.e, h + other.h, p + other.p, t + other.t};
+        return {mass + other.mass, momentumX + other.momentumX, momentumY + other.momentumY, energy + other.energy};
     }
 
     inline EulerContinuity operator- (const EulerContinuity& other) const
@@ -38,7 +32,7 @@ struct EulerContinuity
 
     inline EulerContinuity operator* (const double scale) const
     {
-        return {density * scale, u * scale, v * scale, e * scale, h * scale, p*scale, t*scale};
+        return {mass * scale, momentumX * scale, momentumY * scale, energy * scale};
     }
     
     inline EulerContinuity operator/ (const double scale) const
@@ -52,5 +46,5 @@ struct EulerContinuity
 
 inline bool EulerContinuity::operator==(const EulerContinuity& other) const
 {
-    return (IsCloseToZero(density - other.density) && IsCloseToZero(u - other.u) && IsCloseToZero(v - other.v) && IsCloseToZero(e - other.e) && IsCloseToZero(p - other.p) && IsCloseToZero(h - other.h) && IsCloseToZero(t - other.t));
+    return (IsCloseToZero(mass - other.mass) && IsCloseToZero(momentumX - other.momentumX) && IsCloseToZero(momentumY - other.momentumY) && IsCloseToZero(energy - other.energy));
 }
