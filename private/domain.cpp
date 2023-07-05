@@ -368,24 +368,24 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 				// Get the left- and right bound fluxes at the specific face we're considering now.
 				CellValues valuesEntering;
 				const EFace anti = Opposite(face);
-				valuesEntering.density = rho.MUSCLBuffer[anti].GetAt(rf);
-				valuesEntering.u = u.MUSCLBuffer[anti].GetAt(rf);
-				valuesEntering.v = v.MUSCLBuffer[anti].GetAt(rf);
+				valuesEntering.density = rho.MUSCLBuffer[anti].GetIncludingGhostCells(rf);
+				valuesEntering.u = u.MUSCLBuffer[anti].GetIncludingGhostCells(rf);
+				valuesEntering.v = v.MUSCLBuffer[anti].GetIncludingGhostCells(rf);
 				valuesEntering.e = eLeft;
 				valuesEntering.h = hLeft;
-				valuesEntering.p = p.MUSCLBuffer[anti].GetAt(rf);
+				valuesEntering.p = p.MUSCLBuffer[anti].GetIncludingGhostCells(rf);
 				
 				CellValues valuesLeaving;
-				valuesLeaving.density = rho.MUSCLBuffer[face].GetAt(rf);
-				valuesLeaving.u = u.MUSCLBuffer[face].GetAt(rf);
-				valuesLeaving.v = v.MUSCLBuffer[face].GetAt(rf);
+				valuesLeaving.density = rho.MUSCLBuffer[face].GetIncludingGhostCells(rf);
+				valuesLeaving.u = u.MUSCLBuffer[face].GetIncludingGhostCells(rf);
+				valuesLeaving.v = v.MUSCLBuffer[face].GetIncludingGhostCells(rf);
 				valuesLeaving.e = eRight;
 				valuesLeaving.h = hLeft;
-				valuesLeaving.p = p.MUSCLBuffer[face].GetAt(rf);
+				valuesLeaving.p = p.MUSCLBuffer[face].GetIncludingGhostCells(rf);
 
 				// Set the flux split for this side (declared above in the array).
 				const double speedOfSound = std::sqrt(gamma * p.MUSCLBuffer[face].GetAt(xIdx, yIdx)/rho.MUSCLBuffer[face].GetAt(xIdx, yIdx));
-				if (v.MUSCLBuffer[RIGHT].GetAt(rf) > speedOfSound)
+				if (v.MUSCLBuffer[RIGHT].GetIncludingGhostCells(rf) > speedOfSound)
 				{
 					// It's sonic, use Hanel.
 					fluxSplit[face] = HanelFluxSplitting(valuesEntering, valuesLeaving, gamma, solverSettings.entropyFix);
