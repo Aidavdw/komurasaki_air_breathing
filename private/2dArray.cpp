@@ -51,7 +51,7 @@ bool TwoDimensionalArray::IsFilledWithZeroes() const
 {
 	double sum = 0;
 	for (const auto& val : data_)
-		sum += val;
+		sum += std::abs(val);
 
 	return (sum < 0.001);
 }

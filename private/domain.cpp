@@ -333,12 +333,14 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 			const double eRight = p.MUSCLBuffer[RIGHT].GetAt(xIdx,yIdx) / (gamma - 1) + 0.5 * rho.MUSCLBuffer[RIGHT].GetAt(xIdx, yIdx) * (std::pow(u.MUSCLBuffer[RIGHT](xIdx, yIdx), 2) + std::pow(v.MUSCLBuffer[RIGHT](xIdx, yIdx), 2));
 			const double eTop = p.MUSCLBuffer[TOP].GetAt(xIdx,yIdx) / (gamma - 1) + 0.5 * rho.MUSCLBuffer[TOP].GetAt(xIdx, yIdx) * (std::pow(u.MUSCLBuffer[TOP](xIdx, yIdx), 2) + std::pow(v.MUSCLBuffer[TOP](xIdx, yIdx), 2));
 			const double eBottom = p.MUSCLBuffer[BOTTOM].GetAt(xIdx,yIdx) / (gamma - 1) + 0.5 * rho.MUSCLBuffer[BOTTOM].GetAt(xIdx, yIdx) * (std::pow(u.MUSCLBuffer[BOTTOM](xIdx, yIdx), 2) + std::pow(v.MUSCLBuffer[BOTTOM](xIdx, yIdx), 2));
+			const double energyAtFace[4] = {eLeft, eRight, eTop, eBottom};
 
 			// enthalpy
 			const double hLeft = (eLeft + p.MUSCLBuffer[LEFT].GetAt(xIdx,yIdx))/rho.MUSCLBuffer[LEFT].GetAt(xIdx,yIdx);
 			const double hRight = (eRight + p.MUSCLBuffer[RIGHT].GetAt(xIdx,yIdx))/rho.MUSCLBuffer[RIGHT].GetAt(xIdx,yIdx);
 			const double hTop = (eTop + p.MUSCLBuffer[TOP].GetAt(xIdx,yIdx))/rho.MUSCLBuffer[TOP].GetAt(xIdx,yIdx);
 			const double hBottom = (eBottom + p.MUSCLBuffer[BOTTOM].GetAt(xIdx,yIdx))/rho.MUSCLBuffer[BOTTOM].GetAt(xIdx,yIdx);
+			const double enthalpyAtFace[4] = {hLeft, hRight, hTop, hBottom};
 
 			// Now, for every face, determine which flux scheme to use based on whether or not it is critical (sonic), and perform the flux transfer.
 			constexpr EFace faces[4] = {LEFT, RIGHT, TOP, BOTTOM}; // indexes for sides ---- 0: right; 1: left; 2: top; 3: down;
@@ -368,24 +370,24 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 				// Get the left- and right bound fluxes at the specific face we're considering now.
 				CellValues valuesEntering;
 				const EFace anti = Opposite(face);
-				valuesEntering.density = rho.MUSCLBuffer[anti].GetIncludingGhostCells(rf);
-				valuesEntering.u = u.MUSCLBuffer[anti].GetIncludingGhostCells(rf);
-				valuesEntering.v = v.MUSCLBuffer[anti].GetIncludingGhostCells(rf);
-				valuesEntering.e = eLeft;
-				valuesEntering.h = hLeft;
-				valuesEntering.p = p.MUSCLBuffer[anti].GetIncludingGhostCells(rf);
+				valuesEntering.density = rho.MUSCLBuffer[anti].GetIncludingGhostCells(rf, true);
+				valuesEntering.u = u.MUSCLBuffer[anti].GetIncludingGhostCells(rf, true);
+				valuesEntering.v = v.MUSCLBuffer[anti].GetIncludingGhostCells(rf, true);
+				valuesEntering.e = energyAtFace[anti];
+				valuesEntering.h = enthalpyAtFace[anti];
+				valuesEntering.p = p.MUSCLBuffer[anti].GetIncludingGhostCells(rf, true);
 				
 				CellValues valuesLeaving;
-				valuesLeaving.density = rho.MUSCLBuffer[face].GetIncludingGhostCells(rf);
-				valuesLeaving.u = u.MUSCLBuffer[face].GetIncludingGhostCells(rf);
-				valuesLeaving.v = v.MUSCLBuffer[face].GetIncludingGhostCells(rf);
-				valuesLeaving.e = eRight;
-				valuesLeaving.h = hLeft;
-				valuesLeaving.p = p.MUSCLBuffer[face].GetIncludingGhostCells(rf);
+				valuesLeaving.density = rho.MUSCLBuffer[face].GetIncludingGhostCells(rf, true);
+				valuesLeaving.u = u.MUSCLBuffer[face].GetIncludingGhostCells(rf, true);
+				valuesLeaving.v = v.MUSCLBuffer[face].GetIncludingGhostCells(rf, true);
+				valuesLeaving.e = energyAtFace[face];
+				valuesLeaving.h = enthalpyAtFace[face];
+				valuesLeaving.p = p.MUSCLBuffer[face].GetIncludingGhostCells(rf, true);
 
 				// Set the flux split for this side (declared above in the array).
 				const double speedOfSound = std::sqrt(gamma * p.MUSCLBuffer[face].GetAt(xIdx, yIdx)/rho.MUSCLBuffer[face].GetAt(xIdx, yIdx));
-				if (v.MUSCLBuffer[RIGHT].GetIncludingGhostCells(rf) > speedOfSound)
+				if (v.MUSCLBuffer[RIGHT].GetIncludingGhostCells(rf, true) > speedOfSound)
 				{
 					// It's sonic, use Hanel.
 					fluxSplit[face] = HanelFluxSplitting(valuesEntering, valuesLeaving, gamma, solverSettings.entropyFix);
@@ -444,10 +446,13 @@ void Domain::SetNextTimeStepValuesBasedOnRungeKuttaAndDeltaBuffers(const int cur
 	// assert(!u.rungeKuttaBuffer.IsFilledWithZeroes()); // This can be zero for the initial condition lol.
 	// assert(!v.rungeKuttaBuffer.IsFilledWithZeroes()); // This can be zero for the initial condition lol.
 	assert(!E.rungeKuttaBuffer.IsFilledWithZeroes());
-	assert(eulerConservationEquations[0].IsFilledWithZeroes());
-	assert(eulerConservationEquations[1].IsFilledWithZeroes()); // Should doublecheck, could be close to 0
-	assert(eulerConservationEquations[2].IsFilledWithZeroes()); // Should doublecheck, could be close to 0
-	assert(eulerConservationEquations[3].IsFilledWithZeroes());
+	// As these are fluxes, they can realistically be 0.
+	/*
+	assert(!eulerConservationEquations[0].IsFilledWithZeroes());
+	assert(!eulerConservationEquations[1].IsFilledWithZeroes());
+	assert(!eulerConservationEquations[2].IsFilledWithZeroes());
+	assert(!eulerConservationEquations[3].IsFilledWithZeroes());
+	*/
 #endif
 
 	const double rkK = 1./(simCase->solverSettings.rungeKuttaOrder-currentRungeKuttaIter); // Runge-kutta factor
