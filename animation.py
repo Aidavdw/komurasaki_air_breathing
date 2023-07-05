@@ -12,6 +12,10 @@ import os
 import matplotlib.animation as animation
 plt.rcParams['animation.ffmpeg_path'] ="C:/ffmpeg/bin/ffmpeg.exe"
 
+# the pyd module is in a subdir, add here for convenience
+from sys import version_info, path
+path.insert(0, './build/Debug')
+
 
 from datetime import datetime
 from sys import version_info
@@ -40,7 +44,7 @@ height_of_tube = 0.028
 simcase = ka.SimCase()
 simcase.dt = 10.0E-6
 simcase.simulation_duration = 10.0E-4
-nstep=int(simcase.simulation_duration/simcase.dt)
+nstep=int(simcase.simulation_duration/simcase.dt) #todo: A: add simple callback method in python library to get simcase.n_time_step
 
 solver_settings = ka.SolverSettings() # for now, use the default solver settings. See cpp file for default values.
 chapman_jouget = ka.ChapmanJougetInitialConditionParameters()
@@ -121,7 +125,7 @@ end_time = datetime.now()
 
 print("Simulation done! time ran: ", end_time - start_time)
 
-pause = input()
+
 
 #Animation
 print("Nstep=",nstep)
@@ -196,3 +200,6 @@ anim=animation.FuncAnimation(fig,animate,range(nstep))
 FFMpegWriter=animation.writers['ffmpeg']
 writer=FFMpegWriter(fps=5, bitrate=100)
 anim.save(title,writer=writer)
+
+
+pause = input()
