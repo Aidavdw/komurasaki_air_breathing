@@ -36,17 +36,14 @@ public:
 
 	void CalculateFlow();					// Safely calls FillBuffer(). Proxy function.
 	std::string ToString() const;
+	void AddCachedTermsToDomainConservationEquations() const;	// Uses the values cached into sourceTermBuffer_ as calculated with CalculateFlowFromValve(), and puts them in the sourceCellsIndices in the intoDomain_. Excepts if it cannot do this.
 
 /********** TO IMPLEMENT INTERFACE **********/
 public:
-	
 	virtual void OnRegister();				// Called to all valves upon being registered by the SimCase
 	virtual void UpdateValveState();		// Samples the environment, calculates forces etc, and updates how open a valve is.
 	virtual void SetInitialConditions();	// Called before first 
-	virtual void AddCachedTermsToDomainConservationEquations();	// Uses the values cached into sourceTermBuffer_ as calculated with CalculateFlowFromValve(), and puts them in the sourceCellsIndices in the intoDomain_. Excepts if it cannot do this.
 	virtual void EmptyBuffer();				// Sets the sourceTermBuffer and sinkTermBuffer back to zeros.
-
-
 
 protected:
 	virtual void FillSourceTermBuffer(); // Don't call manually, this is supposed to be called in proxy by CalculateFlow(). Calculates the flow from the valve, and fills it into the sourceTermBuffer_ variable.
