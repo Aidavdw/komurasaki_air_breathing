@@ -470,8 +470,8 @@ void cholesky_decomposition(const int n_act, const double **M,double **L, const 
 	// A: I think this is a variation on the Cholesky-Crout algorithm?
 	
    	for (int i = 0; i < n_act; ++i)
-   	{	
-   		L[i][i] = M[act_dof[i]][act_dof[i]];
+   	{
+   		L[i][i] = M[act_dof[i]][act_dof[i]]; // Everything is shifted up-left; the first 'free' node is now the top-left node.
       	for (int k=0; k < i; ++k)
       	{
       		L[i][i] -= L[k][i]*L[k][i];

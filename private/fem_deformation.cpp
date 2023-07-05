@@ -253,6 +253,7 @@ void FemDeformation::AssembleNewmarkMatrix(TwoDimensionalArray& R1CholeskyOut, T
 	KCholeskyOut = CholeskyDecomposition(globalStiffnessMatrix, DOFVector).Transpose();
 
 	#ifdef _DEBUG
+	// LEFT OFF
 	assert(R1CholeskyOut.IsLowerTriangular());
 	assert(KCholeskyOut.IsLowerTriangular());
 	#endif
@@ -293,12 +294,14 @@ TwoDimensionalArray FemDeformation::CholeskyDecomposition(const TwoDimensionalAr
 		throw std::logic_error("An matrix that is not diagonally symmetric cannot be cholesky decomposed.");
 	#endif
 	
-	// This is a variation on the Cholesky-Crout algorithm?
+	// This is a variation on the Cholesky-Crout algorithm. It does everything on a column basis.
 	const int activeDegreesOfFreedom = static_cast<int>(DOFVector.size());
-	TwoDimensionalArray out(matrix.nX, matrix.nX, 0);
+	TwoDimensionalArray out(activeDegreesOfFreedom, activeDegreesOfFreedom, 0);
 	for (int i = 0; i < activeDegreesOfFreedom; ++i)
 	{
-		out(i,i) = matrix.GetAt(DOFVector[i],DOFVector[i]);
+		// Everything is shifted up-left; the first 'free' node is now the top-left node; it essentially creates a small sub-matrix of just the active nodes.
+		const int dofi = DOFVector[i];
+		out(i,i) = matrix.GetAt(dofi,dofi); 
 		for (int k = 0; k < i; ++k)
 		{
 			out(i,i) -= out(k,i) * out(k,i);
@@ -311,7 +314,8 @@ TwoDimensionalArray FemDeformation::CholeskyDecomposition(const TwoDimensionalAr
 
 		for (int j = i + 1; j < activeDegreesOfFreedom; ++j)
 		{
-			out(i, j) = matrix.GetAt(DOFVector[i], DOFVector[j]);
+			const int dofj = DOFVector[j];
+			out(i, j) = matrix.GetAt(dofi, dofj);
 			for (int k = 0; k < i; ++k)
 			{
 				out(i,j) -= out(k,i) * out(k,j);

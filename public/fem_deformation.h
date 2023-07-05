@@ -75,6 +75,7 @@ protected:
 	void AssembleGlobalMassMatrix(TwoDimensionalArray& matrixOut) const;
 	void AssembleGlobalStiffnessMatrix(TwoDimensionalArray& matrixOut) const;
 
+	//todo: GetDOFindex is only used to get the sub-matrices of the active nodes. Instead, create a function that directly creates such a sub-matrix, as this will help code readability.
 	std::vector<int> GetDOFVector() const; // Todo: Replace by simple GetDOFIndex() function, as only 1 index at a time is used anyway.
 	
 
