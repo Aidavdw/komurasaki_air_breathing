@@ -8,8 +8,8 @@ void LoadExampleCaseWithoutReedValves(SimCase* simCase) {
 
 	const double lengthOfTube = 0.5;
 	const double heightOfTube = 0.028;
-	const MeshSpacing xMeshSpacing = MeshSpacing(EMeshSpacingType::CONSTANT, 250, 0, 0);
-	const MeshSpacing yMeshSpacing = MeshSpacing(EMeshSpacingType::CONSTANT, 14, 0, 0);
+	const MeshSpacing xMeshSpacing = MeshSpacing(EMeshSpacingType::CONSTANT, 8, 0, 0);
+	const MeshSpacing yMeshSpacing = MeshSpacing(EMeshSpacingType::CONSTANT, 8, 0, 0);
 
 	// Domains
 
@@ -37,6 +37,10 @@ void LoadExampleCaseWithoutReedValves(SimCase* simCase) {
 
 	// Alternative way: simCase->ConnectBoundaries(1, EBoundaryLocation::RIGHT, 2, EBoundaryLocation::LEFT);
 	simCase->ConnectBoundariesByName("Tube", EFace::RIGHT, "Ambient", EFace::LEFT);
+
+
+	// Setting records
+	simCase->AddRecord(simCase->GetDomainByName("Tube").p.currentTimeStep, "tube pressure");
 }
 
 void LoadExampleCaseWithReedValves(SimCase* simCase)
