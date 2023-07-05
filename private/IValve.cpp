@@ -57,7 +57,7 @@ void IValve::FillSourceTermBuffer()
     throw std::logic_error("PopulateValveDeltaBuffer() is not overridden for this type of valve!");
 }
 
-void IValve::AddCachedTermsToDomainConservationEquations()
+void IValve::AddCachedTermsToDomainConservationEquations() const
 {
 #ifdef _DEBUG
     assert(sourceCellsIndices_.size() == sourceTermBuffer_.size());
@@ -74,7 +74,6 @@ void IValve::AddCachedTermsToDomainConservationEquations()
         totalSource = totalSource + sourceTermInCell;
     for (auto& sinkTermInCell : sinkTermBuffer_)
         totalSink = totalSink + sinkTermInCell;
-
     if (!((totalSource - totalSink) == EulerContinuity()))
         throw std::logic_error("conservation laws are being broken, as the total source term is not equal to the total sink term for this valve!");
 
@@ -109,10 +108,10 @@ void IValve::AddCachedTermsToDomainConservationEquations()
             throw std::logic_error("sink term is not initialised.");
 #endif
 
-        outOfDomain_->eulerConservationEquations[0](cixSource) -= sourceTerms.mass;
-        outOfDomain_->eulerConservationEquations[1](cixSource) -= sourceTerms.momentumX;
-        outOfDomain_->eulerConservationEquations[2](cixSource) -= sourceTerms.momentumY;
-        outOfDomain_->eulerConservationEquations[3](cixSource) -= sourceTerms.energy;
+        outOfDomain_->eulerConservationEquations[0](cixSource) -= sinkTerms.mass;
+        outOfDomain_->eulerConservationEquations[1](cixSource) -= sinkTerms.momentumX;
+        outOfDomain_->eulerConservationEquations[2](cixSource) -= sinkTerms.momentumY;
+        outOfDomain_->eulerConservationEquations[3](cixSource) -= sinkTerms.energy;
     }
     
 }
