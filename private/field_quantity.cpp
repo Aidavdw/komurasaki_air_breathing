@@ -20,12 +20,9 @@ FieldQuantity::FieldQuantity(Domain* domain, const int sizeX, const int sizeY, c
 	currentTimeStep = TwoDimensionalArray(sizeX, sizeY, nGhostCells, initialValue);
 	rungeKuttaBuffer = TwoDimensionalArray(sizeX, sizeY, nGhostCells, initialValue);
 	nextTimeStepBuffer = TwoDimensionalArray(sizeX, sizeY, nGhostCells, initialValue);
-	flux = TwoDimensionalArray(sizeX, sizeY, nGhostCells, initialValue);
 	
-	for (size_t i = 0; i < 4; i++)
-	{
-		MUSCLBuffer[i] = TwoDimensionalArray(sizeX, sizeY, nGhostCells, initialValue);
-	}
+	for (auto& i : MUSCLBuffer)
+		i = TwoDimensionalArray(sizeX, sizeY, nGhostCells, initialValue);
 }
 
 void FieldQuantity::CopyToBuffer(const EFieldQuantityBuffer from, const EFieldQuantityBuffer to)
@@ -40,7 +37,6 @@ TwoDimensionalArray& FieldQuantity::Buffer(const EFieldQuantityBuffer bufferName
 	case EFieldQuantityBuffer::CURRENT_TIME_STEP: return currentTimeStep;
 	case EFieldQuantityBuffer::RUNGE_KUTTA: return rungeKuttaBuffer;
 	case EFieldQuantityBuffer::NEXT_TIME_STEP: return nextTimeStepBuffer;
-	case EFieldQuantityBuffer::FLUX: return flux;
 	default: throw std::logic_error("Cannot get buffer with this buffer name");
 	}
 }
@@ -52,7 +48,6 @@ const TwoDimensionalArray& FieldQuantity::GetAtBufferConst(const EFieldQuantityB
 	case EFieldQuantityBuffer::CURRENT_TIME_STEP: return currentTimeStep;
 	case EFieldQuantityBuffer::RUNGE_KUTTA: return rungeKuttaBuffer;
 	case EFieldQuantityBuffer::NEXT_TIME_STEP: return nextTimeStepBuffer;
-	case EFieldQuantityBuffer::FLUX: return flux;
 	default: throw std::logic_error("Cannot get buffer with this buffer name");
 	}
 }

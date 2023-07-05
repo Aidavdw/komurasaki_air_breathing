@@ -43,7 +43,7 @@ public:
 	virtual void OnRegister();				// Called to all valves upon being registered by the SimCase
 	virtual void UpdateValveState();		// Samples the environment, calculates forces etc, and updates how open a valve is.
 	virtual void SetInitialConditions();	// Called before first 
-	virtual void AddCachedTermsToSourceCells(const EFieldQuantityBuffer bufferToWriteInto);	// Uses the values cached into sourceTermBuffer_ as calculated with CalculateFlowFromValve(), and puts them in the sourceCellsIndices in the intoDomain_. Excepts if it cannot do this.
+	virtual void AddCachedTermsToDomainConservationEquations();	// Uses the values cached into sourceTermBuffer_ as calculated with CalculateFlowFromValve(), and puts them in the sourceCellsIndices in the intoDomain_. Excepts if it cannot do this.
 	virtual void EmptyBuffer();				// Sets the sourceTermBuffer and sinkTermBuffer back to zeros.
 
 

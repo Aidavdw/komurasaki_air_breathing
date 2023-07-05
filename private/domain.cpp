@@ -35,6 +35,9 @@ Domain::Domain(const std::string& name, SimCase* simCase, const Position& positi
 	meshSpacing[0] = MeshSpacingSolution(meshSpacingArg.first);
 	meshSpacing[1] = MeshSpacingSolution(meshSpacingArg.second);
 
+	for (auto& conservationEq : eulerConservationEquations)
+		conservationEq.Resize(amountOfCells[0], amountOfCells[1]);
+
 	CacheCellSizes();
 
 }
@@ -298,14 +301,14 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 	std::cout << "Calculating flow delta, and populating Flow Delta buffer of domain '" << name << "'" << std::endl;
 	
 	// Ensure that the buffers are actually empty to start with
-	if (!rho.flux.IsFilledWithZeroes())
-		throw std::logic_error("rho delta buffer is non-empty");
-	if (!u.flux.IsFilledWithZeroes())
-		throw std::logic_error("u delta buffer is non-empty");
-	if (!v.flux.IsFilledWithZeroes())
-		throw std::logic_error("v delta buffer is non-empty");
-	if (!E.flux.IsFilledWithZeroes())
-		throw std::logic_error("E delta buffer is non-empty");
+	if (!eulerConservationEquations[0].IsFilledWithZeroes())
+		throw std::logic_error("conservation of mass buffer is non-empty");
+	if (!eulerConservationEquations[1].IsFilledWithZeroes())
+		throw std::logic_error("conservation of x-momentum buffer is non-empty");
+	if (!eulerConservationEquations[2].IsFilledWithZeroes())
+		throw std::logic_error("conservation of y-momentum buffer is non-empty");
+	if (!eulerConservationEquations[2].IsFilledWithZeroes())
+		throw std::logic_error("conservation of energy buffer is non-empty");
 
 	std::cout << "Calculating MUSCL interpolation values for rho, u, v, p" << std::endl;
 #endif
@@ -338,13 +341,15 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 			const double hBottom = (eBottom + p.MUSCLBuffer[BOTTOM].GetAt(xIdx,yIdx))/rho.MUSCLBuffer[BOTTOM].GetAt(xIdx,yIdx);
 
 			// Now, for every face, determine which flux scheme to use based on whether or not it is critical (sonic), and perform the flux transfer.
-			EFace faces[4] = {LEFT, RIGHT, TOP, BOTTOM}; // indexes for sides ---- 0: right; 1: left; 2: top; 3: down;
+			constexpr EFace faces[4] = {LEFT, RIGHT, TOP, BOTTOM}; // indexes for sides ---- 0: right; 1: left; 2: top; 3: down;
 			EulerContinuity fluxSplit[4]; // These here contain 4 terms for the euler equations. They all represent the flux of those variables at each side of the cell.
-			for (int sideIndex = 0; sideIndex < 4; sideIndex++)
+			for (const auto face : faces)
 			{
-				EFace face = faces[sideIndex]; // Easier to debug and read, just a map of sideIndex. Note that enum decays into int.
 				CellIndex rf; // The position in the MUSCL buffer where the relevant values are stored.
-				// the fluxes for the cells that are 'backwards' in the positive axis are therefore by definition equal to the
+				if (face == LEFT)
+					rf = CellIndex(xIdx -1, yIdx);
+				if (face == BOTTOM)
+					rf = CellIndex(xIdx, yIdx - 1);
 
 				/* The values in the MUSCL buffers are stored as positive terms on their current cells; this means that musclbuffer(i,j) is the flux to the positive axis.
 				 * There are 4 buffers; each for flow going in one specific direction.
@@ -358,15 +363,7 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 				 *
 				 */
 
-				const double speedOfSound = std::sqrt(gamma * p.MUSCLBuffer[face].GetAt(xIdx, yIdx)/rho.MUSCLBuffer[face].GetAt(xIdx, yIdx));
 
-				// I Don't remember what I did here, I think this can be ignored?
-				/*
-				if (face == LEFT)
-					rf = CellIndex(xIdx -1, yIdx);
-				if (face == BOTTOM)
-					rf = CellIndex(xIdx, yIdx - 1);
-				*/
 
 				// Get the left- and right bound fluxes at the specific face we're considering now.
 				CellValues valuesEntering;
@@ -387,6 +384,7 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 				valuesLeaving.p = p.MUSCLBuffer[face].GetAt(rf);
 
 				// Set the flux split for this side (declared above in the array).
+				const double speedOfSound = std::sqrt(gamma * p.MUSCLBuffer[face].GetAt(xIdx, yIdx)/rho.MUSCLBuffer[face].GetAt(xIdx, yIdx));
 				if (v.MUSCLBuffer[RIGHT].GetAt(rf) > speedOfSound)
 				{
 					// It's sonic, use Hanel.
@@ -398,7 +396,7 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 					fluxSplit[face] = AUSMDVFluxSplitting(valuesEntering, valuesLeaving, gamma, solverSettings.AUSMSwitchBias, solverSettings.entropyFix);
 				}
 
-				// If it's a vertical flux, then the u and v are in the local reference frame, and hence they must be inverted.
+				// If it's a vertical flux, then the u and v are in the local reference frame, and hence they must be inverted to get it in the r-y reference frame.
 				if (face == TOP || face == BOTTOM)
 				{
 					double buf = fluxSplit[face].momentumX;
@@ -411,41 +409,29 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 			const CellIndex currentCell(xIdx, yIdx);
 			auto cellSizes = GetCellSizes(currentCell);
 			EulerContinuity accumulation = ((fluxSplit[RIGHT] - fluxSplit[LEFT])/cellSizes.first + (fluxSplit[TOP] - fluxSplit[BOTTOM])/cellSizes.second)*dt; // dy = dr in this case, if you compensate for the squashification.
-
-			// Replace flux buffer by std::vector<TwodimensionalArray>[4] for each of the terms.
-			rho.flux(xIdx,yIdx) = rhoFlux;
-			v.flux(xIdx,yIdx) = vFlux;
-			u.flux(xIdx,yIdx) = uFlux;
-			E.flux(xIdx,yIdx) = eFlux;
+			eulerConservationEquations[0](xIdx, yIdx) = accumulation.mass;
+			eulerConservationEquations[1](xIdx, yIdx) = accumulation.momentumX;
+			eulerConservationEquations[2](xIdx, yIdx) = accumulation.momentumY;
+			eulerConservationEquations[3](xIdx, yIdx) = accumulation.energy;
 
 			// Extra term to compensate for the fact that the cell sizes are not uniform because we are in a cylindrical coordinate system. In Florian (2017), this is the term *** Hr ***.
-			EulerContinuity hr;
 			const double density = rho.currentTimeStep.GetAt(currentCell);
 			const double xVel = u.currentTimeStep.GetAt(currentCell);
 			const double yVel = v.currentTimeStep.GetAt(currentCell);
 			const double yc = localCellCenterPositions[1].at(currentCell.y);
 			const double enthalpy = H.currentTimeStep.GetAt(currentCell);
-			
-			rho.flux(xIdx,yIdx) += density * yVel / yc * dt;
-			u.flux(xIdx,yIdx) = density * yVel * xVel / yc * dt;
-			v.flux(xIdx,yIdx) =  density * yVel * yVel / yc * dt;
-			E.flux(xIdx,yIdx) =  density * yVel * enthalpy / yc * dt;
+			eulerConservationEquations[0](xIdx, yIdx) += density * yVel / yc * dt;
+			eulerConservationEquations[1](xIdx, yIdx) += density * yVel * xVel / yc * dt;
+			eulerConservationEquations[2](xIdx, yIdx) +=  density * yVel * yVel / yc * dt;
+			eulerConservationEquations[3](xIdx, yIdx) +=  density * yVel * enthalpy / yc * dt;
 		}
 	}	
 }
 
 void Domain::EmptyFlowDeltaBuffer()
 {
-	rho.flux.SetAllToValue(0);
-	u.flux.SetAllToValue(0);
-	v.flux.SetAllToValue(0);
-	E.flux.SetAllToValue(0);
-	// Note that clearing the others (non-state variables) is not necessary, as they are not written to.
-#ifdef _DEBUG
-	p.flux.SetAllToValue(0);
-	T.flux.SetAllToValue(0);
-	H.flux.SetAllToValue(0);
-#endif
+	for (auto& buf : eulerConservationEquations)
+		buf.SetAllToValue(0);
 }
 
 void Domain::SetNextTimeStepValuesBasedOnRungeKuttaAndDeltaBuffers(const int currentRungeKuttaIter)
@@ -458,10 +444,10 @@ void Domain::SetNextTimeStepValuesBasedOnRungeKuttaAndDeltaBuffers(const int cur
 	// assert(!u.rungeKuttaBuffer.IsFilledWithZeroes()); // This can be zero for the initial condition lol.
 	// assert(!v.rungeKuttaBuffer.IsFilledWithZeroes()); // This can be zero for the initial condition lol.
 	assert(!E.rungeKuttaBuffer.IsFilledWithZeroes());
-	assert(rho.flux.IsFilledWithZeroes());
-	assert(u.flux.IsFilledWithZeroes());
-	assert(v.flux.IsFilledWithZeroes());
-	assert(E.flux.IsFilledWithZeroes());
+	assert(eulerConservationEquations[0].IsFilledWithZeroes());
+	assert(eulerConservationEquations[1].IsFilledWithZeroes()); // Should doublecheck, could be close to 0
+	assert(eulerConservationEquations[2].IsFilledWithZeroes()); // Should doublecheck, could be close to 0
+	assert(eulerConservationEquations[3].IsFilledWithZeroes());
 #endif
 
 	const double rkK = 1./(simCase->solverSettings.rungeKuttaOrder-currentRungeKuttaIter); // Runge-kutta factor
@@ -469,21 +455,20 @@ void Domain::SetNextTimeStepValuesBasedOnRungeKuttaAndDeltaBuffers(const int cur
 	{
 		for (int yIdx = 0; yIdx < amountOfCells[1]; yIdx++)
 		{
+			// Convert the conservation equations back into actual variables here.
 			// These are state variables, and are explicitly expressed. combine the values in the delta buffers, and apply runge-kutta scaling.
-			rho.nextTimeStepBuffer(xIdx, yIdx) = rho.currentTimeStep.GetAt(xIdx, yIdx) - rkK * rho.flux.GetAt(xIdx, yIdx);
-			u.nextTimeStepBuffer(xIdx, yIdx) = (rho.currentTimeStep.GetAt(xIdx, yIdx) * u.currentTimeStep.GetAt(xIdx,yIdx) - rkK * u.flux.GetAt(xIdx, yIdx)) / rho.nextTimeStepBuffer(xIdx, yIdx);
-			v.nextTimeStepBuffer(xIdx, yIdx) = (rho.currentTimeStep.GetAt(xIdx, yIdx) * v.currentTimeStep.GetAt(xIdx,yIdx) - rkK * v.flux.GetAt(xIdx, yIdx)) / rho.nextTimeStepBuffer(xIdx, yIdx);
-			E.nextTimeStepBuffer(xIdx, yIdx) = E.currentTimeStep.GetAt(xIdx, yIdx) - rkK * E.flux.GetAt(xIdx, yIdx);
+			rho.nextTimeStepBuffer(xIdx, yIdx) = rho.currentTimeStep.GetAt(xIdx, yIdx) - rkK * eulerConservationEquations[0].GetAt(xIdx, yIdx);
+			u.nextTimeStepBuffer(xIdx, yIdx) = (rho.currentTimeStep.GetAt(xIdx, yIdx) * u.currentTimeStep.GetAt(xIdx,yIdx) - rkK * eulerConservationEquations[1].GetAt(xIdx, yIdx)) / rho.nextTimeStepBuffer(xIdx, yIdx);
+			v.nextTimeStepBuffer(xIdx, yIdx) = (rho.currentTimeStep.GetAt(xIdx, yIdx) * v.currentTimeStep.GetAt(xIdx,yIdx) - rkK * eulerConservationEquations[2].GetAt(xIdx, yIdx)) / rho.nextTimeStepBuffer(xIdx, yIdx);
+			E.nextTimeStepBuffer(xIdx, yIdx) = E.currentTimeStep.GetAt(xIdx, yIdx) - rkK * eulerConservationEquations[3].GetAt(xIdx, yIdx);
 
 			// The others are not state variables; they can be calculated using the known variables. Calculate them now.
-			//todo: set a build mode where these are not calculated to speed things up, as this is only really necessary for data export.
+			//todo: set a build mode where these are not calculated unless a record has been set.
 			p.nextTimeStepBuffer(xIdx, yIdx) = (SpecificHeatRatio()-1) * E.nextTimeStepBuffer.GetAt(xIdx, yIdx) - 0.5*rho.nextTimeStepBuffer(xIdx,yIdx)*std::pow(u.nextTimeStepBuffer.GetAt(xIdx,yIdx) + v.nextTimeStepBuffer.GetAt(xIdx,yIdx), 2);
 			T.nextTimeStepBuffer(xIdx, yIdx) = p.nextTimeStepBuffer.GetAt(xIdx, yIdx) / (GasConstant() * rho.nextTimeStepBuffer.GetAt(xIdx,yIdx));
 			H.nextTimeStepBuffer(xIdx,yIdx) = (E.nextTimeStepBuffer.GetAt(xIdx,yIdx) + p.nextTimeStepBuffer(xIdx,yIdx))/rho.nextTimeStepBuffer.GetAt(xIdx,yIdx);
 		}
 	}
-
-
 }
 
 void ValidateAxisInput(const int axis)

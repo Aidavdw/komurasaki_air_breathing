@@ -12,7 +12,6 @@ enum class EFieldQuantityBuffer
 	CURRENT_TIME_STEP,			// The field that physically represents the value
 	RUNGE_KUTTA,				// to be used for runge kutta iteration. A temporary buffer.
 	NEXT_TIME_STEP,				// The value as it will be used for the next time step
-	FLUX,
 };
 
 // Thin wrapper around a 2d array with doubles, representing a value over an entire domain (in a grid). It is implemented as a flattened 2d array.
@@ -32,7 +31,6 @@ public:
 	TwoDimensionalArray currentTimeStep;			// The actual value of this field quantity. Access using At(), don't manually index!
 	TwoDimensionalArray rungeKuttaBuffer;			// The Runge Kutta buffer of this field quantity. Access using At(), don't manually index!
 	TwoDimensionalArray nextTimeStepBuffer;			// The T buffer of this field quantity. Access using At(), don't manually index!
-	TwoDimensionalArray flux;						// Gets added to nextTimeBuffer, but separately writeable for async possibility.
 	
 	TwoDimensionalArray MUSCLBuffer[4]; // the MUSCL-interpolated values in each of the four directions. index with EBoundaryLocation.
 	void PopulateMUSCLBuffers(const EFieldQuantityBuffer sourceBufferName, const double MUSCLBias, const EFluxLimiterType fluxLimiterType); 	// Fills left/right/top/bottomFaceMUSCLBuffer variables from the given source buffer
