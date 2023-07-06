@@ -434,6 +434,17 @@ void Domain::EmptyFlowDeltaBuffer()
 {
 	for (auto& buf : eulerConservationEquations)
 		buf.SetAllToValue(0);
+	for (size_t i = 0; i < 4; i++)
+	{
+		// There's some redundant ones in here, but it's a debug build so it's fine. Just to be sure.
+		rho.MUSCLBuffer[i].SetAllToValue(0);
+		u.MUSCLBuffer[i].SetAllToValue(0);
+		v.MUSCLBuffer[i].SetAllToValue(0);
+		p.MUSCLBuffer[i].SetAllToValue(0);
+		E.MUSCLBuffer[i].SetAllToValue(0);
+		T.MUSCLBuffer[i].SetAllToValue(0);
+		H.MUSCLBuffer[i].SetAllToValue(0);
+	}
 }
 
 void Domain::SetNextTimeStepValuesBasedOnRungeKuttaAndDeltaBuffers(const int currentRungeKuttaIter)

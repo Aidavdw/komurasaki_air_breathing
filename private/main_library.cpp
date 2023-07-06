@@ -88,7 +88,9 @@ void DoSimulation(SimCase& simCase)
                 
                 Domain& domain = domainIter.second;
                 domain.SetNextTimeStepValuesBasedOnRungeKuttaAndDeltaBuffers(rungeKuttaIterationNumber);
+#ifdef _DEBUG
                 domain.EmptyFlowDeltaBuffer();
+#endif
             }
             
             for (std::unique_ptr<IValve>& valve : simCase.valves)
