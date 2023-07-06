@@ -320,6 +320,7 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 			const CellIndex cix(xIdx, yIdx);
 			double gamma = SpecificHeatRatio();
 			double gasConstant = GasConstant();
+			const double speedOfSound = std::sqrt(gamma * p.rungeKuttaBuffer.GetAt(cix)/p.rungeKuttaBuffer.GetAt(cix));
 			MUSCLBuffer rhoMUSCL, uMUSCL, vMUSCL, pMUSCL, eMUSCL, hMUSCL;
 			constexpr EFace faces[4] = {LEFT, RIGHT, TOP, BOTTOM}; // indexes for sides ---- 0: right; 1: left; 2: top; 3: down;
 			constexpr EAxisDirection faceNormalDirections[2] = {EAxisDirection::POSITIVE, EAxisDirection::NEGATIVE};
@@ -339,6 +340,23 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 					hMUSCL.At(f, n) = (eMUSCL.GetAt(f, n) + pMUSCL.GetAt(f, n))  / rhoMUSCL.GetAt(f, n); 
 				}
 			}
+
+
+			// todo: Florian (2017) did this by setting a global flag. If it had a shockwave in one direction, all of the faces were marked, as well as the cell it neighbours. This approach separates them based on their face. Can this be done?
+			bool shockwavePresent = false;
+			for (const auto f : faces)
+			{
+				const double cNeg = sqrt(SpecificHeatRatio() * pMUSCL.At(f, EAxisDirection::NEGATIVE));
+				const double cPos = sqrt(SpecificHeatRatio() * pMUSCL.At(f, EAxisDirection::POSITIVE));
+				// using !=, Logical xor operator: one of them is supersonic, the other is not. More intuitive than ( (uL-cL)>0 && (uR-cR)<0 ) || ( (uL+cL)>0 && (uR+cR)<0 )
+				if (f == LEFT || f == RIGHT)
+					if ((uMUSCL.GetAt(f, EAxisDirection::POSITIVE) > cPos) != (uMUSCL.GetAt(f, EAxisDirection::NEGATIVE) > cNeg))
+						shockwavePresent = true;
+				if (f == TOP || f == BOTTOM)
+					if ((vMUSCL.GetAt(f, EAxisDirection::POSITIVE) > cPos) != (vMUSCL.GetAt(f, EAxisDirection::NEGATIVE) > cNeg))
+						shockwavePresent = true;
+			}
+			
 
 			// Now, for every face, determine which flux scheme to use based on whether or not it is critical (sonic), and perform the flux transfer.
 			EulerContinuity fluxSplit[4]; // These here contain 4 terms for the euler equations. They all represent the flux of those variables at each side of the cell.
@@ -362,17 +380,12 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 				negativeNormalFlow.p = pMUSCL.At(face, EAxisDirection::NEGATIVE);
 
 				// Set the flux split for this side (declared above in the array).
-				const double speedOfSound = std::sqrt(gamma * p.rungeKuttaBuffer.GetAt(cix)/p.rungeKuttaBuffer.GetAt(cix));
-				if (v.rungeKuttaBuffer.GetAt(cix) > speedOfSound)
-				{
-					// It's sonic, use Hanel.
+
+				// If there's a shockwave, use Hanel. If there is no shockwave, use AUSM DV.
+				if (shockwavePresent)
 					fluxSplit[face] = HanelFluxSplitting(negativeNormalFlow, positiveNormalFlow, gamma, solverSettings.entropyFix);
-				}
 				else
-				{
-					// It's subsonic, use AUSM_DV.
 					fluxSplit[face] = AUSMDVFluxSplitting(negativeNormalFlow, positiveNormalFlow, gamma, solverSettings.AUSMSwitchBias, solverSettings.entropyFix);
-				}
 
 				// If it's a vertical flux, then the u and v are in the local reference frame, and hence they must be inverted to get it in the r-y reference frame.
 				if (face == TOP || face == BOTTOM)

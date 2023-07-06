@@ -591,6 +591,7 @@ int main()
                         cL = sqrt(GAMMA*pL/rhoL);
                         cR = sqrt(GAMMA*pR/rhoR);
 
+                    	// If on this face, one normal direction is supersonic and the other is not, set the flag.
                         if( ( (uL-cL)>0 && (uR-cR)<0 ) || ( (uL+cL)>0 && (uR+cR)<0 ) )
                         {
                             // A sonic point is detected in the X direction between i and i+1
