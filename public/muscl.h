@@ -1,10 +1,5 @@
 ﻿#pragma once
-
-enum class EMUSCLSide
-{
-    RIGHT,
-    LEFT
-};
+#include "domain_enums.h"
 
 enum class EFluxLimiterType
 {
@@ -16,7 +11,7 @@ enum class EFluxLimiterType
 };
 
 // Returns the MUSCL interpolated value of centre, given the values of its left neighbour m1, and two right neighbours, p1 and p2.
-double MUSCLInterpolate(const double m1, const double centre, const double p1, const double p2, const EMUSCLSide sideToInterpolateTo, const double bias, const EFluxLimiterType fluxLimiterType);
+double MUSCLInterpolate(const double m1, const double centre, const double p1, const double p2, const EAxisDirection sideToInterpolateTo, const double bias, const EFluxLimiterType fluxLimiterType);
 
 double ApplyFluxLimiter(const double r, const EFluxLimiterType fluxLimiterType);
 

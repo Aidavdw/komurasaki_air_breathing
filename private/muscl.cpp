@@ -5,7 +5,7 @@
 
 #include "AuxFunctions.h"
 
-double MUSCLInterpolate(const double m1, const double centre, const double p1, const double p2, const EMUSCLSide sideToInterpolateTo, const double bias, const EFluxLimiterType fluxLimiterType)
+double MUSCLInterpolate(const double m1, const double centre, const double p1, const double p2, const EAxisDirection sideToInterpolateTo, const double bias, const EFluxLimiterType fluxLimiterType)
 {
 
     /*
@@ -30,11 +30,11 @@ double MUSCLInterpolate(const double m1, const double centre, const double p1, c
 
     switch(sideToInterpolateTo)
     {
-    case EMUSCLSide::RIGHT :
+    case EAxisDirection::POSITIVE :
         deltaPlus = p2 - p1;
         deltaMin = p1 - centre;
         break;
-    case EMUSCLSide::LEFT :
+    case EAxisDirection::NEGATIVE :
         deltaPlus = p1 - centre;
         deltaMin = centre - m1;
         break;
@@ -49,10 +49,10 @@ double MUSCLInterpolate(const double m1, const double centre, const double p1, c
 
     switch(sideToInterpolateTo)
     {
-    case EMUSCLSide::RIGHT:
+    case EAxisDirection::POSITIVE:
         var = p1 -0.25*((1-bias)*deltaPlus*ApplyFluxLimiter(ratioPre,fluxLimiterType)+(1+bias)*deltaMin*ApplyFluxLimiter(inversePre,fluxLimiterType));
         break;
-    case EMUSCLSide::LEFT:
+    case EAxisDirection::NEGATIVE:
         var = centre + 0.25*((1-bias)*deltaMin*ApplyFluxLimiter(inversePre,fluxLimiterType)+(1+bias)*deltaPlus*ApplyFluxLimiter(ratioPre,fluxLimiterType));
         break;
     default :

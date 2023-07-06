@@ -54,7 +54,7 @@ bool DumpPrettyWithGhostStrings(const TwoDimensionalArray& src, const std::strin
             if ((x == 0) || (x == src.nX))
                 ss << "           , ";
             
-            ss << src.GetIncludingGhostCells(x,y, true);
+            ss << src.GetIncludingGhostCells(x,y);
             if (x != src.nX + src.nGhostCells -1)
                 ss << ", ";
         }

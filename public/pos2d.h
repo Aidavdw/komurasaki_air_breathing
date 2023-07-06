@@ -8,10 +8,10 @@ struct Position
 	Position() :
 		x(0),
 		y(0),
-		upDirection(EDirection::UP)
+		upDirection(EAxisDirection::POSITIVE)
 	{}
 
-	Position(const double x, const double y, const EDirection upDirection) :
+	Position(const double x, const double y, const EAxisDirection upDirection) :
 		x(x),
 		y(y),
 		upDirection(upDirection)
@@ -20,13 +20,13 @@ struct Position
 	Position(const double x, const double y) :
 	x(x),
 	y(y),
-	upDirection(EDirection::UP)
+	upDirection(EAxisDirection::POSITIVE)
 	{}
 
 	double x;
 	double y;
 
-	EDirection upDirection; // useful for when using rotating reference frames. Determines what is up.
+	EAxisDirection upDirection; // useful for when using rotating reference frames. Determines what is up.
 
 	// Returns the distance between {0,0} and this position (when considering it as a vector).
 	double Distance() const;

@@ -12,7 +12,7 @@
 class FemDeformation
 {
 public:
-	FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const double fixedLength, const ReedValveGeometry& reedValveGeometry , const ReedValveEmpiricalParameters& reedValveEmpiricalParameters, const MaterialProperties& materialProperties, const double dt, const EDirection upDirection);
+	FemDeformation(const int amountOfFreeSections, const int amountOfFixedNodes, const double fixedLength, const ReedValveGeometry& reedValveGeometry , const ReedValveEmpiricalParameters& reedValveEmpiricalParameters, const MaterialProperties& materialProperties, const double dt, const EAxisDirection upDirection);
 
 	FemDeformation();
 	

@@ -93,12 +93,12 @@ void FieldQuantity::PopulateMUSCLBuffers(const EFieldQuantityBuffer sourceBuffer
 		{
 			// Left/right is straightforward.
 			// TODO: check if the left/right mixup here is correct.
-			MUSCLBuffer[EFace::RIGHT](xIdx, yIdx) = MUSCLInterpolate(source.GetIncludingGhostCells(xIdx-1, yIdx, true), source.GetIncludingGhostCells(xIdx, yIdx, true), source.GetIncludingGhostCells(xIdx+1, yIdx, true), source.GetIncludingGhostCells(xIdx+2, yIdx, true), EMUSCLSide::LEFT, MUSCLBias, fluxLimiterType);
-			MUSCLBuffer[EFace::LEFT](xIdx, yIdx) = MUSCLInterpolate(source.GetIncludingGhostCells(xIdx-1, yIdx, true), source.GetIncludingGhostCells(xIdx, yIdx, true), source.GetIncludingGhostCells(xIdx+1, yIdx, true), source.GetIncludingGhostCells(xIdx+2, yIdx, true), EMUSCLSide::RIGHT, MUSCLBias, fluxLimiterType);
+			MUSCLBuffer[EFace::RIGHT](xIdx, yIdx) = MUSCLInterpolate(source.GetIncludingGhostCells(xIdx-1, yIdx, true), source.GetIncludingGhostCells(xIdx, yIdx, true), source.GetIncludingGhostCells(xIdx+1, yIdx, true), source.GetIncludingGhostCells(xIdx+2, yIdx, true), EAxisDirection::NEGATIVE, MUSCLBias, fluxLimiterType);
+			MUSCLBuffer[EFace::LEFT](xIdx, yIdx) = MUSCLInterpolate(source.GetIncludingGhostCells(xIdx-1, yIdx, true), source.GetIncludingGhostCells(xIdx, yIdx, true), source.GetIncludingGhostCells(xIdx+1, yIdx, true), source.GetIncludingGhostCells(xIdx+2, yIdx, true), EAxisDirection::POSITIVE, MUSCLBias, fluxLimiterType);
 
 			// MUSCL ON TOP FACE -> Top face flux (Left = Down and Right = Up)
-			MUSCLBuffer[EFace::BOTTOM](xIdx, yIdx) = MUSCLInterpolate(source.GetIncludingGhostCells(xIdx, yIdx-1, true), source.GetIncludingGhostCells(xIdx, yIdx, true), source.GetIncludingGhostCells(xIdx, yIdx+1, true), source.GetIncludingGhostCells(xIdx, yIdx+2, true), EMUSCLSide::LEFT, MUSCLBias, fluxLimiterType);
-			MUSCLBuffer[EFace::TOP](xIdx, yIdx) = MUSCLInterpolate(source.GetIncludingGhostCells(xIdx, yIdx-1, true), source.GetIncludingGhostCells(xIdx, yIdx, true), source.GetIncludingGhostCells(xIdx, yIdx+1, true), source.GetIncludingGhostCells(xIdx, yIdx+2, true), EMUSCLSide::RIGHT, MUSCLBias, fluxLimiterType);
+			MUSCLBuffer[EFace::BOTTOM](xIdx, yIdx) = MUSCLInterpolate(source.GetIncludingGhostCells(xIdx, yIdx-1, true), source.GetIncludingGhostCells(xIdx, yIdx, true), source.GetIncludingGhostCells(xIdx, yIdx+1, true), source.GetIncludingGhostCells(xIdx, yIdx+2, true), EAxisDirection::NEGATIVE, MUSCLBias, fluxLimiterType);
+			MUSCLBuffer[EFace::TOP](xIdx, yIdx) = MUSCLInterpolate(source.GetIncludingGhostCells(xIdx, yIdx-1, true), source.GetIncludingGhostCells(xIdx, yIdx, true), source.GetIncludingGhostCells(xIdx, yIdx+1, true), source.GetIncludingGhostCells(xIdx, yIdx+2, true), EAxisDirection::POSITIVE, MUSCLBias, fluxLimiterType);
 		}
 	}
 	

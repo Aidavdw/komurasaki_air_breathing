@@ -48,10 +48,10 @@ enum EFace
 };
 
 // Different from a face, this shows the direction of a vector!
-enum class EDirection
+enum class EAxisDirection
 {
-	UP,
-	RIGHT
+	POSITIVE,
+	NEGATIVE
 };
 
 // Small auxiliary function to get the name of the enum. For printing purposes.

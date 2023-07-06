@@ -147,9 +147,9 @@ PYBIND11_MODULE(komurasakiairbreathing, m)
         .value("bottom",EFace::BOTTOM)
         .export_values();
 
-    py::enum_<EDirection>(m, "Direction")
-        .value("right", EDirection::RIGHT)
-        .value("up", EDirection::UP)
+    py::enum_<EAxisDirection>(m, "Direction")
+        .value("right", EAxisDirection::NEGATIVE)
+        .value("up", EAxisDirection::POSITIVE)
         .export_values();
 
     // EBoundaryCondition
