@@ -3,6 +3,7 @@
 #include <vector>
 #include "domain_enums.h"
 #include "index2d.h"
+#include "muscl.h"
 
 /*Thin wrapper around a 2d array with doubles, representing a value over an entire domain (in a grid). It is implemented as a flattened 2d array. If initialised with GhostCells, these are also included, but they are indexed relative to the original dimensions. This means that the left ghost cells will be -i, and the ones on the right x_tot + i (and vice versa for y).
  * Has const accessors GetAt() and setters At(), taking either int or CellIndex as an argument, with input validation for debug builds.
@@ -22,6 +23,8 @@ public:
 	static void ElementWiseCopy(const TwoDimensionalArray& from, TwoDimensionalArray& to); // Copies all the information from one array to another. Requires the arrays to be the same size.
 	void Resize(const int sizeX, const int sizeY, const int setGhostCellCount = 0, const double initialValue = 0); // Changes the size of the array. Really only used for initialisation.
 	TwoDimensionalArray Transpose() const; // Returns a transposed copy of this array.
+
+	double GetMUSCLInterpolationForFace(const CellIndex& cix, const EFace face, const EAxisDirection faceNormalDirection, const double MUSCLBias, const EFluxLimiterType fluxLimiterType) const;
 	
 	bool IsFilledWithZeroes() const; // Returns whether or not all the entries are (approximately) zero. Note that this is an expensive operation, and should only be used for debugging, as it iterates over all the cells.
 	bool IsEmpty() const;
@@ -40,8 +43,9 @@ public:
 	
 	inline double& operator () (const CellIndex& cellIndex)						{ return operator()(cellIndex.x, cellIndex.y); }
 	inline double GetAt(const CellIndex& cellIndex) const						{ return GetAt(cellIndex.x, cellIndex.y); }
-	
-	inline double& GetReferenceIncludingGhostCells(const CellIndex& cellIndex, const bool bAllowNormalCells=false)
+
+	// todo: rename this to GetReferenceToGhostCell and flip the default bool, as this is only used to set the ghost cells.
+	inline double& GetReferenceIncludingGhostCells(const CellIndex& cellIndex, const bool bAllowNormalCells=true)
 	{
 #ifdef _DEBUG
 		if (cellIndex.relativeToBoundary != BOTTOM)
@@ -105,7 +109,7 @@ public:
 	}
 
 	// Getter for GhostCells
-	inline double GetIncludingGhostCells(const int xIdx, const int yIdx, const bool bAllowNormalCells=false) const
+	inline double GetIncludingGhostCells(const int xIdx, const int yIdx, const bool bAllowNormalCells=true) const
 	{
 #ifdef  _DEBUG
 		// if it's not in a ghost cell, throw error
