@@ -297,6 +297,7 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 	// Depending on whether or not there are shock fronts, the integration scheme changes. Determining whether or not there are shock fronts is done by looking at the MUSCL interpolated values of the field quantities. So, first calculate & cache the MUSCL vales.
 	const SolverSettings& solverSettings = simCase->solverSettings;
 
+
 #ifdef _DEBUG
 	std::cout << "Calculating flow delta, and populating Flow Delta buffer of domain '" << name << "'" << std::endl;
 	
@@ -309,93 +310,68 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 		throw std::logic_error("conservation of y-momentum buffer is non-empty");
 	if (!eulerConservationEquations[2].IsFilledWithZeroes())
 		throw std::logic_error("conservation of energy buffer is non-empty");
-
-	std::cout << "Calculating MUSCL interpolation values for rho, u, v, p" << std::endl;
 #endif
-
-	//todo: investigate how this works if the cells are not equally sized; how does accumulation work in the ghost cells?
-
-	rho.PopulateMUSCLBuffers(EFieldQuantityBuffer::RUNGE_KUTTA, solverSettings.MUSCLBias, solverSettings.fluxLimiterType);
-	u.PopulateMUSCLBuffers(EFieldQuantityBuffer::RUNGE_KUTTA, solverSettings.MUSCLBias, solverSettings.fluxLimiterType);
-	v.PopulateMUSCLBuffers(EFieldQuantityBuffer::RUNGE_KUTTA, solverSettings.MUSCLBias, solverSettings.fluxLimiterType);
-	p.PopulateMUSCLBuffers(EFieldQuantityBuffer::RUNGE_KUTTA, solverSettings.MUSCLBias, solverSettings.fluxLimiterType);
 
 	// Do flux splitting on all the faces. Use hanel if flow is sonic in either cell, ausm_dv if not.
 	for (int xIdx = 0; xIdx < amountOfCells[0]; xIdx++)
 	{
 		for (int yIdx = 0; yIdx < amountOfCells[1]; yIdx++)
 		{
-			// rho, u, v and p's MUSCL values are stored in their respective buffers. the other variables are not, but they can be calculated directly from the state values in those buffers. So, do this for energy and enthalpy.
+			const CellIndex cix(xIdx, yIdx);
 			double gamma = SpecificHeatRatio();
 			double gasConstant = GasConstant();
-			// energy
-			const double eLeft = p.MUSCLBuffer[LEFT].GetAt(xIdx,yIdx) / (gamma - 1) + 0.5 * rho.MUSCLBuffer[LEFT].GetAt(xIdx, yIdx) * (std::pow(u.MUSCLBuffer[LEFT](xIdx, yIdx), 2) + std::pow(v.MUSCLBuffer[LEFT](xIdx, yIdx), 2));
-			const double eRight = p.MUSCLBuffer[RIGHT].GetAt(xIdx,yIdx) / (gamma - 1) + 0.5 * rho.MUSCLBuffer[RIGHT].GetAt(xIdx, yIdx) * (std::pow(u.MUSCLBuffer[RIGHT](xIdx, yIdx), 2) + std::pow(v.MUSCLBuffer[RIGHT](xIdx, yIdx), 2));
-			const double eTop = p.MUSCLBuffer[TOP].GetAt(xIdx,yIdx) / (gamma - 1) + 0.5 * rho.MUSCLBuffer[TOP].GetAt(xIdx, yIdx) * (std::pow(u.MUSCLBuffer[TOP](xIdx, yIdx), 2) + std::pow(v.MUSCLBuffer[TOP](xIdx, yIdx), 2));
-			const double eBottom = p.MUSCLBuffer[BOTTOM].GetAt(xIdx,yIdx) / (gamma - 1) + 0.5 * rho.MUSCLBuffer[BOTTOM].GetAt(xIdx, yIdx) * (std::pow(u.MUSCLBuffer[BOTTOM](xIdx, yIdx), 2) + std::pow(v.MUSCLBuffer[BOTTOM](xIdx, yIdx), 2));
-			const double energyAtFace[4] = {eLeft, eRight, eTop, eBottom};
+			MUSCLBuffer rhoMUSCL, uMUSCL, vMUSCL, pMUSCL, eMUSCL, hMUSCL;
+			constexpr EFace faces[4] = {LEFT, RIGHT, TOP, BOTTOM}; // indexes for sides ---- 0: right; 1: left; 2: top; 3: down;
+			constexpr EAxisDirection faceNormalDirections[2] = {EAxisDirection::POSITIVE, EAxisDirection::NEGATIVE};
 
-			// enthalpy
-			const double hLeft = (eLeft + p.MUSCLBuffer[LEFT].GetAt(xIdx,yIdx))/rho.MUSCLBuffer[LEFT].GetAt(xIdx,yIdx);
-			const double hRight = (eRight + p.MUSCLBuffer[RIGHT].GetAt(xIdx,yIdx))/rho.MUSCLBuffer[RIGHT].GetAt(xIdx,yIdx);
-			const double hTop = (eTop + p.MUSCLBuffer[TOP].GetAt(xIdx,yIdx))/rho.MUSCLBuffer[TOP].GetAt(xIdx,yIdx);
-			const double hBottom = (eBottom + p.MUSCLBuffer[BOTTOM].GetAt(xIdx,yIdx))/rho.MUSCLBuffer[BOTTOM].GetAt(xIdx,yIdx);
-			const double enthalpyAtFace[4] = {hLeft, hRight, hTop, hBottom};
+			// Getting the MUSCL interpolations for the values at this cell's faces.
+			// This could be made quicker with caching, but at this makes the program significantly more complicated. It has therefore been decided to keep it like this.
+			for (const auto f : faces)
+			{
+				for (const auto n : faceNormalDirections)
+				{
+					rhoMUSCL.At(f, n) = rho.rungeKuttaBuffer.GetMUSCLInterpolationForFace(cix, f, n, solverSettings.MUSCLBias, solverSettings.fluxLimiterType);
+					uMUSCL.At(f, n) = u.rungeKuttaBuffer.GetMUSCLInterpolationForFace(cix, f, n, solverSettings.MUSCLBias, solverSettings.fluxLimiterType);
+					vMUSCL.At(f, n) = v.rungeKuttaBuffer.GetMUSCLInterpolationForFace(cix, f, n, solverSettings.MUSCLBias, solverSettings.fluxLimiterType);
+					pMUSCL.At(f, n) = p.rungeKuttaBuffer.GetMUSCLInterpolationForFace(cix, f, n, solverSettings.MUSCLBias, solverSettings.fluxLimiterType);
+					// rho, u, v and p's MUSCL values determined based on their state variable (field). the other variables are not, but they can be calculated directly from the state values in those buffers, as they are non-state variables. So, do this for energy and enthalpy.
+					eMUSCL.At(f, n) = pMUSCL.GetAt(f, n) / (gamma -1) +  0.5*rhoMUSCL.GetAt(f, n) * (std::pow(uMUSCL.GetAt(f, n), 2) + std::pow(vMUSCL.GetAt(f, n), 2));
+					hMUSCL.At(f, n) = (eMUSCL.GetAt(f, n) + pMUSCL.GetAt(f, n))  / rhoMUSCL.GetAt(f, n); 
+				}
+			}
 
 			// Now, for every face, determine which flux scheme to use based on whether or not it is critical (sonic), and perform the flux transfer.
-			constexpr EFace faces[4] = {LEFT, RIGHT, TOP, BOTTOM}; // indexes for sides ---- 0: right; 1: left; 2: top; 3: down;
 			EulerContinuity fluxSplit[4]; // These here contain 4 terms for the euler equations. They all represent the flux of those variables at each side of the cell.
 			for (const auto face : faces)
 			{
-				CellIndex rf; // The position in the MUSCL buffer where the relevant values are stored.
-				if (face == LEFT)
-					rf = CellIndex(xIdx -1, yIdx);
-				if (face == BOTTOM)
-					rf = CellIndex(xIdx, yIdx - 1);
-
-				/* The values in the MUSCL buffers are stored as positive terms on their current cells; this means that musclbuffer(i,j) is the flux to the positive axis.
-				 * There are 4 buffers; each for flow going in one specific direction.
-				 * Hence, for flow in the right direction, take the flux in the right direction at right face, and the left face; right face is stored at i,j normally, and for the one on the left face use the value for the previous cell (identical).
-				 *	
-				 *									|	cell (xIdx, yIdx)	|
-				 *		musclRight(xIdx - 1, yIdx) -|-->				  --|--> musclRight(xIdx, yIdx) (positive)
-				 *									|						|
-				 *		musclLeft(xIdx -1, yIdx) <--|--					 <--|-- musclLeft(xIdx, yIdx) (negative)
-				 *									|						|
-				 *
-				 */
-
-
-
-				// Get the left- and right bound fluxes at the specific face we're considering now.
-				CellValues valuesEntering;
-				const EFace anti = Opposite(face);
-				valuesEntering.density = rho.MUSCLBuffer[anti].GetIncludingGhostCells(rf, true);
-				valuesEntering.u = u.MUSCLBuffer[anti].GetIncludingGhostCells(rf, true);
-				valuesEntering.v = v.MUSCLBuffer[anti].GetIncludingGhostCells(rf, true);
-				valuesEntering.e = energyAtFace[anti];
-				valuesEntering.h = enthalpyAtFace[anti];
-				valuesEntering.p = p.MUSCLBuffer[anti].GetIncludingGhostCells(rf, true);
+				// Get the value of the flow going in the positive normal direction and negative normal direction at this specific face. 
+				CellValues positiveNormalFlow;
+				positiveNormalFlow.density = rhoMUSCL.At(face, EAxisDirection::POSITIVE);
+				positiveNormalFlow.u = uMUSCL.At(face, EAxisDirection::POSITIVE);
+				positiveNormalFlow.v = vMUSCL.At(face, EAxisDirection::POSITIVE);
+				positiveNormalFlow.e = eMUSCL.At(face, EAxisDirection::POSITIVE);
+				positiveNormalFlow.h = hMUSCL.At(face, EAxisDirection::POSITIVE);
+				positiveNormalFlow.p = pMUSCL.At(face, EAxisDirection::POSITIVE);
 				
-				CellValues valuesLeaving;
-				valuesLeaving.density = rho.MUSCLBuffer[face].GetIncludingGhostCells(rf, true);
-				valuesLeaving.u = u.MUSCLBuffer[face].GetIncludingGhostCells(rf, true);
-				valuesLeaving.v = v.MUSCLBuffer[face].GetIncludingGhostCells(rf, true);
-				valuesLeaving.e = energyAtFace[face];
-				valuesLeaving.h = enthalpyAtFace[face];
-				valuesLeaving.p = p.MUSCLBuffer[face].GetIncludingGhostCells(rf, true);
+				CellValues negativeNormalFlow;
+				negativeNormalFlow.density = rhoMUSCL.At(face, EAxisDirection::NEGATIVE);
+				negativeNormalFlow.u = uMUSCL.At(face, EAxisDirection::NEGATIVE);
+				negativeNormalFlow.v = vMUSCL.At(face, EAxisDirection::NEGATIVE);
+				negativeNormalFlow.e = eMUSCL.At(face, EAxisDirection::NEGATIVE);
+				negativeNormalFlow.h = hMUSCL.At(face, EAxisDirection::NEGATIVE);
+				negativeNormalFlow.p = pMUSCL.At(face, EAxisDirection::NEGATIVE);
 
 				// Set the flux split for this side (declared above in the array).
-				const double speedOfSound = std::sqrt(gamma * p.MUSCLBuffer[face].GetAt(xIdx, yIdx)/rho.MUSCLBuffer[face].GetAt(xIdx, yIdx));
-				if (v.MUSCLBuffer[RIGHT].GetIncludingGhostCells(rf, true) > speedOfSound)
+				const double speedOfSound = std::sqrt(gamma * p.rungeKuttaBuffer.GetAt(cix)/p.rungeKuttaBuffer.GetAt(cix));
+				if (v.rungeKuttaBuffer.GetAt(cix) > speedOfSound)
 				{
 					// It's sonic, use Hanel.
-					fluxSplit[face] = HanelFluxSplitting(valuesEntering, valuesLeaving, gamma, solverSettings.entropyFix);
+					fluxSplit[face] = HanelFluxSplitting(negativeNormalFlow, positiveNormalFlow, gamma, solverSettings.entropyFix);
 				}
 				else
 				{
 					// It's subsonic, use AUSM_DV.
-					fluxSplit[face] = AUSMDVFluxSplitting(valuesEntering, valuesLeaving, gamma, solverSettings.AUSMSwitchBias, solverSettings.entropyFix);
+					fluxSplit[face] = AUSMDVFluxSplitting(negativeNormalFlow, positiveNormalFlow, gamma, solverSettings.AUSMSwitchBias, solverSettings.entropyFix);
 				}
 
 				// If it's a vertical flux, then the u and v are in the local reference frame, and hence they must be inverted to get it in the r-y reference frame.
@@ -434,17 +410,6 @@ void Domain::EmptyFlowDeltaBuffer()
 {
 	for (auto& buf : eulerConservationEquations)
 		buf.SetAllToValue(0);
-	for (size_t i = 0; i < 4; i++)
-	{
-		// There's some redundant ones in here, but it's a debug build so it's fine. Just to be sure.
-		rho.MUSCLBuffer[i].SetAllToValue(0);
-		u.MUSCLBuffer[i].SetAllToValue(0);
-		v.MUSCLBuffer[i].SetAllToValue(0);
-		p.MUSCLBuffer[i].SetAllToValue(0);
-		E.MUSCLBuffer[i].SetAllToValue(0);
-		T.MUSCLBuffer[i].SetAllToValue(0);
-		H.MUSCLBuffer[i].SetAllToValue(0);
-	}
 }
 
 void Domain::SetNextTimeStepValuesBasedOnRungeKuttaAndDeltaBuffers(const int currentRungeKuttaIter)

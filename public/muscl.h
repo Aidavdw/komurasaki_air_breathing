@@ -10,6 +10,17 @@ enum class EFluxLimiterType
     VAN_ALBADA_TWO
 };
 
+struct MUSCLBuffer
+{
+    double left[2] = {0,0};
+    double right[2] = {0,0};
+    double top[2] = {0,0};
+    double bottom[2] = {0,0};
+
+    double GetAt(const EFace face, EAxisDirection axisDirection) const;
+    double& At(EFace face, EAxisDirection axisDirection);
+};
+
 // Returns the MUSCL interpolated value of centre, given the values of its left neighbour m1, and two right neighbours, p1 and p2.
 double MUSCLInterpolate(const double m1, const double centre, const double p1, const double p2, const EAxisDirection sideToInterpolateTo, const double bias, const EFluxLimiterType fluxLimiterType);
 

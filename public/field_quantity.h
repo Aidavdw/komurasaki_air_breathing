@@ -1,7 +1,6 @@
 #pragma once
 #include "2dArray.h"
 #include "index2d.h"
-#include "muscl.h"
 
 // Forward Declarations
 struct Position;
@@ -31,9 +30,6 @@ public:
 	TwoDimensionalArray currentTimeStep;			// The actual value of this field quantity. Access using At(), don't manually index!
 	TwoDimensionalArray rungeKuttaBuffer;			// The Runge Kutta buffer of this field quantity. Access using At(), don't manually index!
 	TwoDimensionalArray nextTimeStepBuffer;			// The T buffer of this field quantity. Access using At(), don't manually index!
-	
-	TwoDimensionalArray MUSCLBuffer[4]; // the MUSCL-interpolated values in each of the four directions. index with EBoundaryLocation.
-	void PopulateMUSCLBuffers(const EFieldQuantityBuffer sourceBufferName, const double MUSCLBias, const EFluxLimiterType fluxLimiterType); 	// Fills left/right/top/bottomFaceMUSCLBuffer variables from the given source buffer
 	
 	void CopyToBuffer(const EFieldQuantityBuffer from, const EFieldQuantityBuffer to); // Copies all the values of one buffer to the other. Expensive operation!
 	TwoDimensionalArray& Buffer(const EFieldQuantityBuffer bufferName); // Gets read-only from buffer

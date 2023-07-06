@@ -9,8 +9,6 @@
 #include <cmath>
 #include <algorithm>
 
-#include "muscl.h"
-
 FieldQuantity::FieldQuantity(Domain* domain, const int sizeX, const int sizeY, const double initialValue, const int nGhostCells) :
 	domain(domain),
 	nGhostCells(nGhostCells),
@@ -20,9 +18,6 @@ FieldQuantity::FieldQuantity(Domain* domain, const int sizeX, const int sizeY, c
 	currentTimeStep = TwoDimensionalArray(sizeX, sizeY, nGhostCells, initialValue);
 	rungeKuttaBuffer = TwoDimensionalArray(sizeX, sizeY, nGhostCells, initialValue);
 	nextTimeStepBuffer = TwoDimensionalArray(sizeX, sizeY, nGhostCells, initialValue);
-	
-	for (auto& i : MUSCLBuffer)
-		i = TwoDimensionalArray(sizeX, sizeY, nGhostCells, initialValue);
 }
 
 void FieldQuantity::CopyToBuffer(const EFieldQuantityBuffer from, const EFieldQuantityBuffer to)
@@ -79,29 +74,6 @@ double FieldQuantity::GetInterpolatedValueAtPosition(const Position& atPosition,
 #endif
 	
 	return interpolatedValue;
-}
-
-void FieldQuantity::PopulateMUSCLBuffers(const EFieldQuantityBuffer sourceBufferName, double MUSCLBias, const EFluxLimiterType fluxLimiterType)
-{
-	if (nGhostCells < 2)
-		throw std::logic_error("Cannot populate MUSCL buffers, as the amount of ghost cells is smaller than two. Because of how MUSCL has been implemented, given that c is at the edge, the sampling at p2 will be done on the ghost cells! This means that there is a soft lower limit of 2 on the amount of ghost cells.");
-	
-	const TwoDimensionalArray& source = GetAtBufferConst(sourceBufferName);
-	for (int xIdx = 0; xIdx < nX_; ++xIdx)
-	{
-		for (int yIdx = 0; yIdx < nY_; yIdx++)
-		{
-			// Left/right is straightforward.
-			// TODO: check if the left/right mixup here is correct.
-			MUSCLBuffer[EFace::RIGHT](xIdx, yIdx) = MUSCLInterpolate(source.GetIncludingGhostCells(xIdx-1, yIdx, true), source.GetIncludingGhostCells(xIdx, yIdx, true), source.GetIncludingGhostCells(xIdx+1, yIdx, true), source.GetIncludingGhostCells(xIdx+2, yIdx, true), EAxisDirection::NEGATIVE, MUSCLBias, fluxLimiterType);
-			MUSCLBuffer[EFace::LEFT](xIdx, yIdx) = MUSCLInterpolate(source.GetIncludingGhostCells(xIdx-1, yIdx, true), source.GetIncludingGhostCells(xIdx, yIdx, true), source.GetIncludingGhostCells(xIdx+1, yIdx, true), source.GetIncludingGhostCells(xIdx+2, yIdx, true), EAxisDirection::POSITIVE, MUSCLBias, fluxLimiterType);
-
-			// MUSCL ON TOP FACE -> Top face flux (Left = Down and Right = Up)
-			MUSCLBuffer[EFace::BOTTOM](xIdx, yIdx) = MUSCLInterpolate(source.GetIncludingGhostCells(xIdx, yIdx-1, true), source.GetIncludingGhostCells(xIdx, yIdx, true), source.GetIncludingGhostCells(xIdx, yIdx+1, true), source.GetIncludingGhostCells(xIdx, yIdx+2, true), EAxisDirection::NEGATIVE, MUSCLBias, fluxLimiterType);
-			MUSCLBuffer[EFace::TOP](xIdx, yIdx) = MUSCLInterpolate(source.GetIncludingGhostCells(xIdx, yIdx-1, true), source.GetIncludingGhostCells(xIdx, yIdx, true), source.GetIncludingGhostCells(xIdx, yIdx+1, true), source.GetIncludingGhostCells(xIdx, yIdx+2, true), EAxisDirection::POSITIVE, MUSCLBias, fluxLimiterType);
-		}
-	}
-	
 }
 
 inline int FieldQuantity::GetFlattenedIndex(const int xIdx, const int yIdx) const

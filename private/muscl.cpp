@@ -5,8 +5,37 @@
 
 #include "AuxFunctions.h"
 
+double MUSCLBuffer::GetAt(const EFace face, EAxisDirection axisDirection) const
+{
+    const bool i = (axisDirection == EAxisDirection::POSITIVE);
+    switch (face)
+    {
+    case LEFT: return left[i];
+    case RIGHT: return right[i];
+    case TOP: return top[i];
+    case BOTTOM: return bottom[i];
+    default:
+        throw std::logic_error("MUSCL buffer getting not implement for this face direction.");
+    }
+}
+
+double& MUSCLBuffer::At(EFace face, EAxisDirection axisDirection)
+{
+    const bool i = (axisDirection == EAxisDirection::POSITIVE);
+    switch (face)
+    {
+        case LEFT: return left[i];
+        case RIGHT: return right[i];
+        case TOP: return top[i];
+        case BOTTOM: return bottom[i];
+        default:
+            throw std::logic_error("MUSCL buffer getting not implement for this face direction.");
+    }
+}
+
 double MUSCLInterpolate(const double m1, const double centre, const double p1, const double p2, const EAxisDirection sideToInterpolateTo, const double bias, const EFluxLimiterType fluxLimiterType)
 {
+    //todo: investigate how this works if the cells are not equally sized; how does accumulation work in the ghost cells?
 
     /*
      *  Interpolates the values at center using the values that are more around it.
