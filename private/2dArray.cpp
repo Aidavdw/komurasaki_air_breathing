@@ -5,6 +5,7 @@
 #include <cmath>
 
 #include "AuxFunctions.h"
+#include "muscl.h"
 
 TwoDimensionalArray::TwoDimensionalArray(const int sizeX, const int sizeY, const int nGhostCells, const double initialValue) :
 	nGhostCells(nGhostCells)
@@ -45,6 +46,30 @@ TwoDimensionalArray TwoDimensionalArray::Transpose() const
 	}
 
 	return T;
+}
+
+double TwoDimensionalArray::GetMUSCLInterpolationForFace(const CellIndex& cix, const EFace face, const EAxisDirection faceNormalDirection, const double MUSCLBias,
+	const EFluxLimiterType fluxLimiterType) const
+{
+#ifdef _DEBUG
+	if (nGhostCells < 2)
+		throw std::logic_error("Cannot get MUSCL value, as the amount of ghost cells is smaller than two. Because of how MUSCL has been implemented, given that c is at the edge, the sampling at p2 will be done on the ghost cells! This means that there is a soft lower limit of 2 on the amount of ghost cells.");
+#endif
+	const int xIdx = cix.x;
+	const int yIdx = cix.y;
+	
+	switch (face) {
+		case RIGHT:
+			return MUSCLInterpolate(GetIncludingGhostCells(xIdx-1, yIdx), GetAt(xIdx, yIdx), GetIncludingGhostCells(xIdx+1, yIdx), GetIncludingGhostCells(xIdx+2, yIdx), faceNormalDirection, MUSCLBias, fluxLimiterType);
+		case LEFT:
+			return MUSCLInterpolate(GetIncludingGhostCells(xIdx-2, yIdx), GetIncludingGhostCells(xIdx -1, yIdx), GetAt(xIdx, yIdx), GetIncludingGhostCells(xIdx + 1, yIdx), faceNormalDirection, MUSCLBias, fluxLimiterType);
+		case TOP:
+			return MUSCLInterpolate(GetIncludingGhostCells(xIdx, yIdx-1), GetAt(xIdx, yIdx), GetIncludingGhostCells(xIdx, yIdx+1), GetIncludingGhostCells(xIdx, yIdx+2), faceNormalDirection, MUSCLBias, fluxLimiterType);
+		case BOTTOM:
+			return MUSCLInterpolate(GetIncludingGhostCells(xIdx, yIdx-2), GetIncludingGhostCells(xIdx, yIdx-1), GetAt(xIdx, yIdx), GetIncludingGhostCells(xIdx, yIdx+1), faceNormalDirection, MUSCLBias, fluxLimiterType);
+	default:
+			throw std::runtime_error("Cannot do muscl interpolation for this type of face.");
+	}
 }
 
 bool TwoDimensionalArray::IsFilledWithZeroes() const
