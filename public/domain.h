@@ -38,7 +38,7 @@ public:
 	FieldQuantity T;							// Temperature
 	FieldQuantity H;							// enthalpy ?
 
-	TwoDimensionalArray eulerConservationEquations[4];		// To be used to calculate the values in the next time steps, contains the mass, momentum and energy fluxes for all terms. Written indirectly so that IValve can easily add here.
+	TwoDimensionalArray eulerConservationTerms[4];		// To be used to calculate the values in the next time steps, contains the mass, momentum and energy fluxes for all terms. Written indirectly so that IValve can easily add here.
 
 	std::vector<double> cellLengths[2];					// The length of each cell.
 	std::vector<double> localCellCenterPositions[2];		// The location of the cell relative to where the domain is anchored. To get global position, add with Domain.position.

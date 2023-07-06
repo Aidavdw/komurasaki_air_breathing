@@ -93,10 +93,10 @@ void IValve::AddCachedTermsToDomainConservationEquations() const
 
 
         // todo: confirm that the source term is already divided by the amount of cells. if not, add division by source cells.
-        intoDomain_->eulerConservationEquations[0](cixSource) += sourceTerms.mass;
-        intoDomain_->eulerConservationEquations[1](cixSource) += sourceTerms.momentumX;
-        intoDomain_->eulerConservationEquations[2](cixSource) += sourceTerms.momentumY;
-        intoDomain_->eulerConservationEquations[3](cixSource) += sourceTerms.energy;
+        intoDomain_->eulerConservationTerms[0](cixSource) += sourceTerms.mass;
+        intoDomain_->eulerConservationTerms[1](cixSource) += sourceTerms.momentumX;
+        intoDomain_->eulerConservationTerms[2](cixSource) += sourceTerms.momentumY;
+        intoDomain_->eulerConservationTerms[3](cixSource) += sourceTerms.energy;
 
         // 2. The sink cells in the outOfDomain_
         const CellIndex& cixSink = sinkCellsIndices_[i];
@@ -108,10 +108,10 @@ void IValve::AddCachedTermsToDomainConservationEquations() const
             throw std::logic_error("sink term is not initialised.");
 #endif
 
-        outOfDomain_->eulerConservationEquations[0](cixSource) -= sinkTerms.mass;
-        outOfDomain_->eulerConservationEquations[1](cixSource) -= sinkTerms.momentumX;
-        outOfDomain_->eulerConservationEquations[2](cixSource) -= sinkTerms.momentumY;
-        outOfDomain_->eulerConservationEquations[3](cixSource) -= sinkTerms.energy;
+        outOfDomain_->eulerConservationTerms[0](cixSource) -= sinkTerms.mass;
+        outOfDomain_->eulerConservationTerms[1](cixSource) -= sinkTerms.momentumX;
+        outOfDomain_->eulerConservationTerms[2](cixSource) -= sinkTerms.momentumY;
+        outOfDomain_->eulerConservationTerms[3](cixSource) -= sinkTerms.energy;
     }
     
 }

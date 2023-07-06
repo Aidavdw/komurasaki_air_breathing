@@ -35,7 +35,7 @@ Domain::Domain(const std::string& name, SimCase* simCase, const Position& positi
 	meshSpacing[0] = MeshSpacingSolution(meshSpacingArg.first);
 	meshSpacing[1] = MeshSpacingSolution(meshSpacingArg.second);
 
-	for (auto& conservationEq : eulerConservationEquations)
+	for (auto& conservationEq : eulerConservationTerms)
 		conservationEq.Resize(amountOfCells[0], amountOfCells[1]);
 
 	CacheCellSizes();
@@ -302,13 +302,13 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 	std::cout << "Calculating flow delta, and populating Flow Delta buffer of domain '" << name << "'" << std::endl;
 	
 	// Ensure that the buffers are actually empty to start with
-	if (!eulerConservationEquations[0].IsFilledWithZeroes())
+	if (!eulerConservationTerms[0].IsFilledWithZeroes())
 		throw std::logic_error("conservation of mass buffer is non-empty");
-	if (!eulerConservationEquations[1].IsFilledWithZeroes())
+	if (!eulerConservationTerms[1].IsFilledWithZeroes())
 		throw std::logic_error("conservation of x-momentum buffer is non-empty");
-	if (!eulerConservationEquations[2].IsFilledWithZeroes())
+	if (!eulerConservationTerms[2].IsFilledWithZeroes())
 		throw std::logic_error("conservation of y-momentum buffer is non-empty");
-	if (!eulerConservationEquations[2].IsFilledWithZeroes())
+	if (!eulerConservationTerms[2].IsFilledWithZeroes())
 		throw std::logic_error("conservation of energy buffer is non-empty");
 #endif
 
@@ -340,9 +340,8 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 					hMUSCL.At(f, n) = (eMUSCL.GetAt(f, n) + pMUSCL.GetAt(f, n))  / rhoMUSCL.GetAt(f, n); 
 				}
 			}
-
-
-			// todo: Florian (2017) did this by setting a global flag. If it had a shockwave in one direction, all of the faces were marked, as well as the cell it neighbours. This approach separates them based on their face. Can this be done?
+			
+			// todo: Florian (2017) did this by setting a global flag. If it had a shockwave in one direction, all of the faces were marked, as well as the cell it neighbours. This approach only sets this face, and not the neighbours. Is that correct?
 			bool shockwavePresent = false;
 			for (const auto f : faces)
 			{
@@ -357,71 +356,69 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 						shockwavePresent = true;
 			}
 			
-
 			// Now, for every face, determine which flux scheme to use based on whether or not it is critical (sonic), and perform the flux transfer.
-			EulerContinuity fluxSplit[4]; // These here contain 4 terms for the euler equations. They all represent the flux of those variables at each side of the cell.
-			for (const auto face : faces)
+			EulerContinuity continuityAtFace[4]; // These here contain 4 terms for the euler equations. They all represent the flux of those variables at each side of the cell.
+			for (const auto f : faces)
 			{
 				// Get the value of the flow going in the positive normal direction and negative normal direction at this specific face. 
 				CellValues positiveNormalFlow;
-				positiveNormalFlow.density = rhoMUSCL.At(face, EAxisDirection::POSITIVE);
-				positiveNormalFlow.u = uMUSCL.At(face, EAxisDirection::POSITIVE);
-				positiveNormalFlow.v = vMUSCL.At(face, EAxisDirection::POSITIVE);
-				positiveNormalFlow.e = eMUSCL.At(face, EAxisDirection::POSITIVE);
-				positiveNormalFlow.h = hMUSCL.At(face, EAxisDirection::POSITIVE);
-				positiveNormalFlow.p = pMUSCL.At(face, EAxisDirection::POSITIVE);
+				positiveNormalFlow.density = rhoMUSCL.At(f, EAxisDirection::POSITIVE);
+				positiveNormalFlow.u = uMUSCL.At(f, EAxisDirection::POSITIVE);
+				positiveNormalFlow.v = vMUSCL.At(f, EAxisDirection::POSITIVE);
+				positiveNormalFlow.e = eMUSCL.At(f, EAxisDirection::POSITIVE);
+				positiveNormalFlow.h = hMUSCL.At(f, EAxisDirection::POSITIVE);
+				positiveNormalFlow.p = pMUSCL.At(f, EAxisDirection::POSITIVE);
 				
 				CellValues negativeNormalFlow;
-				negativeNormalFlow.density = rhoMUSCL.At(face, EAxisDirection::NEGATIVE);
-				negativeNormalFlow.u = uMUSCL.At(face, EAxisDirection::NEGATIVE);
-				negativeNormalFlow.v = vMUSCL.At(face, EAxisDirection::NEGATIVE);
-				negativeNormalFlow.e = eMUSCL.At(face, EAxisDirection::NEGATIVE);
-				negativeNormalFlow.h = hMUSCL.At(face, EAxisDirection::NEGATIVE);
-				negativeNormalFlow.p = pMUSCL.At(face, EAxisDirection::NEGATIVE);
+				negativeNormalFlow.density = rhoMUSCL.At(f, EAxisDirection::NEGATIVE);
+				negativeNormalFlow.u = uMUSCL.At(f, EAxisDirection::NEGATIVE);
+				negativeNormalFlow.v = vMUSCL.At(f, EAxisDirection::NEGATIVE);
+				negativeNormalFlow.e = eMUSCL.At(f, EAxisDirection::NEGATIVE);
+				negativeNormalFlow.h = hMUSCL.At(f, EAxisDirection::NEGATIVE);
+				negativeNormalFlow.p = pMUSCL.At(f, EAxisDirection::NEGATIVE);
 
 				// Set the flux split for this side (declared above in the array).
-
 				// If there's a shockwave, use Hanel. If there is no shockwave, use AUSM DV.
 				if (shockwavePresent)
-					fluxSplit[face] = HanelFluxSplitting(negativeNormalFlow, positiveNormalFlow, gamma, solverSettings.entropyFix);
+					continuityAtFace[f] = HanelFluxSplitting(negativeNormalFlow, positiveNormalFlow, gamma, solverSettings.entropyFix);
 				else
-					fluxSplit[face] = AUSMDVFluxSplitting(negativeNormalFlow, positiveNormalFlow, gamma, solverSettings.AUSMSwitchBias, solverSettings.entropyFix);
+					continuityAtFace[f] = AUSMDVFluxSplitting(negativeNormalFlow, positiveNormalFlow, gamma, solverSettings.AUSMSwitchBias, solverSettings.entropyFix);
 
 				// If it's a vertical flux, then the u and v are in the local reference frame, and hence they must be inverted to get it in the r-y reference frame.
-				if (face == TOP || face == BOTTOM)
+				if (f == TOP || f == BOTTOM)
 				{
-					double buf = fluxSplit[face].momentumX;
-					fluxSplit[face].momentumX = fluxSplit[face].momentumY;
-					fluxSplit[face].momentumY = buf;
+					double buf = continuityAtFace[f].momentumX;
+					continuityAtFace[f].momentumX = continuityAtFace[f].momentumY;
+					continuityAtFace[f].momentumY = buf;
 				}
 			}
 
 			// Total accumulation is what goes in - what goes out
-			const CellIndex currentCell(xIdx, yIdx);
-			auto cellSizes = GetCellSizes(currentCell);
-			EulerContinuity accumulation = ((fluxSplit[RIGHT] - fluxSplit[LEFT])/cellSizes.first + (fluxSplit[TOP] - fluxSplit[BOTTOM])/cellSizes.second)*dt; // dy = dr in this case, if you compensate for the squashification.
-			eulerConservationEquations[0](xIdx, yIdx) = accumulation.mass;
-			eulerConservationEquations[1](xIdx, yIdx) = accumulation.momentumX;
-			eulerConservationEquations[2](xIdx, yIdx) = accumulation.momentumY;
-			eulerConservationEquations[3](xIdx, yIdx) = accumulation.energy;
+			const auto cellSizes = GetCellSizes(cix);
+			EulerContinuity accumulation = ((continuityAtFace[RIGHT] - continuityAtFace[LEFT])/cellSizes.first + (continuityAtFace[TOP] - continuityAtFace[BOTTOM])/cellSizes.second)*dt; // dy = dr in this case, if you compensate for the squashification.
 
 			// Extra term to compensate for the fact that the cell sizes are not uniform because we are in a cylindrical coordinate system. In Florian (2017), this is the term *** Hr ***.
-			const double density = rho.currentTimeStep.GetAt(currentCell);
-			const double xVel = u.currentTimeStep.GetAt(currentCell);
-			const double yVel = v.currentTimeStep.GetAt(currentCell);
-			const double yc = localCellCenterPositions[1].at(currentCell.y);
-			const double enthalpy = H.currentTimeStep.GetAt(currentCell);
-			eulerConservationEquations[0](xIdx, yIdx) += density * yVel / yc * dt;
-			eulerConservationEquations[1](xIdx, yIdx) += density * yVel * xVel / yc * dt;
-			eulerConservationEquations[2](xIdx, yIdx) +=  density * yVel * yVel / yc * dt;
-			eulerConservationEquations[3](xIdx, yIdx) +=  density * yVel * enthalpy / yc * dt;
+			const double density = rho.currentTimeStep.GetAt(cix);
+			const double xVel = u.currentTimeStep.GetAt(cix);
+			const double yVel = v.currentTimeStep.GetAt(cix);
+			const double yc = localCellCenterPositions[1].at(cix.y);
+			const double enthalpy = H.currentTimeStep.GetAt(cix);
+			accumulation.mass += density * yVel / yc * dt;
+			accumulation.momentumX += density * yVel * xVel / yc * dt;
+			accumulation.momentumY +=  density * yVel * yVel / yc * dt;
+			accumulation.energy +=  density * yVel * enthalpy / yc * dt;
+
+			eulerConservationTerms[0](xIdx, yIdx) = accumulation.mass;
+			eulerConservationTerms[1](xIdx, yIdx) = accumulation.momentumX;
+			eulerConservationTerms[2](xIdx, yIdx) = accumulation.momentumY;
+			eulerConservationTerms[3](xIdx, yIdx) = accumulation.energy;
 		}
 	}	
 }
 
 void Domain::EmptyFlowDeltaBuffer()
 {
-	for (auto& buf : eulerConservationEquations)
+	for (auto& buf : eulerConservationTerms)
 		buf.SetAllToValue(0);
 }
 
@@ -451,10 +448,10 @@ void Domain::SetNextTimeStepValuesBasedOnRungeKuttaAndDeltaBuffers(const int cur
 		{
 			// Convert the conservation equations back into actual variables here.
 			// These are state variables, and are explicitly expressed. combine the values in the delta buffers, and apply runge-kutta scaling.
-			rho.nextTimeStepBuffer(xIdx, yIdx) = rho.currentTimeStep.GetAt(xIdx, yIdx) - rkK * eulerConservationEquations[0].GetAt(xIdx, yIdx);
-			u.nextTimeStepBuffer(xIdx, yIdx) = (rho.currentTimeStep.GetAt(xIdx, yIdx) * u.currentTimeStep.GetAt(xIdx,yIdx) - rkK * eulerConservationEquations[1].GetAt(xIdx, yIdx)) / rho.nextTimeStepBuffer(xIdx, yIdx);
-			v.nextTimeStepBuffer(xIdx, yIdx) = (rho.currentTimeStep.GetAt(xIdx, yIdx) * v.currentTimeStep.GetAt(xIdx,yIdx) - rkK * eulerConservationEquations[2].GetAt(xIdx, yIdx)) / rho.nextTimeStepBuffer(xIdx, yIdx);
-			E.nextTimeStepBuffer(xIdx, yIdx) = E.currentTimeStep.GetAt(xIdx, yIdx) - rkK * eulerConservationEquations[3].GetAt(xIdx, yIdx);
+			rho.nextTimeStepBuffer(xIdx, yIdx) = rho.currentTimeStep.GetAt(xIdx, yIdx) - rkK * eulerConservationTerms[0].GetAt(xIdx, yIdx);
+			u.nextTimeStepBuffer(xIdx, yIdx) = (rho.currentTimeStep.GetAt(xIdx, yIdx) * u.currentTimeStep.GetAt(xIdx,yIdx) - rkK * eulerConservationTerms[1].GetAt(xIdx, yIdx)) / rho.nextTimeStepBuffer(xIdx, yIdx);
+			v.nextTimeStepBuffer(xIdx, yIdx) = (rho.currentTimeStep.GetAt(xIdx, yIdx) * v.currentTimeStep.GetAt(xIdx,yIdx) - rkK * eulerConservationTerms[2].GetAt(xIdx, yIdx)) / rho.nextTimeStepBuffer(xIdx, yIdx);
+			E.nextTimeStepBuffer(xIdx, yIdx) = E.currentTimeStep.GetAt(xIdx, yIdx) - rkK * eulerConservationTerms[3].GetAt(xIdx, yIdx);
 
 			// The others are not state variables; they can be calculated using the known variables. Calculate them now.
 			//todo: set a build mode where these are not calculated unless a record has been set.
