@@ -441,21 +441,25 @@ void Domain::SetNextTimeStepValuesBasedOnRungeKuttaAndDeltaBuffers(const int cur
 			const CellIndex cix = {xIdx, yIdx};
 			// Convert the conservation equations back into actual variables here.
 			// These are state variables, and are explicitly expressed. combine the values in the delta buffers, and apply runge-kutta scaling.
-			const double density = rho.currentTimeStep.GetAt(cix) - rkK * eulerConservationTerms[0].GetAt(cix);
-			const double xVelocity = (rho.currentTimeStep.GetAt(cix) * u.currentTimeStep.GetAt(cix) - rkK * eulerConservationTerms[1].GetAt(cix)) / rho.nextTimeStepBuffer(cix);
-			const double yVelocity = (rho.currentTimeStep.GetAt(cix) * v.currentTimeStep.GetAt(cix) - rkK * eulerConservationTerms[2].GetAt(cix)) / rho.nextTimeStepBuffer(cix);
-			const double energy = E.currentTimeStep.GetAt(cix) - rkK * eulerConservationTerms[3].GetAt(cix);
+			const double nextRho = rho.currentTimeStep.GetAt(cix) - rkK * eulerConservationTerms[0].GetAt(cix);
+			const double nextU = (rho.currentTimeStep.GetAt(cix) * u.currentTimeStep.GetAt(cix) - rkK * eulerConservationTerms[1].GetAt(cix)) / nextRho;
+			const double nextV = (rho.currentTimeStep.GetAt(cix) * v.currentTimeStep.GetAt(cix) - rkK * eulerConservationTerms[2].GetAt(cix)) / nextRho;
+			const double nextE = E.currentTimeStep.GetAt(cix) - rkK * eulerConservationTerms[3].GetAt(cix);
 
-			rho.nextTimeStepBuffer(cix) = density;
-			u.nextTimeStepBuffer(cix) = xVelocity;
-			v.nextTimeStepBuffer(cix) = yVelocity;
-			E.nextTimeStepBuffer(cix) = energy;
+			rho.nextTimeStepBuffer(cix) = nextRho;
+			u.nextTimeStepBuffer(cix) = nextU;
+			v.nextTimeStepBuffer(cix) = nextV;
+			E.nextTimeStepBuffer(cix) = nextE;
 			
 			// The others are not state variables; they can be calculated using the known variables. Calculate them now.
 			//todo: set a build mode where these are not calculated unless a record has been set.
-			p.nextTimeStepBuffer(cix) = (SpecificHeatRatio()-1) * E.nextTimeStepBuffer.GetAt(cix) - 0.5*rho.nextTimeStepBuffer(cix)*std::pow(u.nextTimeStepBuffer.GetAt(cix) + v.nextTimeStepBuffer.GetAt(cix), 2);
-			T.nextTimeStepBuffer(cix) = p.nextTimeStepBuffer.GetAt(cix) / (GasConstant() * rho.nextTimeStepBuffer.GetAt(cix));
-			H.nextTimeStepBuffer(cix) = (E.nextTimeStepBuffer.GetAt(cix) + p.nextTimeStepBuffer(cix))/rho.nextTimeStepBuffer.GetAt(cix);
+			const double pNext = (SpecificHeatRatio()-1) * E.nextTimeStepBuffer.GetAt(cix) - 0.5*rho.nextTimeStepBuffer(cix)*std::pow(u.nextTimeStepBuffer.GetAt(cix) + v.nextTimeStepBuffer.GetAt(cix), 2);
+			const double tNext = p.nextTimeStepBuffer.GetAt(cix) / (GasConstant() * rho.nextTimeStepBuffer.GetAt(cix));
+			const double hNext = (E.nextTimeStepBuffer.GetAt(cix) + p.nextTimeStepBuffer(cix))/rho.nextTimeStepBuffer.GetAt(cix);
+
+			p.nextTimeStepBuffer(cix) = pNext;
+			T.nextTimeStepBuffer(cix) = tNext;
+			H.nextTimeStepBuffer(cix) = hNext;
 
 #ifdef _DEBUG
 			assert(rho.nextTimeStepBuffer(cix) > 0);
