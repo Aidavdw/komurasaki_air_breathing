@@ -55,7 +55,7 @@ void DoSimulation(SimCase& simCase)
             {
                 Domain& domain = domainIter.second;
                 domain.UpdateGhostCells();
-                domain.PopulateFlowDeltaBuffer(simCase.dt);
+                domain.CacheEulerConservationTerms(simCase.dt);
             }
 
 
@@ -90,7 +90,7 @@ void DoSimulation(SimCase& simCase)
             {
                 
                 Domain& domain = domainIter.second;
-                domain.SetNextTimeStepValuesBasedOnRungeKuttaAndDeltaBuffers(rungeKuttaIterationNumber);
+                domain.SetNextTimeStepValuesBasedOnCachedEulerContinuities(rungeKuttaIterationNumber);
 #ifdef _DEBUG
                 domain.EmptyFlowDeltaBuffer();
 #endif

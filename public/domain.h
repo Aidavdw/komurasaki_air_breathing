@@ -43,49 +43,39 @@ public:
 	std::vector<double> cellLengths[2];					// The length of each cell.
 	std::vector<double> localCellCenterPositions[2];		// The location of the cell relative to where the domain is anchored. To get global position, add with Domain.position.
 
-	// returns the cell indices that this position is in.
-	CellIndex InvertPositionToIndex(const Position& pos) const
+	CellIndex InvertPositionToIndex(const Position pos, Position& distanceFromCenterOut) const; 	// returns the cell indices that this position is in. Also sets how far from the centre it is by reference.
+	CellIndex InvertPositionToIndex(const Position& pos) const // Proxy where the distance from centre out is discarded.
 	{
 		Position blank(0,0);
 		return InvertPositionToIndex(pos, blank);
 	}
+	
 
-	// returns the cell indices that this position is in. Also sets how far from the centre it is by reference.
-	CellIndex InvertPositionToIndex(const Position pos, Position& distanceFromCenterOut) const;
-	std::pair<EFace, double> GetLocationAlongBoundaryInAdjacentDomain(const EFace boundaryInThisDomain, const double positionAlongBoundaryInThisDomain) const;
-
-	Position PositionAlongBoundaryToCoordinate(const EFace boundary, const double positionAlongBoundary, const double depth) const;
+	std::pair<EFace, double> GetLocationAlongBoundaryInAdjacentDomain(const EFace boundaryInThisDomain, const double positionAlongBoundaryInThisDomain) const; // Expresses the position in terms of its complementary boundary.
+	Position PositionAlongBoundaryToCoordinate(const EFace boundary, const double positionAlongBoundary, const double depth) const; // Transforms a given distance out from the datum on any boundary to a origin-relative coordinate.
 
 	void SetBoundaryType(const EFace location, const EBoundaryCondition type);
 
 	int GetTotalAmountOfCells() const;
-	CellIndex GetOriginIndexOfBoundary(const EFace boundary) const;
-	// Gets the dimensions of the part of the ghost cells as described in the GhostOrigin reference frame.
-	std::pair<int,int> GetGhostDimensions(EFace boundary);
-
-	// Shorthand function to get the cell sizes at a certain position.
-	std::pair<double, double> GetCellSizes(const CellIndex cellPos) const;
+	CellIndex GetOriginIndexOfBoundary(const EFace boundary) const; // Returns the datum of where the 'zero' cell is for a certain boundary.
+	std::pair<int,int> GetGhostDimensions(EFace boundary); // Gets the dimensions of the part of the ghost cells as described in the GhostOrigin reference frame.
+	std::pair<double, double> GetCellSizes(const CellIndex cellPos) const; // Shorthand function to get the cell sizes at a certain position.
 	double GetCellVolume(const CellIndex cix) const;
 	double GetLengthOfSide(const EFace face) const; // Small auxiliary function that returns size[0] or size[1].
 
-	void CopyFieldQuantitiesToBuffer(const EFieldQuantityBuffer from, const EFieldQuantityBuffer to);
-
-	// Sets all the cells to some given ambient conditions.
-	void SetToAmbientConditions(const double temperatureSet, const double pSet, const double uSet, const double vSet);
+	void CopyFieldQuantitiesToBuffer(const EFieldQuantityBuffer from, const EFieldQuantityBuffer to); // Copies all the entries from one buffer into another. This leaves the original intact.
+	void SetToAmbientConditions(const double temperatureSet, const double pSet, const double uSet, const double vSet); // Sets all the cells to some given ambient conditions.
 
 	// calculates gamma, the specific heat ratio. Current implementation just returns a fixed value, but in reality it is dependent on species & temperature.
 	double SpecificHeatRatio() const;
 	double GasConstant() const;
 
-	void UpdateGhostCells();
-
-	// Actually do a time step. Solve fluxes, etc
-	void PopulateFlowDeltaBuffer(const double dt);
+	void UpdateGhostCells(); // Sets the values of the ghost cells based on the type of boundary condition this has.
+	void CacheEulerConservationTerms(const double dt); // Calculate the fluxes between cells, and populate the euler conservation matrices.
 	void EmptyFlowDeltaBuffer();
+	void SetNextTimeStepValuesBasedOnCachedEulerContinuities(const int currentRungeKuttaIter);
 
-	void SetNextTimeStepValuesBasedOnRungeKuttaAndDeltaBuffers(const int currentRungeKuttaIter);
-
-	bool ValidateCellIndex(const CellIndex cellIndex, const bool bAllowGhostCells) const;
+	bool ValidateCellIndex(const CellIndex cellIndex, const bool bAllowGhostCells) const; // Checks whether this cell index is actually valid and/or inside of this domain. Mostly used for debugging.
 	bool AreAllBoundariesSet() const; // Checks if all boundaries are set up
 	
 

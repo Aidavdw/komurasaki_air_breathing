@@ -292,7 +292,7 @@ void Domain::UpdateGhostCells()
 	}
 }
 
-void Domain::PopulateFlowDeltaBuffer(const double dt)
+void Domain::CacheEulerConservationTerms(const double dt)
 {
 	// Depending on whether or not there are shock fronts, the integration scheme changes. Determining whether or not there are shock fronts is done by looking at the MUSCL interpolated values of the field quantities. So, first calculate & cache the MUSCL vales.
 	const SolverSettings& solverSettings = simCase->solverSettings;
@@ -422,7 +422,7 @@ void Domain::EmptyFlowDeltaBuffer()
 		buf.SetAllToValue(0);
 }
 
-void Domain::SetNextTimeStepValuesBasedOnRungeKuttaAndDeltaBuffers(const int currentRungeKuttaIter)
+void Domain::SetNextTimeStepValuesBasedOnCachedEulerContinuities(const int currentRungeKuttaIter)
 {
 #ifdef _DEBUG
 	std::cout << "Setting next time step values based on runge-kutta and delta buffers for domain '" << name << "'" << std::endl;
@@ -476,7 +476,7 @@ void ValidateAxisInput(const int axis)
 {
 	if (axis > 1 || axis < 0)
 	{
-		throw std::invalid_argument("Cannot get access axis with the required index; there are only 2, X and Y/R!");
+		throw std::invalid_argument("Cannot get access axis with the required index; there are only 2, X and Y (R)!");
 	}
 }
 
