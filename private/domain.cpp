@@ -416,7 +416,7 @@ void Domain::CacheEulerConservationTerms(const double dt)
 	}	
 }
 
-void Domain::EmptyFlowDeltaBuffer()
+void Domain::EmptyEulerConservationCache()
 {
 	for (auto& buf : eulerConservationTerms)
 		buf.SetAllToValue(0);
@@ -453,7 +453,7 @@ void Domain::SetNextTimeStepValuesBasedOnCachedEulerContinuities(const int curre
 			
 			// The others are not state variables; they can be calculated using the known variables. Calculate them now.
 			//todo: set a build mode where these are not calculated unless a record has been set.
-			const double nextP = (SpecificHeatRatio()-1) * (E.nextTimeStepBuffer.GetAt(cix) - 0.5*rho.nextTimeStepBuffer(cix)*(nextU*nextU + nextV + nextV));
+			const double nextP = (SpecificHeatRatio()-1) * (E.nextTimeStepBuffer.GetAt(cix) - 0.5*rho.nextTimeStepBuffer(cix)*(nextU*nextU + nextV*nextV));
 			p.nextTimeStepBuffer(cix) = nextP;
 			const double nextT = p.nextTimeStepBuffer.GetAt(cix) / (GasConstant() * rho.nextTimeStepBuffer.GetAt(cix));
 			T.nextTimeStepBuffer(cix) = nextT;
@@ -773,10 +773,10 @@ std::pair<int, int> Domain::GetGhostDimensions(EFace boundary)
 		return {amountOfCells[0],nGhost};
 	case LEFT:
 		return {amountOfCells[1],nGhost};
-	case RIGHT:
-		return {amountOfCells[1],nGhost};
 	case TOP:
 		return {amountOfCells[0],nGhost};
+	case RIGHT:
+		return {amountOfCells[1],nGhost};
 	default:
 		throw std::logic_error("GetGhostOrigin is not implemented for this boundary location.");
 	}

@@ -72,7 +72,7 @@ public:
 
 	void UpdateGhostCells(); // Sets the values of the ghost cells based on the type of boundary condition this has.
 	void CacheEulerConservationTerms(const double dt); // Calculate the fluxes between cells, and populate the euler conservation matrices.
-	void EmptyFlowDeltaBuffer();
+	void EmptyEulerConservationCache();
 	void SetNextTimeStepValuesBasedOnCachedEulerContinuities(const int currentRungeKuttaIter);
 
 	bool ValidateCellIndex(const CellIndex cellIndex, const bool bAllowGhostCells) const; // Checks whether this cell index is actually valid and/or inside of this domain. Mostly used for debugging.

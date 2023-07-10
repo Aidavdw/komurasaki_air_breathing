@@ -92,7 +92,7 @@ void DoSimulation(SimCase& simCase)
                 Domain& domain = domainIter.second;
                 domain.SetNextTimeStepValuesBasedOnCachedEulerContinuities(rungeKuttaIterationNumber);
 #ifdef _DEBUG
-                domain.EmptyFlowDeltaBuffer();
+                domain.EmptyEulerConservationCache();
 #endif
             }
             
