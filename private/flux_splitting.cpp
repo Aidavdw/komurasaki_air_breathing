@@ -6,31 +6,19 @@
 #include "AuxFunctions.h"
 #include "cell_values_container.h"
 
-EulerContinuity HanelFluxSplitting(const CellValues& l, const CellValues& r, const double gamma, const double entropyFix)
+EulerContinuity HanelFluxSplitting(CellValues l, CellValues r, const bool bIsVertical, const double gamma, const double entropyFix)
 {
 #ifdef _DEBUG
-    if (IsCloseToZero(l.density))
-        throw std::logic_error("Density is zero in hanel flux splitting for l term");
-    if (IsCloseToZero(l.u))
-        throw std::logic_error("u is zero in hanel flux splitting for l term");
-    if (IsCloseToZero(l.v))
-        throw std::logic_error("v is zero in hanel flux splitting for l term");
-    if (IsCloseToZero(l.p))
-        throw std::logic_error("p is zero in hanel flux splitting for l term");
-    if (IsCloseToZero(l.h))
-        throw std::logic_error("h is zero in hanel flux splitting for l term");
-
-    if (IsCloseToZero(r.density))
-        throw std::logic_error("Density is zero in hanel flux splitting for l term");
-    if (IsCloseToZero(r.u))
-        throw std::logic_error("u is zero in hanel flux splitting for l term");
-    if (IsCloseToZero(r.v))
-        throw std::logic_error("v is zero in hanel flux splitting for l term");
-    if (IsCloseToZero(r.p))
-        throw std::logic_error("p is zero in hanel flux splitting for l term");
-    if (IsCloseToZero(r.h))
-        throw std::logic_error("h is zero in hanel flux splitting for l term");
+    l.Validate();
+    r.Validate();
 #endif
+
+    // Just trust me on this one. This is how Florian did it apparently.
+    if (bIsVertical)
+    {
+        SwapValues(l.u, l.v);
+        SwapValues(r.u, r.v);
+    }
     
     const double alphaLPartial=l.p/l.density;
     const double alphaRPartial=r.p/r.density;
@@ -90,12 +78,27 @@ EulerContinuity HanelFluxSplitting(const CellValues& l, const CellValues& r, con
         flux.momentumY = flux.momentumY - entropyFix * (r.u + cRight - l.u - cLeft) * (r.density * r.v - l.density * l.v);
         flux.energy = flux.energy - entropyFix * (r.u + cRight - l.u - cLeft) * (r.density * r.h - l.density * l.h);
     }
-
+    
+    // If it's a vertical flux, then the u and v are in the local reference frame, and hence they must be inverted to get it in the r-y reference frame.
+    if (bIsVertical)
+        SwapValues(flux.momentumX, flux.momentumY);
     return flux;
 }
 
-EulerContinuity AUSMDVFluxSplitting(const CellValues& l, const CellValues& r, const double gamma, const double AUSMkFactor, const double entropyFix)
+EulerContinuity AUSMDVFluxSplitting(CellValues l, CellValues r, const bool bIsVertical, const double gamma, const double AUSMkFactor, const double entropyFix)
 {
+#ifdef _DEBUG
+    l.Validate();
+    r.Validate();
+#endif
+
+    // Just trust me on this one. This is how Florian did it apparently.
+    if (bIsVertical)
+    {
+        SwapValues(l.u, l.v);
+        SwapValues(r.u, r.v);
+    }
+    
     const double alphaLPartial=l.p/l.density;
     const double alphaRPartial=r.p/r.density;
     const double alphaL=2*alphaLPartial/(alphaLPartial+alphaRPartial);
@@ -162,6 +165,10 @@ EulerContinuity AUSMDVFluxSplitting(const CellValues& l, const CellValues& r, co
         flux.momentumY = flux.momentumY - entropyFix * (r.u + cR - l.u - cL) * (r.density * r.v - l.density * l.v);
         flux.energy = flux.energy - entropyFix * (r.u + cR - l.u - cL) * (r.density * r.h - l.density * l.h);
     }
+
+    // If it's a vertical flux, then the u and v are in the local reference frame, and hence they must be inverted to get it in the r-y reference frame.
+    if (bIsVertical)
+        SwapValues(flux.momentumX, flux.momentumY);
 
     return flux;
 }

@@ -379,18 +379,12 @@ void Domain::CacheEulerConservationTerms(const double dt)
 
 				// Set the flux split for this side (declared above in the array).
 				// If there's a shockwave, use Hanel. If there is no shockwave, use AUSM DV.
+				const bool bIsVertical = (f == TOP || f == BOTTOM);
 				if (shockwavePresent)
-					continuityAtFace[f] = HanelFluxSplitting(negativeNormalFlow, positiveNormalFlow, gamma, solverSettings.entropyFix);
+					continuityAtFace[f] = HanelFluxSplitting(negativeNormalFlow, positiveNormalFlow, bIsVertical, gamma, solverSettings.entropyFix);
 				else // No shockwave
-					continuityAtFace[f] = AUSMDVFluxSplitting(negativeNormalFlow, positiveNormalFlow, gamma, solverSettings.AUSMSwitchBias, solverSettings.entropyFix);
+					continuityAtFace[f] = AUSMDVFluxSplitting(negativeNormalFlow, positiveNormalFlow, bIsVertical,gamma, solverSettings.AUSMSwitchBias, solverSettings.entropyFix);
 
-				// If it's a vertical flux, then the u and v are in the local reference frame, and hence they must be inverted to get it in the r-y reference frame.
-				if (f == TOP || f == BOTTOM)
-				{
-					double buf = continuityAtFace[f].momentumX;
-					continuityAtFace[f].momentumX = continuityAtFace[f].momentumY;
-					continuityAtFace[f].momentumY = buf;
-				}
 			}
 
 			// Total accumulation is what goes in - what goes out

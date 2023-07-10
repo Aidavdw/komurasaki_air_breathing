@@ -195,3 +195,10 @@ EAxisDirection GetUpDirectionOfBoundary(const EFace boundary)
     else
         throw std::invalid_argument("Cannot give up direction of this type of boundary");
 }
+
+void SwapValues(double& a, double& b)
+{
+    double buf = a;
+    a = b;
+    b = a;
+}

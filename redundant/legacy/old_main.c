@@ -823,10 +823,12 @@ int main()
                         if (sonic_x[k][i][j]+sonic_x[k][i][j+1]>=0)
                         {
                             // HANEL SCHEME FOR TOP FACE
+                        	// Note that u & v are flipped, in addition to the 'v' flag being applied.
                             HANEL(flux_u,'V',rhoL,rhoR,vL,vR,uL,uR,pL,pR,HL,HR,R,GAMMA,ENTRO_FIX_C);
                         }
                         else
                         {
+                        	// Note that u & v are flipped, in addition to the 'v' flag being applied.
                             // AUSM-DV SCHEME FOR TOP FACE
                             AUSM_DV(flux_u,'V',rhoL,rhoR,vL,vR,uL,uR,pL,pR,HL,HR,R,GAMMA,AUSM_K,ENTRO_FIX_C);
                         }
@@ -866,12 +868,14 @@ int main()
                         // FLUX SPLITTING ON DOWN FACE based on sonic points in X-direction
                         if (sonic_y[k][i][j]+sonic_y[k][i][j-1]>=0)
                         {
+                        	// Note that u & v are flipped, in addition to the 'v' flag being applied.
                             // HANEL SCHEME FOR DOWN FACE
                             HANEL(flux_d,'V',rhoL,rhoR,vL,vR,uL,uR,pL,pR,HL,HR,R,GAMMA,ENTRO_FIX_C);
                         }
                         else
                         {
                             // AUSM-DV SCHEME FOR DOWN FACE
+                        	// Note that u & v are flipped, in addition to the 'v' flag being applied.
                             AUSM_DV(flux_d,'V',rhoL,rhoR,vL,vR,uL,uR,pL,pR,HL,HR,R,GAMMA,AUSM_K,ENTRO_FIX_C);
                         }
 

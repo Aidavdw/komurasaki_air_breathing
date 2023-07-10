@@ -18,7 +18,10 @@ struct CellValues
 	double u; // velocity x-component
 	double v; // velocity y-component
 	double p; // pressure
-	double e; // Internal energy?
+	double e; // Internal energy
 	double t; // Temperature
-	double h; // enthalpy ?
+	double h; // enthalpy
+
+	void Validate() const;
 };
+
