@@ -453,13 +453,12 @@ void Domain::SetNextTimeStepValuesBasedOnRungeKuttaAndDeltaBuffers(const int cur
 			
 			// The others are not state variables; they can be calculated using the known variables. Calculate them now.
 			//todo: set a build mode where these are not calculated unless a record has been set.
-			const double pNext = (SpecificHeatRatio()-1) * E.nextTimeStepBuffer.GetAt(cix) - 0.5*rho.nextTimeStepBuffer(cix)*std::pow(u.nextTimeStepBuffer.GetAt(cix) + v.nextTimeStepBuffer.GetAt(cix), 2);
-			const double tNext = p.nextTimeStepBuffer.GetAt(cix) / (GasConstant() * rho.nextTimeStepBuffer.GetAt(cix));
-			const double hNext = (E.nextTimeStepBuffer.GetAt(cix) + p.nextTimeStepBuffer(cix))/rho.nextTimeStepBuffer.GetAt(cix);
-
-			p.nextTimeStepBuffer(cix) = pNext;
-			T.nextTimeStepBuffer(cix) = tNext;
-			H.nextTimeStepBuffer(cix) = hNext;
+			const double nextP = (SpecificHeatRatio()-1) * (E.nextTimeStepBuffer.GetAt(cix) - 0.5*rho.nextTimeStepBuffer(cix)*(nextU*nextU + nextV + nextV));
+			p.nextTimeStepBuffer(cix) = nextP;
+			const double nextT = p.nextTimeStepBuffer.GetAt(cix) / (GasConstant() * rho.nextTimeStepBuffer.GetAt(cix));
+			T.nextTimeStepBuffer(cix) = nextT;
+			const double nextH = (E.nextTimeStepBuffer.GetAt(cix) + p.nextTimeStepBuffer(cix))/rho.nextTimeStepBuffer.GetAt(cix);
+			H.nextTimeStepBuffer(cix) = nextH;
 
 #ifdef _DEBUG
 			assert(rho.nextTimeStepBuffer(cix) > 0);
