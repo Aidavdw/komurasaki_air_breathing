@@ -66,17 +66,19 @@ EulerContinuity HanelFluxSplitting(CellValues l, CellValues r, const bool bIsVer
     // Entropy fix (numerical dissipation for single expansion waves)
     if ( (l.u-cLeft<0 && r.u-cRight>0) && !(l.u+cLeft<0 && r.u+cRight>0))
     {
-        flux.mass = flux.mass - entropyFix * (r.u - cRight - l.u + cLeft) * (r.density - l.density);
-        flux.momentumX = flux.momentumX - entropyFix * (r.u - cRight - l.u + cLeft) * (r.density * r.u - l.density * l.u);
-        flux.momentumY = flux.momentumY - entropyFix * (r.u - cRight - l.u + cLeft) * (r.density * r.v - l.density * l.v);
-        flux.energy = flux.energy - entropyFix * (r.u - cRight - l.u + cLeft) * (r.density * r.h - l.density * l.h);
+        const double a = r.u - cRight - l.u + cLeft;
+        flux.mass = flux.mass - entropyFix * a * (r.density - l.density);
+        flux.momentumX = flux.momentumX - entropyFix * a * (r.density * r.u - l.density * l.u);
+        flux.momentumY = flux.momentumY - entropyFix * a * (r.density * r.v - l.density * l.v);
+        flux.energy = flux.energy - entropyFix * a * (r.density * r.h - l.density * l.h);
     }
     else if( !(l.u-cLeft<0 && r.u-cRight>0) && (l.u+cLeft<0 && r.u+cRight>0) )
     {
-        flux.mass = flux.mass - entropyFix * (r.u + cRight - l.u - cLeft) * (r.density - l.density);
-        flux.momentumX = flux.momentumX - entropyFix * (r.u + cRight - l.u - cLeft) * (r.density * r.u - l.density * l.u);
-        flux.momentumY = flux.momentumY - entropyFix * (r.u + cRight - l.u - cLeft) * (r.density * r.v - l.density * l.v);
-        flux.energy = flux.energy - entropyFix * (r.u + cRight - l.u - cLeft) * (r.density * r.h - l.density * l.h);
+        const double a = r.u + cRight - l.u - cLeft;
+        flux.mass = flux.mass - entropyFix * a * (r.density - l.density);
+        flux.momentumX = flux.momentumX - entropyFix * a * (r.density * r.u - l.density * l.u);
+        flux.momentumY = flux.momentumY - entropyFix * a * (r.density * r.v - l.density * l.v);
+        flux.energy = flux.energy - entropyFix * a * (r.density * r.h - l.density * l.h);
     }
     
     // If it's a vertical flux, then the u and v are in the local reference frame, and hence they must be inverted to get it in the r-y reference frame.
@@ -145,7 +147,7 @@ EulerContinuity AUSMDVFluxSplitting(CellValues l, CellValues r, const bool bIsVe
 
     EulerContinuity flux;
     // AUSM-DV otherwise
-    flux.mass = uLplus*l.density+uRminus*r.density;
+    flux.mass = uLplus*l.density + uRminus*r.density;
     flux.momentumX = (0.5+s)*rhou2Mv+(0.5-s)*rhoU2Md+phalf;
     flux.momentumY = 0.5*(rhoUHalf*(l.v+r.v)-abs(rhoUHalf)*(r.v-l.v));
     flux.energy = 0.5*(rhoUHalf*(l.h+r.h)-abs(rhoUHalf)*(r.h-l.h));

@@ -22,8 +22,8 @@ void AUSM_DV(double flux[4], const char horOrVer, const double rhoL, const doubl
     // Definition of UL(plus), PL(plus), UR(minus) and PR(minus)
     if (fabs(uL)<=cM)
     {
-        uLplus=0.5*(uL+fabs(uL))+ALPHA_L*(0.25/cM*pow(uL+cM,2)-0.5*(uL+fabs(uL)));
-        pLplus=0.25*pL*pow(uL/cM+1.0,2)*(2.0-uL/cM);
+        uLplus=0.5*(uL+fabs(uL))+ALPHA_L*(0.25/cM*pow(uL+cM,2) - 0.5*(uL+fabs(uL)));
+        pLplus=0.25*pL*pow(uL/cM+1.0,2)*(2.0 - uL/cM);
     }
     else
     {
@@ -32,45 +32,46 @@ void AUSM_DV(double flux[4], const char horOrVer, const double rhoL, const doubl
     }
     if (fabs(uR)<=cM)
     {
-        uRminus=0.5*(uR-fabs(uR))+ALPHA_R*(-0.25/cM*pow(uR-cM,2)-0.5*(uR-fabs(uR)));
-        pRminus=0.25*pR*pow(uR/cM-1.0,2)*(2.0+uR/cM);
+        uRminus=0.5*(uR - fabs(uR))+ALPHA_R*(-0.25/cM*pow(uR - cM,2) - 0.5*(uR - fabs(uR)));
+        pRminus=0.25*pR*pow(uR/cM - 1.0,2)*(2.0+uR/cM);
     }
     else
     {
-        uRminus=0.5*(uR-fabs(uR));
-        pRminus=0.5*pR*(1.0-fabs(uR)/uR);
+        uRminus=0.5*(uR - fabs(uR));
+        pRminus=0.5*pR*(1.0 - fabs(uR)/uR);
     }
 
     // Bias function for pressure gradient
-    s = 0.5*fmin(1.0,AUSM_K*fabs(pR-pL)/fmin(pR,pL));
+    s = 0.5*fmin(1.0,AUSM_K*fabs(pR - pL)/fmin(pR,pL));
 
     // AUSM-V and AUSM-D momentum flux terms
     uhalf=uLplus+uRminus;
     phalf=pLplus+pRminus;
-    rhouhalf=0.5*(uhalf*(rhoR+rhoL)-fabs(uhalf)*(rhoR-rhoL));
-    rhou2MD=0.5*(rhouhalf*(uL+uR)-fabs(rhouhalf)*(uR-uL));
-    rhou2MV=uLplus*rhoL*uL+uRminus*rhoR*uR;
+    rhouhalf=0.5*(uhalf*(rhoR+rhoL) - fabs(uhalf)*(rhoR - rhoL));
+    rhou2MD=0.5*(rhouhalf*(uL+uR) - fabs(rhouhalf)*(uR - uL));
+    rhou2MV=uLplus*rhoL*uL + uRminus*rhoR*uR;
 
     // AUSM-DV otherwise
-    flux[0] = uLplus*rhoL+uRminus*rhoR;
-    flux[1] = (0.5+s)*rhou2MV+(0.5-s)*rhou2MD+phalf;
-    flux[2] = 0.5*(rhouhalf*(vL+vR)-fabs(rhouhalf)*(vR-vL));
-    flux[3] = 0.5*(rhouhalf*(HL+HR)-fabs(rhouhalf)*(HR-HL));
+    flux[0] = uLplus*rhoL + uRminus*rhoR;
+    flux[1] = (0.5+s)*rhou2MV+(0.5 - s)*rhou2MD+phalf;
+    flux[2] = 0.5*(rhouhalf*(vL+vR) - fabs(rhouhalf)*(vR - vL));
+    flux[3] = 0.5*(rhouhalf*(HL+HR) - fabs(rhouhalf)*(HR - HL));
 
     // Entropy fix (numerical dissipation for single expansion waves)
-    if((uL-cL<0.0 && uR-cR>0.0)&(!(uL+cL<0.0 && uR+cR>0.0)))
+    // Identical for both cases.
+    if((uL - cL<0.0 && uR - cR>0.0)&(!(uL+cL<0.0 && uR+cR>0.0)))
     {
-        flux[0]=flux[0]-ENTRO_FIX_C*(uR-cR-uL+cL)*(rhoR-rhoL);
-        flux[1]=flux[1]-ENTRO_FIX_C*(uR-cR-uL+cL)*(rhoR*uR-rhoL*uL);
-        flux[2]=flux[2]-ENTRO_FIX_C*(uR-cR-uL+cL)*(rhoR*vR-rhoL*vL);
-        flux[3]=flux[3]-ENTRO_FIX_C*(uR-cR-uL+cL)*(rhoR*HR-rhoL*HL);
+        flux[0]=flux[0] - ENTRO_FIX_C*(uR - cR - uL+cL)*(rhoR - rhoL);
+        flux[1]=flux[1] - ENTRO_FIX_C*(uR - cR - uL+cL)*(rhoR*uR - rhoL*uL);
+        flux[2]=flux[2] - ENTRO_FIX_C*(uR - cR - uL+cL)*(rhoR*vR - rhoL*vL);
+        flux[3]=flux[3] - ENTRO_FIX_C*(uR - cR - uL+cL)*(rhoR*HR - rhoL*HL);
     }
-    else if((!(uL-cL<0.0 && uR-cR>0.0))&(uL+cL<0.0 && uR+cR>0.0))
+    else if((!(uL - cL<0.0 && uR - cR>0.0))&(uL+cL<0.0 && uR+cR>0.0))
     {
-        flux[0]=flux[0]-ENTRO_FIX_C*(uR+cR-uL-cL)*(rhoR-rhoL);
-        flux[1]=flux[1]-ENTRO_FIX_C*(uR+cR-uL-cL)*(rhoR*uR-rhoL*uL);
-        flux[2]=flux[2]-ENTRO_FIX_C*(uR+cR-uL-cL)*(rhoR*vR-rhoL*vL);
-        flux[3]=flux[3]-ENTRO_FIX_C*(uR+cR-uL-cL)*(rhoR*HR-rhoL*HL);
+        flux[0]=flux[0] - ENTRO_FIX_C*(uR+cR - uL - cL)*(rhoR - rhoL);
+        flux[1]=flux[1] - ENTRO_FIX_C*(uR+cR - uL - cL)*(rhoR*uR - rhoL*uL);
+        flux[2]=flux[2] - ENTRO_FIX_C*(uR+cR - uL - cL)*(rhoR*vR - rhoL*vL);
+        flux[3]=flux[3] - ENTRO_FIX_C*(uR+cR - uL - cL)*(rhoR*HR - rhoL*HL);
     }
 
     if (horOrVer=='V')
@@ -103,8 +104,8 @@ void HANEL(double flux[4], const char horOrVer, const double rhoL, const double 
     // Definition of UL(plus), PL(plus), UR(minus) and PR(minus)
     if (fabs(uL)<=cM)
     {
-        uLplus=0.5*(uL+fabs(uL))+ALPHA_L*(0.25/cM*pow(uL+cM,2)-0.5*(uL+fabs(uL)));
-        pLplus=0.25*pL*pow(uL/cM+1,2)*(2-uL/cM);
+        uLplus=0.5*(uL+fabs(uL))+ALPHA_L*(0.25/cM*pow(uL+cM,2) - 0.5*(uL+fabs(uL)));
+        pLplus=0.25*pL*pow(uL/cM+1,2)*(2 - uL/cM);
     }
     else
     {
@@ -114,36 +115,37 @@ void HANEL(double flux[4], const char horOrVer, const double rhoL, const double 
 
     if (fabs(uR)<=cM)
     {
-        uRminus=0.5*(uR-fabs(uR))+ALPHA_R*(-0.25/cM*pow(uR-cM,2)-0.5*(uR-fabs(uR)));
-        pRminus=0.25*pR*pow(uR/cM-1,2)*(2+uR/cM);
+        uRminus=0.5*(uR - fabs(uR))+ALPHA_R*( - 0.25/cM*pow(uR - cM,2) - 0.5*(uR - fabs(uR)));
+        pRminus=0.25*pR*pow(uR/cM - 1,2)*(2+uR/cM);
     }
     else
     {
-        uRminus=0.5*(uR-fabs(uR));
-        pRminus=0.5*pR*(1-fabs(uR)/uR);
+        uRminus=0.5*(uR - fabs(uR));
+        pRminus=0.5*pR*(1 - fabs(uR)/uR);
     }
 
     // Hänel scheme for sonic points (shock fix)
     phalf=pLplus+pRminus;
-    flux[0] = uLplus*rhoL+uRminus*rhoR;
-    flux[1] = uLplus*rhoL*uL+uRminus*rhoR*uR+phalf;
-    flux[2] = uLplus*rhoL*vL+uRminus*rhoR*vR;
-    flux[3] = uLplus*rhoL*HL+uRminus*rhoR*HR;
+    flux[0] = uLplus*rhoL + uRminus*rhoR;
+    flux[1] = uLplus*rhoL*uL + uRminus*rhoR*uR + phalf;
+    flux[2] = uLplus*rhoL*vL + uRminus*rhoR*vR;
+    flux[3] = uLplus*rhoL*HL + uRminus*rhoR*HR;
 
     // Entropy fix (numerical dissipation for single expansion waves)
-    if((uL-cL<0 && uR-cR>0)&(!(uL+cL<0 && uR+cR>0)))
+    // Identical for both cases.
+    if((uL - cL<0 && uR - cR>0)&(!(uL+cL<0 && uR+cR>0)))
     {
-        flux[0]=flux[0]-ENTRO_FIX_C*(uR-cR-uL+cL)*(rhoR-rhoL);
-        flux[1]=flux[1]-ENTRO_FIX_C*(uR-cR-uL+cL)*(rhoR*uR-rhoL*uL);
-        flux[2]=flux[2]-ENTRO_FIX_C*(uR-cR-uL+cL)*(rhoR*vR-rhoL*vL);
-        flux[3]=flux[3]-ENTRO_FIX_C*(uR-cR-uL+cL)*(rhoR*HR-rhoL*HL);
+        flux[0]=flux[0] - ENTRO_FIX_C*(uR-cR-uL+cL)*(rhoR - rhoL);
+        flux[1]=flux[1] - ENTRO_FIX_C*(uR-cR-uL+cL)*(rhoR*uR - rhoL*uL);
+        flux[2]=flux[2] - ENTRO_FIX_C*(uR-cR-uL+cL)*(rhoR*vR - rhoL*vL);
+        flux[3]=flux[3] - ENTRO_FIX_C*(uR-cR-uL+cL)*(rhoR*HR - rhoL*HL);
     }
     else if((!(uL-cL<0 && uR-cR>0))&(uL+cL<0 && uR+cR>0))
     {
-        flux[0]=flux[0]-ENTRO_FIX_C*(uR+cR-uL-cL)*(rhoR-rhoL);
-        flux[1]=flux[1]-ENTRO_FIX_C*(uR+cR-uL-cL)*(rhoR*uR-rhoL*uL);
-        flux[2]=flux[2]-ENTRO_FIX_C*(uR+cR-uL-cL)*(rhoR*vR-rhoL*vL);
-        flux[3]=flux[3]-ENTRO_FIX_C*(uR+cR-uL-cL)*(rhoR*HR-rhoL*HL);
+        flux[0]=flux[0]-ENTRO_FIX_C*(uR+cR - uL - cL)*(rhoR - rhoL);
+        flux[1]=flux[1] - ENTRO_FIX_C*(uR+cR - uL - cL)*(rhoR*uR - rhoL*uL);
+        flux[2]=flux[2] - ENTRO_FIX_C*(uR+cR - uL - cL)*(rhoR*vR - rhoL*vL);
+        flux[3]=flux[3] - ENTRO_FIX_C*(uR+cR - uL - cL)*(rhoR*HR - rhoL*HL);
     }
 
     if (horOrVer=='V')
