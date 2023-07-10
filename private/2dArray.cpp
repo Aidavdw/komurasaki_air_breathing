@@ -60,13 +60,13 @@ double TwoDimensionalArray::GetMUSCLInterpolationForFace(const CellIndex& cix, c
 	
 	switch (face) {
 		case RIGHT:
-			return MUSCLInterpolate(GetIncludingGhostCells(xIdx-1, yIdx), GetAt(xIdx, yIdx), GetIncludingGhostCells(xIdx+1, yIdx), GetIncludingGhostCells(xIdx+2, yIdx), faceNormalDirection, MUSCLBias, fluxLimiterType);
+			return MUSCLInterpolate(GetAtWithGhost(xIdx-1, yIdx), GetAt(xIdx, yIdx), GetAtWithGhost(xIdx+1, yIdx), GetAtWithGhost(xIdx+2, yIdx), faceNormalDirection, MUSCLBias, fluxLimiterType);
 		case LEFT:
-			return MUSCLInterpolate(GetIncludingGhostCells(xIdx-2, yIdx), GetIncludingGhostCells(xIdx -1, yIdx), GetAt(xIdx, yIdx), GetIncludingGhostCells(xIdx + 1, yIdx), faceNormalDirection, MUSCLBias, fluxLimiterType);
+			return MUSCLInterpolate(GetAtWithGhost(xIdx-2, yIdx), GetAtWithGhost(xIdx -1, yIdx), GetAt(xIdx, yIdx), GetAtWithGhost(xIdx + 1, yIdx), faceNormalDirection, MUSCLBias, fluxLimiterType);
 		case TOP:
-			return MUSCLInterpolate(GetIncludingGhostCells(xIdx, yIdx-1), GetAt(xIdx, yIdx), GetIncludingGhostCells(xIdx, yIdx+1), GetIncludingGhostCells(xIdx, yIdx+2), faceNormalDirection, MUSCLBias, fluxLimiterType);
+			return MUSCLInterpolate(GetAtWithGhost(xIdx, yIdx-1), GetAt(xIdx, yIdx), GetAtWithGhost(xIdx, yIdx+1), GetAtWithGhost(xIdx, yIdx+2), faceNormalDirection, MUSCLBias, fluxLimiterType);
 		case BOTTOM:
-			return MUSCLInterpolate(GetIncludingGhostCells(xIdx, yIdx-2), GetIncludingGhostCells(xIdx, yIdx-1), GetAt(xIdx, yIdx), GetIncludingGhostCells(xIdx, yIdx+1), faceNormalDirection, MUSCLBias, fluxLimiterType);
+			return MUSCLInterpolate(GetAtWithGhost(xIdx, yIdx-2), GetAtWithGhost(xIdx, yIdx-1), GetAt(xIdx, yIdx), GetAtWithGhost(xIdx, yIdx+1), faceNormalDirection, MUSCLBias, fluxLimiterType);
 	default:
 			throw std::runtime_error("Cannot do muscl interpolation for this type of face.");
 	}
