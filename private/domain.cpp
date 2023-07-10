@@ -322,7 +322,7 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 			double gasConstant = GasConstant();
 			const double speedOfSound = std::sqrt(gamma * p.rungeKuttaBuffer.GetAt(cix)/p.rungeKuttaBuffer.GetAt(cix));
 			MUSCLBuffer rhoMUSCL, uMUSCL, vMUSCL, pMUSCL, eMUSCL, hMUSCL;
-			constexpr EFace faces[4] = {LEFT, RIGHT, TOP, BOTTOM}; // indexes for sides ---- 0: right; 1: left; 2: top; 3: down;
+			constexpr EFace faces[4] = {LEFT, RIGHT, TOP, BOTTOM}; // Decaying the faces to integers makes the calcuations more human readable. indexes for sides ---- 0: right; 1: left; 2: top; 3: down; 
 			constexpr EAxisDirection faceNormalDirections[2] = {EAxisDirection::POSITIVE, EAxisDirection::NEGATIVE};
 
 			// Getting the MUSCL interpolations for the values at this cell's faces.
@@ -341,7 +341,7 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 				}
 			}
 			
-			// todo: Florian (2017) did this by setting a global flag. If it had a shockwave in one direction, all of the faces were marked, as well as the cell it neighbours. This approach only sets this face, and not the neighbours. Is that correct?
+			// todo: Florian (2017) did this by setting a global flag. If it had a shockwave in one direction, all of the faces were marked, as well as the cell it neighbours. The approach currently employed only sets this face, and not the neighbours. Is this admissable?
 			bool shockwavePresent = false;
 			for (const auto f : faces)
 			{
@@ -381,7 +381,7 @@ void Domain::PopulateFlowDeltaBuffer(const double dt)
 				// If there's a shockwave, use Hanel. If there is no shockwave, use AUSM DV.
 				if (shockwavePresent)
 					continuityAtFace[f] = HanelFluxSplitting(negativeNormalFlow, positiveNormalFlow, gamma, solverSettings.entropyFix);
-				else
+				else // No shockwave
 					continuityAtFace[f] = AUSMDVFluxSplitting(negativeNormalFlow, positiveNormalFlow, gamma, solverSettings.AUSMSwitchBias, solverSettings.entropyFix);
 
 				// If it's a vertical flux, then the u and v are in the local reference frame, and hence they must be inverted to get it in the r-y reference frame.
@@ -429,16 +429,8 @@ void Domain::SetNextTimeStepValuesBasedOnRungeKuttaAndDeltaBuffers(const int cur
 	
 	// Fail if the buffers are empty; they clearly must be set.
 	assert(!rho.rungeKuttaBuffer.IsFilledWithZeroes());
-	// assert(!u.rungeKuttaBuffer.IsFilledWithZeroes()); // This can be zero for the initial condition lol.
-	// assert(!v.rungeKuttaBuffer.IsFilledWithZeroes()); // This can be zero for the initial condition lol.
+	assert(!p.rungeKuttaBuffer.IsFilledWithZeroes());
 	assert(!E.rungeKuttaBuffer.IsFilledWithZeroes());
-	// As these are fluxes, they can realistically be 0.
-	/*
-	assert(!eulerConservationEquations[0].IsFilledWithZeroes());
-	assert(!eulerConservationEquations[1].IsFilledWithZeroes());
-	assert(!eulerConservationEquations[2].IsFilledWithZeroes());
-	assert(!eulerConservationEquations[3].IsFilledWithZeroes());
-	*/
 #endif
 
 	const double rkK = 1./(simCase->solverSettings.rungeKuttaOrder-currentRungeKuttaIter); // Runge-kutta factor
@@ -446,18 +438,33 @@ void Domain::SetNextTimeStepValuesBasedOnRungeKuttaAndDeltaBuffers(const int cur
 	{
 		for (int yIdx = 0; yIdx < amountOfCells[1]; yIdx++)
 		{
+			const CellIndex cix = {xIdx, yIdx};
 			// Convert the conservation equations back into actual variables here.
 			// These are state variables, and are explicitly expressed. combine the values in the delta buffers, and apply runge-kutta scaling.
-			rho.nextTimeStepBuffer(xIdx, yIdx) = rho.currentTimeStep.GetAt(xIdx, yIdx) - rkK * eulerConservationTerms[0].GetAt(xIdx, yIdx);
-			u.nextTimeStepBuffer(xIdx, yIdx) = (rho.currentTimeStep.GetAt(xIdx, yIdx) * u.currentTimeStep.GetAt(xIdx,yIdx) - rkK * eulerConservationTerms[1].GetAt(xIdx, yIdx)) / rho.nextTimeStepBuffer(xIdx, yIdx);
-			v.nextTimeStepBuffer(xIdx, yIdx) = (rho.currentTimeStep.GetAt(xIdx, yIdx) * v.currentTimeStep.GetAt(xIdx,yIdx) - rkK * eulerConservationTerms[2].GetAt(xIdx, yIdx)) / rho.nextTimeStepBuffer(xIdx, yIdx);
-			E.nextTimeStepBuffer(xIdx, yIdx) = E.currentTimeStep.GetAt(xIdx, yIdx) - rkK * eulerConservationTerms[3].GetAt(xIdx, yIdx);
+			const double density = rho.currentTimeStep.GetAt(cix) - rkK * eulerConservationTerms[0].GetAt(cix);
+			const double xVelocity = (rho.currentTimeStep.GetAt(cix) * u.currentTimeStep.GetAt(cix) - rkK * eulerConservationTerms[1].GetAt(cix)) / rho.nextTimeStepBuffer(cix);
+			const double yVelocity = (rho.currentTimeStep.GetAt(cix) * v.currentTimeStep.GetAt(cix) - rkK * eulerConservationTerms[2].GetAt(cix)) / rho.nextTimeStepBuffer(cix);
+			const double energy = E.currentTimeStep.GetAt(cix) - rkK * eulerConservationTerms[3].GetAt(cix);
 
+			rho.nextTimeStepBuffer(cix) = density;
+			u.nextTimeStepBuffer(cix) = xVelocity;
+			v.nextTimeStepBuffer(cix) = yVelocity;
+			E.nextTimeStepBuffer(cix) = energy;
+			
 			// The others are not state variables; they can be calculated using the known variables. Calculate them now.
 			//todo: set a build mode where these are not calculated unless a record has been set.
-			p.nextTimeStepBuffer(xIdx, yIdx) = (SpecificHeatRatio()-1) * E.nextTimeStepBuffer.GetAt(xIdx, yIdx) - 0.5*rho.nextTimeStepBuffer(xIdx,yIdx)*std::pow(u.nextTimeStepBuffer.GetAt(xIdx,yIdx) + v.nextTimeStepBuffer.GetAt(xIdx,yIdx), 2);
-			T.nextTimeStepBuffer(xIdx, yIdx) = p.nextTimeStepBuffer.GetAt(xIdx, yIdx) / (GasConstant() * rho.nextTimeStepBuffer.GetAt(xIdx,yIdx));
-			H.nextTimeStepBuffer(xIdx,yIdx) = (E.nextTimeStepBuffer.GetAt(xIdx,yIdx) + p.nextTimeStepBuffer(xIdx,yIdx))/rho.nextTimeStepBuffer.GetAt(xIdx,yIdx);
+			p.nextTimeStepBuffer(cix) = (SpecificHeatRatio()-1) * E.nextTimeStepBuffer.GetAt(cix) - 0.5*rho.nextTimeStepBuffer(cix)*std::pow(u.nextTimeStepBuffer.GetAt(cix) + v.nextTimeStepBuffer.GetAt(cix), 2);
+			T.nextTimeStepBuffer(cix) = p.nextTimeStepBuffer.GetAt(cix) / (GasConstant() * rho.nextTimeStepBuffer.GetAt(cix));
+			H.nextTimeStepBuffer(cix) = (E.nextTimeStepBuffer.GetAt(cix) + p.nextTimeStepBuffer(cix))/rho.nextTimeStepBuffer.GetAt(cix);
+
+#ifdef _DEBUG
+			assert(rho.nextTimeStepBuffer(cix) > 0);
+			assert(E.nextTimeStepBuffer(cix) > 0);
+			assert(p.nextTimeStepBuffer(cix) > 0);
+			assert(H.nextTimeStepBuffer(cix) > 0);
+			assert(T.nextTimeStepBuffer(cix) > 0); // Kelvins, not C.
+#endif
+			
 		}
 	}
 }

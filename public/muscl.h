@@ -10,6 +10,7 @@ enum class EFluxLimiterType
     VAN_ALBADA_TWO
 };
 
+// Represents the values of a variable along its edges, as MUSCL interpolated with its neighbours. [0] is interpolated to the inside 凹, [1] is to the outside 凸.
 struct MUSCLBuffer
 {
     double left[2] = {0,0};
