@@ -38,6 +38,9 @@ public:
 	inline bool operator == (const TwoDimensionalArray& other) const;
 	inline int GetRowOffset(const int xIdx, const int yIdx) const		{ return (yIdx + nGhostCells) * (2*nGhostCells + nX);	} // Total amount of elements to skip because of the amount of rows the precede it; there are two entire rows of ghost cells before index 0, so (yIdx + nGhostCells). Then, all the rows (including the skipped ones) are (2*nGhostCells + nX) long, because they have ghost cells on both sides.
 	inline int GetColumnOffset(const int xIdx, const int yIdx) const	{ return xIdx + nGhostCells;	} // Amount of elements to skip in this row due to the ghost cells presence. Linearly accessed, so only skip 1*nGhostCells.
+	bool CheckBounds(const int xIdx, const int yIdx) const;
+	bool CheckBoundsWithGhost(const int xIdx, const int yIdx) const;
+	void CheckNaN(const int xIdx, const int yIdx) const;
 
 	/******* ACCESSORS / GETTERS: reading off the value/slicing  ************/
 	inline double GetAt(const CellIndex& cellIndex) const	{ return GetAt(cellIndex.x, cellIndex.y); }
@@ -63,10 +66,8 @@ double TwoDimensionalArray::GetAt(const int xIdx, const int yIdx) const
 	const int rowOffset = GetRowOffset(xIdx, yIdx);
 	const int colOffset = GetColumnOffset(xIdx, yIdx);
 #ifdef _DEBUG
-	if (xIdx < 0 || xIdx >= nX || yIdx < 0 || yIdx >= nY)
-		throw std::runtime_error("Tried accessing 2D array at index [" + std::to_string(xIdx) + "," + std::to_string(yIdx) + "], which is out of range (or a ghost cell).");
-	if (isnan(data_.at(rowOffset + colOffset)))
-		throw std::runtime_error("Value at [" + std::to_string(xIdx) + ", " + std::to_string(yIdx) + "] is NaN" );
+	CheckBounds(xIdx, yIdx);
+	CheckNaN(xIdx, yIdx);
 #endif
 	return data_.at(rowOffset + colOffset);
 }
@@ -74,14 +75,10 @@ double TwoDimensionalArray::GetAt(const int xIdx, const int yIdx) const
 double TwoDimensionalArray::GetAtWithGhost(const int xIdx, const int yIdx, const bool bAllowNormalCells) const
 {
 #ifdef  _DEBUG
-	// if it's not in a ghost cell, throw error
-	if (xIdx < -nGhostCells || xIdx >= nX + 2*nGhostCells || yIdx < -nGhostCells || yIdx >= nY + 2*nGhostCells)
-		throw std::runtime_error("Tried accessing Ghost Cell of 2D array at index [" + std::to_string(xIdx) + "," + std::to_string(yIdx) + "], which is out of range.");
-	if (!bAllowNormalCells)
-	{
-		if ((xIdx > 0 && xIdx < nX) && (yIdx > 0 && yIdx < nY))
-			throw std::runtime_error("Tried accessing 2D array at index [" + std::to_string(xIdx) + "," + std::to_string(yIdx) + "], which is inside the normal domain. Be sure to use operator() to access these.");
-	}
+	CheckBoundsWithGhost(xIdx, yIdx);
+	if (!bAllowNormalCells && CheckBounds(xIdx, yIdx))
+		throw std::runtime_error("Tried accessing 2D array at index [" + std::to_string(xIdx) + "," + std::to_string(yIdx) + "], which is inside the normal domain. Be sure to use operator() to access these.");
+	CheckNaN(xIdx, yIdx);
 #endif
 	const int rowOffset = GetRowOffset(xIdx, yIdx);
 	const int colOffset = GetColumnOffset(xIdx, yIdx);
@@ -101,15 +98,26 @@ double TwoDimensionalArray::GetAtWithGhost(const CellIndex& cellIndex, const boo
 
 double& TwoDimensionalArray::operator()(const int xIdx, const int yIdx)
 {
-
 	const int rowOffset = GetRowOffset(xIdx, yIdx);
 	const int colOffset = GetColumnOffset(xIdx, yIdx);
 #ifdef _DEBUG
-	if (xIdx < 0 || xIdx >= nX || yIdx < 0 || yIdx >= nY)
-		throw std::runtime_error("Tried accessing 2D array at index [" + std::to_string(xIdx) + "," + std::to_string(yIdx) + "], which is out of range (or a ghost cell).");
-	if (isnan(data_.at(rowOffset + colOffset)))
-		throw std::runtime_error("Value at [" + std::to_string(xIdx) + ", " + std::to_string(yIdx) + "] is NaN" );
+	CheckBounds(xIdx, yIdx);
+	CheckNaN(xIdx, yIdx);
 #endif
+	return data_.at(rowOffset + colOffset);
+}
+
+double& TwoDimensionalArray::AtWithGhostCells(const int xIdx, const int yIdx,
+	const bool bAllowNormalCells)
+{
+#ifdef  _DEBUG
+	CheckBoundsWithGhost(xIdx, yIdx);
+	if (!bAllowNormalCells && CheckBounds(xIdx, yIdx))
+		throw std::runtime_error("Tried accessing 2D array at index [" + std::to_string(xIdx) + "," + std::to_string(yIdx) + "], which is inside the normal domain. Be sure to use operator() to access these.");
+	CheckNaN(xIdx, yIdx);
+#endif
+	const int rowOffset = GetRowOffset(xIdx, yIdx);
+	const int colOffset = GetColumnOffset(xIdx, yIdx);
 	return data_.at(rowOffset + colOffset);
 }
 
@@ -120,22 +128,4 @@ double& TwoDimensionalArray::AtWithGhostCells(const CellIndex& cellIndex, const 
 		throw std::logic_error("cellIndexes are defined relative to the bottom-left corner. A cellIndex based on a different boundary is supplied");
 #endif
 	return AtWithGhostCells(cellIndex.x, cellIndex.y, bAllowNormalCells);
-}
-
-double& TwoDimensionalArray::AtWithGhostCells(const int xIdx, const int yIdx,
-	const bool bAllowNormalCells)
-{
-#ifdef  _DEBUG
-	// if it's not in a ghost cell, throw error
-	if (xIdx < -nGhostCells || xIdx >= nX + 2*nGhostCells || yIdx < -nGhostCells || yIdx >= nY + 2*nGhostCells)
-		throw std::runtime_error("Tried accessing Ghost Cell of 2D array at index [" + std::to_string(xIdx) + "," + std::to_string(yIdx) + "], which is out of range.");
-	if (!bAllowNormalCells)
-	{
-		if ((xIdx > 0 && xIdx < nX) && (yIdx > 0 && yIdx < nY))
-			throw std::runtime_error("Tried accessing 2D array at index [" + std::to_string(xIdx) + "," + std::to_string(yIdx) + "], which is inside the normal domain. Be sure to use operator() to access these.");
-	}
-#endif
-	const int rowOffset = GetRowOffset(xIdx, yIdx);
-	const int colOffset = GetColumnOffset(xIdx, yIdx);
-	return data_.at(rowOffset + colOffset);
 }

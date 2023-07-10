@@ -261,6 +261,28 @@ bool TwoDimensionalArray::operator==(const TwoDimensionalArray& other) const
 	return true;
 }
 
+bool TwoDimensionalArray::CheckBounds(const int xIdx, const int yIdx) const
+{
+	if (xIdx < 0 || xIdx >= nX || yIdx < 0 || yIdx >= nY)
+		throw std::runtime_error("Tried accessing 2D array at index [" + std::to_string(xIdx) + "," + std::to_string(yIdx) + "], which is out of range (or a ghost cell).");
+	return true;
+}
+
+bool TwoDimensionalArray::CheckBoundsWithGhost(const int xIdx, const int yIdx) const
+{
+	if (xIdx < -nGhostCells || xIdx >= nX + 2*nGhostCells || yIdx < -nGhostCells || yIdx >= nY + 2*nGhostCells)
+		throw std::runtime_error("Tried accessing Ghost Cell of 2D array at index [" + std::to_string(xIdx) + "," + std::to_string(yIdx) + "], which is out of range.");
+	return true;
+}
+
+void TwoDimensionalArray::CheckNaN(const int xIdx, const int yIdx) const
+{
+	const int rowOffset = GetRowOffset(xIdx, yIdx);
+	const int colOffset = GetColumnOffset(xIdx, yIdx);
+	if (isnan(data_.at(rowOffset + colOffset)))
+		throw std::runtime_error("Value at [" + std::to_string(xIdx) + ", " + std::to_string(yIdx) + "] is NaN" );
+}
+
 void TwoDimensionalArray::ElementWiseCopy(const TwoDimensionalArray& from, TwoDimensionalArray& to)
 {
 	if (from.nX != to.nX || from.nY != to.nY)
