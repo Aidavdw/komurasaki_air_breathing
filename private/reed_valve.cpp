@@ -34,6 +34,8 @@ ReedValve::ReedValve(Domain* intoDomain, Domain* outOfDomain, const EFace bounda
 	hingePositionIndex_ = intoDomain->InvertPositionToIndex(hingePositionInDomain);
 	holeEndPositionIndex_ = intoDomain->InvertPositionToIndex(holeEndPositionInDomain);
 
+	label = "Reed Valve: " + intoDomain->name + " " + FaceToString(boundary) + std::to_string(positionAlongBoundary);
+
 	// Note that a FEM object still needs to be created before it's ready to simulate. This is done in Register();
 }
 

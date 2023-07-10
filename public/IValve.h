@@ -18,6 +18,7 @@ public:
 	IValve(Domain* intoDomain, Domain* outOfDomain, const EFace boundary, double positionAlongBoundary);
 
 	Position pos;
+	std::string label;
 
 
 protected:

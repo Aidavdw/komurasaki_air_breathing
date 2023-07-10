@@ -35,7 +35,8 @@ void DoSimulation(SimCase& simCase)
     /* START TIME LOOP */
     for (int timeStepNumber = 1; timeStepNumber < simCase.GetTotalSimulationTimeStepCount(); ++timeStepNumber)
     {
-        std::cout << "Advanced to time step " << timeStepNumber*simCase.dt << " [ t = " << timeStepNumber << " / " << simCase.GetTotalSimulationTimeStepCount() <<"], " << timeStepNumber/simCase.GetTotalSimulationTimeStepCount()*100 <<"% done"  << std::endl;
+        float percentageDone = static_cast<float>(timeStepNumber)/static_cast<float>(simCase.GetTotalSimulationTimeStepCount())*100.f;
+        std::cout << "Advanced to time step " << timeStepNumber*simCase.dt << " [ t = " << timeStepNumber << " / " << simCase.GetTotalSimulationTimeStepCount() <<"], " << percentageDone <<"% done"  << std::endl;
         // Set the starting runge-kutta conditions to be that of the solution of the previous time step.
         for (auto& domainIter : simCase.domains)
         {
@@ -57,11 +58,12 @@ void DoSimulation(SimCase& simCase)
                 domain.PopulateFlowDeltaBuffer(simCase.dt);
             }
 
-#ifdef _DEBUG
-            std::cout << "Updating deflections, and calculating flow deltas for valves." << std::endl;
-#endif
+
             for (std::unique_ptr<IValve>& valve : simCase.valves)
             {
+#ifdef _DEBUG
+                std::cout << "Updating deflections, and calculating flow deltas for valve " << valve->label << std::endl;
+#endif
                 // Update the deflections
                 valve->UpdateValveState();
 
@@ -71,11 +73,12 @@ void DoSimulation(SimCase& simCase)
 
             // Async await until both the buffers have been set for all the FieldQuantities in a domain. Easiest way to do this; wait until they're all finished.
 
-#ifdef _DEBUG
-            std::cout << "Adding valve buffer terms to source cells." << std::endl;
-#endif
+
             for (std::unique_ptr<IValve>& valve : simCase.valves)
             {
+#ifdef _DEBUG
+                std::cout << "Adding valve buffer terms to source cells for valve " << valve->label << std::endl;
+#endif
                 // Add the delta due to the valve sourcing into the delta flow buffer.
                 valve->AddCachedTermsToDomainConservationEquations();
             }
