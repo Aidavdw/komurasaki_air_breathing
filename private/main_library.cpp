@@ -65,6 +65,7 @@ void DoSimulation(SimCase& simCase)
                 std::cout << "Updating deflections, and calculating flow deltas for valve " << valve->label << std::endl;
 #endif
                 // Update the deflections
+                //TODO: Should this not be done in the main time loop?
                 valve->UpdateValveState();
 
                 // Compute mean pressure on each side and mass-flow rate at valve
