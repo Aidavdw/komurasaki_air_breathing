@@ -36,7 +36,7 @@ public:
 	const TwoDimensionalArray& GetAtBufferConst(const EFieldQuantityBuffer bufferName) const; // Gets read/write from buffer
 	
 	double GetInterpolatedValueAtPosition(const Position& atPosition, const EFieldQuantityBuffer bufferName) const; // Instead of taking considering that the entire volume has one value (lumped parameter estimation), consider that the cell center has the value, and anything outside of that will be linearly interpolated between those cells.
-	double GetGradientInDirectionAndPosition(const CellIndex posIdx, const double directionAngle) const; // returns a directional derivative.
+	double GetGradientInDirectionAndPosition(const CellIndex posIdx, const double directionAngle) const; // returns a directional derivative. //todo: note that this is not weighted for cell size. Implement in Domain layer instead.
 	double GetAverageValue(const bool bExpectUniformField) const;	// Returns the average value of the entire domain. if bExpectUniformField is true, then it just samples a few points to save computation time.
 	
 	bool IsValidIndex(const CellIndex& cellIndex, const bool bAllowGhostCells) const;	// Checks whether a given index is inside of the domain.
