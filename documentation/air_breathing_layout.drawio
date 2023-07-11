@@ -1,4 +1,4 @@
-<mxfile host="Electron" modified="2023-07-11T07:46:42.027Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.2.8 Chrome/112.0.5615.165 Electron/24.2.0 Safari/537.36" etag="q143cZVp13IvKYEx1BV8" version="21.2.8" type="device" pages="5">
+<mxfile host="Electron" modified="2023-07-11T09:28:37.266Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.2.8 Chrome/112.0.5615.165 Electron/24.2.0 Safari/537.36" etag="pUTg1QgYYOLJ6X35fYMm" version="21.2.8" type="device" pages="5">
   <diagram id="C5RBs43oDa-KdzZeNtuy" name="Program-Flow">
     <mxGraphModel dx="1838" dy="2248" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -258,7 +258,7 @@
     </mxGraphModel>
   </diagram>
   <diagram name="Program-Flow-unabstracted" id="ApfovuBTY99J5xHOfuFY">
-    <mxGraphModel dx="1953" dy="2315" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1358" dy="797" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="I0wus7wORp00dVHeHnuk-0" />
         <mxCell id="I0wus7wORp00dVHeHnuk-1" parent="I0wus7wORp00dVHeHnuk-0" />
@@ -304,12 +304,6 @@
             <mxPoint x="440" y="210" as="sourcePoint" />
             <mxPoint x="840" y="210" as="targetPoint" />
           </mxGeometry>
-        </mxCell>
-        <mxCell id="I0wus7wORp00dVHeHnuk-17" value="&lt;h1&gt;Setting up the simulation case&lt;/h1&gt;&lt;p&gt;This is what the user should be doing; either in python library, or directly in main.cpp&lt;/p&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;" vertex="1" parent="I0wus7wORp00dVHeHnuk-1">
-          <mxGeometry x="760" width="192" height="170" as="geometry" />
-        </mxCell>
-        <mxCell id="I0wus7wORp00dVHeHnuk-18" value="&lt;h1&gt;Initialisation&lt;/h1&gt;&lt;p&gt;Before any time iteration&lt;/p&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;" vertex="1" parent="I0wus7wORp00dVHeHnuk-1">
-          <mxGeometry x="800" y="240" width="192" height="70" as="geometry" />
         </mxCell>
         <mxCell id="I0wus7wORp00dVHeHnuk-19" value="no" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="I0wus7wORp00dVHeHnuk-1" source="I0wus7wORp00dVHeHnuk-29" target="I0wus7wORp00dVHeHnuk-23">
           <mxGeometry relative="1" as="geometry" />
@@ -436,9 +430,6 @@
         <mxCell id="I0wus7wORp00dVHeHnuk-55" value="Update Current time step buffer" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;glass=0;strokeWidth=1;shadow=0;" vertex="1" parent="I0wus7wORp00dVHeHnuk-1">
           <mxGeometry x="461" y="1040" width="279" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="I0wus7wORp00dVHeHnuk-56" value="&lt;h1&gt;Simulation&lt;/h1&gt;&lt;p&gt;the &#39;main&#39; loop&lt;/p&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;" vertex="1" parent="I0wus7wORp00dVHeHnuk-1">
-          <mxGeometry x="880" y="440" width="192" height="70" as="geometry" />
-        </mxCell>
         <mxCell id="I0wus7wORp00dVHeHnuk-57" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="I0wus7wORp00dVHeHnuk-1" source="I0wus7wORp00dVHeHnuk-58" target="I0wus7wORp00dVHeHnuk-59">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
@@ -457,26 +448,11 @@
             <mxPoint x="690.5" y="360" as="sourcePoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="I0wus7wORp00dVHeHnuk-63" value="Calculate force on each node from the pressure in the domain" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;glass=0;strokeWidth=1;shadow=0;" vertex="1" parent="I0wus7wORp00dVHeHnuk-1">
-          <mxGeometry x="120" y="2000" width="278" height="40" as="geometry" />
-        </mxCell>
-        <mxCell id="I0wus7wORp00dVHeHnuk-64" value="&lt;h1&gt;ReedValve&lt;/h1&gt;&lt;p&gt;Update valve deflections&lt;/p&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;" vertex="1" parent="I0wus7wORp00dVHeHnuk-1">
-          <mxGeometry x="120" y="1840" width="520" height="90" as="geometry" />
-        </mxCell>
-        <mxCell id="I0wus7wORp00dVHeHnuk-65" value="Apply aerodynamic damping on the calculated forces" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;glass=0;strokeWidth=1;shadow=0;" vertex="1" parent="I0wus7wORp00dVHeHnuk-1">
-          <mxGeometry x="120" y="2080" width="278" height="40" as="geometry" />
-        </mxCell>
-        <mxCell id="I0wus7wORp00dVHeHnuk-66" value="Time integrate the forces using the FEM module to obtain a new deflection" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;glass=0;strokeWidth=1;shadow=0;" vertex="1" parent="I0wus7wORp00dVHeHnuk-1">
-          <mxGeometry x="120" y="2160" width="278" height="40" as="geometry" />
-        </mxCell>
-        <mxCell id="I0wus7wORp00dVHeHnuk-67" value="ReedValve::UpdateValveState()" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" vertex="1" parent="I0wus7wORp00dVHeHnuk-1">
-          <mxGeometry x="120" y="1920" width="280" height="40" as="geometry" />
-        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
   <diagram id="-IiZ2PysnVyD19nzv8Wj" name="Logical-Layout">
-    <mxGraphModel dx="893" dy="524" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="1562" dy="917" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -577,7 +553,7 @@
           <mxGeometry x="680" y="320" width="280" height="40" as="geometry" />
         </mxCell>
         <mxCell id="KLcIbOPdQp3D0pGYywUL-32" value="(TwoDimensionalArray) Euler Caches" style="verticalLabelPosition=bottom;verticalAlign=top;html=1;shape=mxgraph.basic.layered_rect;dx=10;outlineConnect=0;whiteSpace=wrap;" parent="1" vertex="1">
-          <mxGeometry x="480" y="640" width="280" height="60" as="geometry" />
+          <mxGeometry x="480" y="640" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="KLcIbOPdQp3D0pGYywUL-34" value="&lt;h1&gt;Overview of organisation of data&lt;/h1&gt;&lt;p&gt;This diagram describes where actual field data is stored, and how it is accessed. Note that it is encouraged to keep operations as high-level as possible to ensure interoperability.&lt;/p&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="40" y="490" width="310" height="140" as="geometry" />

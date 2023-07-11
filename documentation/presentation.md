@@ -35,9 +35,16 @@ Long story short; had to extend, so instead I ended up re-building it from the s
 - Interface using a python library: Setting configuration using simple commands, getting output as numpy arrays and dataframes for quicker analysis.
 - Detailed logging and error handling
 
-# Fluid mechanics & solver
+# Fluid mechanics
 2D compressible model in radial grid. Governing equations are relatively straightforward.
 State variables: density, velocity (vector), internal energy.
+## Viscosity, turbulence model
+Investigation into effect of viscosity, and if turbulence models are required.
+Simple comparative case has been set up in ANSYS CFX to compare the magnitude of its effect.
+At the time scales and dimensions posed, less than 2% divergence.
+Only when scaled up to 10x the size does it start exhibiting more of an effect (5% divergence).
+For these stages of development, disregarding viscous stresses is sufficient, and turbulence can be disregarded.
+# Solver
 Numerical implementation has been optimised for multi-thread compatibility.
 Solver uses a 4th order Runge Kutta scheme compared to the original, where operation can be done partially independently.
 This allows for use of coarser time discretisation, resulting in overall faster computability.
@@ -46,12 +53,6 @@ Flux splitting is unchanged
 no shock fronts: AUSM-DV
 shock fronts: HANEL
 Sampled values are piece-wise reconstructed twice differentiable partial functions from MUSCL interpolation. This allows direct monitoring of numerical performance, allowing direct feedback to user if scheme requires altering.
-## Viscosity, turbulence model
-Investigation into effect of viscosity, and if turbulence models are required.
-Simple comparative case has been set up in ANSYS CFX to compare the magnitude of its effect.
-At the time scales and dimensions posed, less than 2% divergence.
-Only when scaled up to 10x the size does it start exhibiting more of an effect (5% divergence).
-For these stages of development, disregarding viscous stresses is sufficient, and turbulence can be disregarded.
 
 # Program flow
 Rough outline of how the program flows.
@@ -180,7 +181,7 @@ As will become clear later with reed valve: Needs many empirical parameters.
 Partially implemented: Dynamic boundary conditions.
 Using ghost cells directly, allow flux between the two domains with a flow resistance terms. *source
 Reduces empirical parameters drastically by using the dimensionality of the problem; Scales automatically.
-### Reed Valve
+## Reed Valve
 Specific implementation of reed valve.
 Existing Reed valve model is extended.
 Modeled as a FEM beam.
@@ -190,13 +191,16 @@ Assumed that only the deflection orthogonal to boundary is relevant, axial is di
 If verificiation shows this should be implemented this is relatively simple, but requires slight re-writing of sampling code.
 State variables are therefore degrees of freedom, deflection, velocity.
 Time integrated to set new deflections, keeping track of velocity.
-#### Source term calculation
+Damping is also applied based on the properties of the fluid around it. This is done by re-using the calibrated C damping values from Florian (2017)
+### Source term calculation
 Source term dependent on deflection of tip only.
 Distributed normalised to the scaled flux-through area (cross-sectional area)
-### Cap Valve
+## Cap Valve
 Aforementioned new type of valve.
 Unlike reed valve, only assumed to have 1 degree of freedom: axial deflection.
-Therefore only 2 state variables
+Therefore far fewer state variables.
+Deflection modeled as dampened axial spring.
+Damping is directly related to a directional drag coefficient; easier to close than to open.
 Existing literature and experimental data can be used to calculate flow resistance terms. *source
 Common process ^.
 Based on geometry, aerodynamic properties. For novel configurations, these can be calculated with CFD or experimentally.
