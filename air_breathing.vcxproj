@@ -36,6 +36,7 @@
     <ClInclude Include="public\reed_valve_geometry.h" />
     <ClInclude Include="public\sim_case.h" />
     <ClInclude Include="public\IValve.h" />
+    <None Include="ClassDiagram.cd" />
     <None Include="redundant\legacy\ausm.h" />
     <None Include="redundant\legacy\bound_cond.h" />
     <None Include="redundant\legacy\colors.h" />

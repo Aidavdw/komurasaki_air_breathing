@@ -15,8 +15,205 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="air_breathing.cpp">
+    <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="private\2dArray.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="private\AuxFunctions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="private\beam_section.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="private\boundary.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="private\cell_values_container.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="private\debug\example_cases.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="private\domain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="private\euler_container.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="private\fem_deformation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="private\field_quantity.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="private\flux_splitting.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="private\gradient_descent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="private\index2d.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="private\main_library.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="private\mesh_spacing.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="private\microwave.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="private\muscl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="private\pos2d.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="private\pythoninterface\record.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="private\pythoninterface\conversion_functions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="private\reed_valve.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="private\reed_valve_geometry.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="private\sim_case.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="private\IValve.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="private\debug\2darrayserialiser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="2darray.natvis" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="public\2dArray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="public\AuxFunctions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="public\beam_section.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="public\boundary.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="public\cell_values_container.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="public\debug\2darrayserialiser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="public\debug\example_cases.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="public\domain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="public\domain_enums.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="public\euler_container.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="public\fem_deformation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="public\field_quantity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="public\gradient_descent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="public\index2d.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="public\main_library.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="public\mesh_spacing.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="public\microwave.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="public\muscl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="public\pos2d.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="public\pythoninterface\record.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="public\pythoninterface\conversion_functions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="public\reed_valve.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="public\reed_valve_geometry.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="public\sim_case.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="public\IValve.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="public\flux_splitting.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="redundant\legacy\ausm.h">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="redundant\legacy\bound_cond.h">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="redundant\legacy\colors.h">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="redundant\legacy\export.h">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="redundant\legacy\fem_model.h">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="redundant\legacy\functions.h">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="redundant\legacy\initial.h">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="redundant\legacy\microwave_orig.h">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="redundant\legacy\muscl.h">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="redundant\legacy\parameters.h">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="pythonmodule.cpp">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="redundant\legacy\old_main.c">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="ClassDiagram.cd" />
   </ItemGroup>
 </Project>
