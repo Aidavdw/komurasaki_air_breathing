@@ -78,6 +78,10 @@ Inside runge kutta loop: For the domains, calculate the fluxes, solving the eule
 Concurrently, update valve state, and calculate fluxes from this
 Then combine these fluxes, and determine the accumulation using the fluid model.
 Feed this value back, until runge-kutta iteration is finished. Then move to the next time step.
+Note that valve & domain are drawn parallel.
+Both write into their own buffer.
+These buffers are later added together.
+This latter operation is lighter, so heavier operation of calculation can be done concurrently.
 ## Decomissioning
 Exporting all the data, cleaning up memory.
 
@@ -206,6 +210,12 @@ Common process ^.
 Based on geometry, aerodynamic properties. For novel configurations, these can be calculated with CFD or experimentally.
 
 # Python Interface
+Different topic; Right now looking mostly at internal.
+Final goal however is doing analysis with it.
+Therefore, time spent on making it not only extendable, but also usable.
+As mentioned in introduction, python interface instead of CSV and config
+This allows easier setting up, but also easier analysis.
+Also easier integration into larger pipelines, such as using in conjunction with shock generation simulation.
 ## Setting up a case
 ## Running a case
 ## Analysing
