@@ -17,15 +17,17 @@ length_of_tube = 0.5
 height_of_tube = 0.028
 
 # The main object that defines the 'simulation case'.
-# Simcase(total simulation time, dt)
 simcase = ka.SimCase()
 simcase.dt = 10.0E-7
 simcase.simulation_duration = 10.0E-6
 
-solver_settings = ka.SolverSettings() # for now, use the default solver settings. See cpp file for default values.
+solver_settings = ka.SolverSettings()
 chapman_jouget = ka.ChapmanJougetInitialConditionParameters()
 chapman_jouget.beam_power = 2000E3 # Watt
 chapman_jouget.energy_absorption_coefficient = 1
+
+simcase.chapman_jouget = chapman_jouget
+simcase.solver_settings = solver_settings
 
 
 
@@ -90,6 +92,6 @@ end_time = datetime.now()
 
 print("Simulation done! time ran: ", end_time - start_time)
 
-# Example of how to get the records at time step 5 for the TUbe Density record
+# Example of how to get the records at time step 5 for the Tube Density record
 a = simcase.two_dimensional_array_records['Tube_Density'].AsNumpyArray(5)
 pause = input()
