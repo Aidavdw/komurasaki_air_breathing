@@ -5,6 +5,8 @@
 
 #include "AuxFunctions.h"
 
+#define MAX_FACTOR_DEVIATION_BEFORE_THROWING_ERROR 1.5
+
 double MUSCLBuffer::GetAt(const EFace face, EAxisDirection axisDirection) const
 {
     const bool i = (axisDirection == EAxisDirection::POSITIVE);
@@ -53,7 +55,7 @@ double MUSCLInterpolate(const double m1, const double centre, const double p1, c
      */
 
     
-    double var=0;
+    double solution=0;
     double deltaPlus;   // The difference of the two given future values the positive side, aka the side to interpolate to.
     double deltaMin;    // The difference in the negative side, aka relative to the cell behind it.
 
@@ -79,28 +81,30 @@ double MUSCLInterpolate(const double m1, const double centre, const double p1, c
     switch(sideToInterpolateTo)
     {
     case EAxisDirection::POSITIVE:
-        var = p1 -0.25*((1-bias)*deltaPlus*ApplyFluxLimiter(ratioPre,fluxLimiterType)+(1+bias)*deltaMin*ApplyFluxLimiter(inversePre,fluxLimiterType));
+        solution = p1 -0.25*((1-bias)*deltaPlus*ApplyFluxLimiter(ratioPre,fluxLimiterType)+(1+bias)*deltaMin*ApplyFluxLimiter(inversePre,fluxLimiterType));
         break;
     case EAxisDirection::NEGATIVE:
-        var = centre + 0.25*((1-bias)*deltaMin*ApplyFluxLimiter(inversePre,fluxLimiterType)+(1+bias)*deltaPlus*ApplyFluxLimiter(ratioPre,fluxLimiterType));
+        solution = centre + 0.25*((1-bias)*deltaMin*ApplyFluxLimiter(inversePre,fluxLimiterType)+(1+bias)*deltaPlus*ApplyFluxLimiter(ratioPre,fluxLimiterType));
         break;
     default :
         throw std::logic_error("MUSCL interpolation is not implemented for this type of side");
     }
 
-    /**
+    
 #ifdef _DEBUG
     // It's interpolation, so it must be somewhere in between all the values.
     const double max = std::max({m1, centre, p1, p2});
-    if (var > max && !IsCloseToZero(var - max))
+    double maxLimit = (max > 0) ? max * MAX_FACTOR_DEVIATION_BEFORE_THROWING_ERROR : max / MAX_FACTOR_DEVIATION_BEFORE_THROWING_ERROR;
+    if (solution > max * MAX_FACTOR_DEVIATION_BEFORE_THROWING_ERROR)
         throw std::logic_error("MUSCL interpolation should yield a value between all the values, not above.");
     const double min = std::min({m1, centre, p1, p2});
-    if (var < min && !IsCloseToZero(var - min))
+    double minLimit = (min > 0) ? min / MAX_FACTOR_DEVIATION_BEFORE_THROWING_ERROR : min * MAX_FACTOR_DEVIATION_BEFORE_THROWING_ERROR;
+    if (solution < min * minLimit)
         throw std::logic_error("MUSCL interpolation should yield a value between all the values, not above.");
 #endif
-    **/
+    
 
-    return var;
+    return solution;
     
 }
 
