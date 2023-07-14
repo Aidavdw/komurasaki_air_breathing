@@ -83,10 +83,7 @@ void DoSimulation(SimCase& simCase)
                 // Add the delta due to the valve sourcing into the delta flow buffer.
                 valve->AddCachedTermsToDomainConservationEquations();
             }
-
-#ifdef _DEBUG
-            std::cout << "Setting next-time-step values based on the runge kutta and delta buffer contents." << std::endl;
-#endif
+            
             for (auto& domainIter : simCase.domains)
             {
                 
