@@ -319,8 +319,6 @@ void Domain::CacheEulerConservationTerms(const double dt)
 		{
 			const CellIndex cix(xIdx, yIdx);
 			double gamma = SpecificHeatRatio();
-			double gasConstant = GasConstant();
-			const double speedOfSound = std::sqrt(gamma * p.rungeKuttaBuffer.GetAt(cix)/p.rungeKuttaBuffer.GetAt(cix));
 			MUSCLBuffer rhoMUSCL, uMUSCL, vMUSCL, pMUSCL, eMUSCL, hMUSCL;
 			constexpr EFace faces[4] = {LEFT, RIGHT, TOP, BOTTOM}; // Decaying the faces to integers makes the calcuations more human readable. indexes for sides ---- 0: right; 1: left; 2: top; 3: down; 
 			constexpr EAxisDirection faceNormalDirections[2] = {EAxisDirection::POSITIVE, EAxisDirection::NEGATIVE};
