@@ -74,9 +74,9 @@ double MUSCLInterpolate(const double m1, const double centre, const double p1, c
     }
 
     // In a smooth field, it is possible that either deltaPlus or DeltaMin = 0. Dividing by 0 is impossible, so just add a tiny term to it so that the result is finite. This will always be picked up by the flux limiter, and it will be maxed.
-    double eps = 1.0E-7;
-    const double ratioPre = (deltaMin * deltaPlus + eps) / (deltaPlus * deltaPlus + eps);
-    const double inversePre = (deltaMin * deltaPlus + eps) / (deltaMin * deltaMin + eps);
+    double machineEpsilon = 1.0E-7;
+    const double ratioPre = (deltaMin * deltaPlus + machineEpsilon) / (deltaPlus * deltaPlus + machineEpsilon);
+    const double inversePre = (deltaMin * deltaPlus + machineEpsilon) / (deltaMin * deltaMin + machineEpsilon);
 
     switch(sideToInterpolateTo)
     {
@@ -93,13 +93,13 @@ double MUSCLInterpolate(const double m1, const double centre, const double p1, c
     
 #ifdef _DEBUG
     // It's interpolation, so it must be somewhere in between all the values.
-    const double max = std::max({m1, centre, p1, p2});
+    const double max = std::max({m1, centre, p1, p2}) + machineEpsilon;
     double maxLimit = (max > 0) ? max * MAX_FACTOR_DEVIATION_BEFORE_THROWING_ERROR : max / MAX_FACTOR_DEVIATION_BEFORE_THROWING_ERROR;
-    if (solution > max * MAX_FACTOR_DEVIATION_BEFORE_THROWING_ERROR)
+    if (solution > maxLimit)
         throw std::logic_error("MUSCL interpolation should yield a value between all the values, not above.");
-    const double min = std::min({m1, centre, p1, p2});
+    const double min = std::min({m1, centre, p1, p2}) - machineEpsilon;
     double minLimit = (min > 0) ? min / MAX_FACTOR_DEVIATION_BEFORE_THROWING_ERROR : min * MAX_FACTOR_DEVIATION_BEFORE_THROWING_ERROR;
-    if (solution < min * minLimit)
+    if (solution < minLimit)
         throw std::logic_error("MUSCL interpolation should yield a value between all the values, not above.");
 #endif
     
