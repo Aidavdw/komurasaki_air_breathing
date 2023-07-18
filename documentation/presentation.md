@@ -150,17 +150,17 @@ This is what SimCase is.
 Invokes the main loop, giving an anchoring points for sub-models, domains & valves.
 Simulation length and time step are stored individually because of how important they are.
 ### SolverSettings:
-    Change how solver works
-    - Tuning of numerical parameters
-    - Order of solving schemes (Runge-kutta)
+Change how solver works
+- Tuning of numerical parameters
+- Order of solving schemes (Runge-kutta)
 ### Ambient Conditions
-    Represents the 'ambient' outside of domains.
-    Is used to initialise some domains, and calculating values like exergy.
-    Completely static.
+Represents the 'ambient' outside of domains.
+Is used to initialise some domains, and calculating values like exergy.
+Completely static.
 ### RuntimeParameters
-    Meta-model.
-    time steps between exporting
-    preferences for logging
+Meta-model.
+time steps between exporting
+preferences for logging
 
 ## Valves
 Remember, extending valves was main driver of rewrite.
