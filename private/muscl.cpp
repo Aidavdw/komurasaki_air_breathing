@@ -5,7 +5,7 @@
 
 #include "AuxFunctions.h"
 
-#define MAX_FACTOR_DEVIATION_BEFORE_THROWING_ERROR 1.5
+#define MAX_FACTOR_DEVIATION_BEFORE_THROWING_ERROR 1.1
 
 double MUSCLBuffer::GetAt(const EFace face, EAxisDirection axisDirection) const
 {

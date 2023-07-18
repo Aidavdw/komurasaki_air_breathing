@@ -108,14 +108,14 @@ EulerContinuity AUSMDVFluxSplitting(CellValues l, CellValues r, const bool bIsVe
     
     const double cL = std::sqrt(gamma * l.p / l.density);
     const double cR = std::sqrt(gamma * r.p / r.density);
-    const double maxSpeedOfSound =  std::max(cL, cR);
+    const double cM =  std::max(cL, cR);
 
     double uLplus,pLplus;
     // Definition of UL(plus), PL(plus), UR(minus) and PR(minus)
-    if (abs(l.u)<=maxSpeedOfSound)
+    if (abs(l.u)<=cM)
     {
-        uLplus=0.5*(l.u+abs(l.u))+alphaL*(0.25/maxSpeedOfSound*std::pow(l.u+maxSpeedOfSound,2)-0.5*(l.u+abs(l.u)));
-        pLplus=0.25*l.p*std::pow(l.u/maxSpeedOfSound+1.0,2)*(2.0-l.u/maxSpeedOfSound);
+        uLplus=0.5*(l.u + abs(l.u)) + alphaL*(0.25/cM*std::pow(l.u + cM,2)-0.5*(l.u + abs(l.u)));
+        pLplus=0.25*l.p*std::pow(l.u/cM + 1.0,2)*(2.0 - l.u/cM);
     }
     else
     {
@@ -124,10 +124,10 @@ EulerContinuity AUSMDVFluxSplitting(CellValues l, CellValues r, const bool bIsVe
     }
 
     double uRminus,pRminus;
-    if (abs(r.u)<=maxSpeedOfSound)
+    if (abs(r.u)<=cM)
     {
-        uRminus=0.5*(r.u-abs(r.u))+alphaR*(-0.25/maxSpeedOfSound*std::pow(r.u-maxSpeedOfSound,2)-0.5*(r.u-abs(r.u)));
-        pRminus=0.25*r.p*std::pow(r.u/maxSpeedOfSound-1.0,2)*(2.0+r.u/maxSpeedOfSound);
+        uRminus=0.5*(r.u - abs(r.u)) + alphaR*(-0.25/cM*std::pow(r.u - cM,2) - 0.5*(r.u - abs(r.u)));
+        pRminus=0.25*r.p*std::pow(r.u/cM - 1.0,2)*(2.0 + r.u/cM);
     }
     else
     {
@@ -141,9 +141,9 @@ EulerContinuity AUSMDVFluxSplitting(CellValues l, CellValues r, const bool bIsVe
     // AUSM-V and AUSM-D momentum flux terms
     double uhalf = uLplus + uRminus;
     double phalf = pLplus + pRminus;
-    const double rhoUHalf = 0.5 * (uhalf * (r.density + l.density) - abs(uhalf) * (r.density - l.density));
-    const double rhoU2Md = 0.5 * (rhoUHalf * (l.u + r.u) - abs(rhoUHalf) * (r.u - l.u));
-    const double rhou2Mv = uLplus * l.density * l.u + uRminus * r.density * r.u;
+    const double rhoUHalf = 0.5*(uhalf*(r.density + l.density) - abs(uhalf)*(r.density - l.density));
+    const double rhoU2Md = 0.5*(rhoUHalf*(l.u + r.u) - abs(rhoUHalf)*(r.u - l.u));
+    const double rhou2Mv = uLplus*l.density*l.u + uRminus*r.density*r.u;
 
     EulerContinuity flux;
     // AUSM-DV otherwise

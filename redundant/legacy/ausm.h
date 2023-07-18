@@ -14,15 +14,18 @@ void AUSM_DV(double flux[4], const char horOrVer, const double rhoL, const doubl
     double rhou2MV=0,rhou2MD=0,rhouhalf=0,uhalf=0,phalf;
     double uLplus=0,uRminus=0,pLplus=0,pRminus=0;
 
-    double cL=sqrt(gamma*pL/rhoL),cR=sqrt(gamma*pR/rhoR);
-    double alphaL=pL/rhoL,alphaR=pR/rhoR;
-    double ALPHA_L=2.0*alphaL/(alphaL+alphaR), ALPHA_R=2.0*alphaR/(alphaR+alphaL);
+    double cL=sqrt(gamma*pL/rhoL);
+    double cR=sqrt(gamma*pR/rhoR);
+    double alphaL=pL/rhoL;
+    double alphaR=pR/rhoR;
+    double ALPHA_L=2.0*alphaL/(alphaL+alphaR);
+    double ALPHA_R=2.0*alphaR/(alphaR+alphaL);
     double cM=fmax(cL,cR);
 
     // Definition of UL(plus), PL(plus), UR(minus) and PR(minus)
     if (fabs(uL)<=cM)
     {
-        uLplus=0.5*(uL+fabs(uL))+ALPHA_L*(0.25/cM*pow(uL+cM,2) - 0.5*(uL+fabs(uL)));
+        uLplus=0.5*(uL + fabs(uL)) + ALPHA_L*(0.25/cM*pow(uL + cM,2) - 0.5*(uL + fabs(uL)));
         pLplus=0.25*pL*pow(uL/cM+1.0,2)*(2.0 - uL/cM);
     }
     else
@@ -32,7 +35,7 @@ void AUSM_DV(double flux[4], const char horOrVer, const double rhoL, const doubl
     }
     if (fabs(uR)<=cM)
     {
-        uRminus=0.5*(uR - fabs(uR))+ALPHA_R*(-0.25/cM*pow(uR - cM,2) - 0.5*(uR - fabs(uR)));
+        uRminus=0.5*(uR - fabs(uR)) + ALPHA_R*(-0.25/cM*pow(uR - cM,2) - 0.5*(uR - fabs(uR)));
         pRminus=0.25*pR*pow(uR/cM - 1.0,2)*(2.0+uR/cM);
     }
     else

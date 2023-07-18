@@ -387,7 +387,13 @@ void Domain::CacheEulerConservationTerms(const double dt)
 
 			// Total accumulation is what goes in - what goes out
 			const auto cellSizes = GetCellSizes(cix);
-			EulerContinuity accumulation = ((continuityAtFace[RIGHT] - continuityAtFace[LEFT])/cellSizes.first + (continuityAtFace[TOP] - continuityAtFace[BOTTOM])/cellSizes.second)*dt; // dy = dr in this case, if you compensate for the squashification.
+			EulerContinuity accumulationAuto = ((continuityAtFace[RIGHT] - continuityAtFace[LEFT])/cellSizes.first + (continuityAtFace[TOP] - continuityAtFace[BOTTOM])/cellSizes.second)*dt; 
+			EulerContinuity accumulation;
+			accumulation.mass = ((continuityAtFace[RIGHT].mass - continuityAtFace[LEFT].mass)/cellSizes.first + (continuityAtFace[TOP].mass - continuityAtFace[BOTTOM].mass)/cellSizes.second)*dt;
+			accumulation.momentumX = ((continuityAtFace[RIGHT].momentumX - continuityAtFace[LEFT].momentumX)/cellSizes.first + (continuityAtFace[TOP].momentumX - continuityAtFace[BOTTOM].momentumX)/cellSizes.second)*dt;
+			accumulation.momentumY = ((continuityAtFace[RIGHT].momentumY - continuityAtFace[LEFT].momentumY)/cellSizes.first + (continuityAtFace[TOP].momentumY - continuityAtFace[BOTTOM].momentumY)/cellSizes.second)*dt;
+			accumulation.energy = ((continuityAtFace[RIGHT].energy - continuityAtFace[LEFT].energy)/cellSizes.first + (continuityAtFace[TOP].energy - continuityAtFace[BOTTOM].energy)/cellSizes.second)*dt;
+			// dy = dr in this case, if you compensate for the squashification.
 
 			// Extra term to compensate for the fact that the cell sizes are not uniform because we are in a cylindrical coordinate system. In Florian (2017), this is the term *** Hr ***.
 			const double density = rho.currentTimeStep.GetAt(cix);
@@ -431,12 +437,16 @@ void Domain::SetNextTimeStepValuesBasedOnCachedEulerContinuities(const int curre
 		for (int yIdx = 0; yIdx < amountOfCells[1]; yIdx++)
 		{
 			const CellIndex cix = {xIdx, yIdx};
+			const EulerContinuity accumulation = {eulerConservationTerms[0].GetAt(cix), eulerConservationTerms[1].GetAt(cix), eulerConservationTerms[2].GetAt(cix), eulerConservationTerms[3].GetAt(cix)};
 			// Convert the conservation equations back into actual variables here.
 			// These are state variables, and are explicitly expressed. combine the values in the delta buffers, and apply runge-kutta scaling.
-			const double nextRho = rho.currentTimeStep.GetAt(cix) - rkK * eulerConservationTerms[0].GetAt(cix);
-			const double nextU = (rho.currentTimeStep.GetAt(cix) * u.currentTimeStep.GetAt(cix) - rkK * eulerConservationTerms[1].GetAt(cix)) / nextRho;
-			const double nextV = (rho.currentTimeStep.GetAt(cix) * v.currentTimeStep.GetAt(cix) - rkK * eulerConservationTerms[2].GetAt(cix)) / nextRho;
-			const double nextE = E.currentTimeStep.GetAt(cix) - rkK * eulerConservationTerms[3].GetAt(cix);
+			const double deltaRho = -rkK * accumulation.mass;
+			const double deltaE = -rkK * accumulation.momentumY;
+			
+			const double nextRho = rho.currentTimeStep.GetAt(cix) + deltaRho;
+			const double nextU = (rho.currentTimeStep.GetAt(cix) * u.currentTimeStep.GetAt(cix) - rkK * accumulation.momentumX) / nextRho;
+			const double nextV = (rho.currentTimeStep.GetAt(cix) * v.currentTimeStep.GetAt(cix) - rkK * accumulation.momentumY) / nextRho;
+			const double nextE = E.currentTimeStep.GetAt(cix) + deltaE;
 
 			rho.nextTimeStepBuffer(cix) = nextRho;
 			u.nextTimeStepBuffer(cix) = nextU;
@@ -445,11 +455,11 @@ void Domain::SetNextTimeStepValuesBasedOnCachedEulerContinuities(const int curre
 			
 			// The others are not state variables; they can be calculated using the known variables. Calculate them now.
 			//todo: set a build mode where these are not calculated unless a record has been set.
-			const double nextP = (SpecificHeatRatio()-1) * (E.nextTimeStepBuffer.GetAt(cix) - 0.5*rho.nextTimeStepBuffer(cix)*(nextU*nextU + nextV*nextV));
+			const double nextP = (SpecificHeatRatio()-1) * (nextE - 0.5*nextRho*(nextU*nextU + nextV*nextV));
 			p.nextTimeStepBuffer(cix) = nextP;
-			const double nextT = p.nextTimeStepBuffer.GetAt(cix) / (GasConstant() * rho.nextTimeStepBuffer.GetAt(cix));
+			const double nextT = nextP / (GasConstant() * nextRho);
 			T.nextTimeStepBuffer(cix) = nextT;
-			const double nextH = (E.nextTimeStepBuffer.GetAt(cix) + p.nextTimeStepBuffer(cix))/rho.nextTimeStepBuffer.GetAt(cix);
+			const double nextH = (nextE + nextP)/nextRho;
 			H.nextTimeStepBuffer(cix) = nextH;
 
 #ifdef _DEBUG
