@@ -297,7 +297,6 @@ void Domain::CacheEulerConservationTerms(const double dt)
 	// Depending on whether or not there are shock fronts, the integration scheme changes. Determining whether or not there are shock fronts is done by looking at the MUSCL interpolated values of the field quantities. So, first calculate & cache the MUSCL vales.
 	const SolverSettings& solverSettings = simCase->solverSettings;
 
-
 #ifdef _DEBUG
 	std::cout << "Calculating flow delta, and populating Flow Delta buffer of domain '" << name << "'" << std::endl;
 	
@@ -347,10 +346,10 @@ void Domain::CacheEulerConservationTerms(const double dt)
 				const double cPos = sqrt(SpecificHeatRatio() * pMUSCL.At(f, EAxisDirection::POSITIVE));
 				// using !=, Logical xor operator: one of them is supersonic, the other is not. More intuitive than ( (uL-cL)>0 && (uR-cR)<0 ) || ( (uL+cL)>0 && (uR+cR)<0 )
 				if (f == LEFT || f == RIGHT)
-					if ((uMUSCL.GetAt(f, EAxisDirection::POSITIVE) > cPos) != (uMUSCL.GetAt(f, EAxisDirection::NEGATIVE) > cNeg))
+					if ((std::abs(uMUSCL.GetAt(f, EAxisDirection::POSITIVE)) > cPos) != (std::abs(uMUSCL.GetAt(f, EAxisDirection::NEGATIVE)) > cNeg))
 						shockwavePresent = true;
 				if (f == TOP || f == BOTTOM)
-					if ((vMUSCL.GetAt(f, EAxisDirection::POSITIVE) > cPos) != (vMUSCL.GetAt(f, EAxisDirection::NEGATIVE) > cNeg))
+					if ((std::abs(vMUSCL.GetAt(f, EAxisDirection::POSITIVE)) > cPos) != (std::abs(vMUSCL.GetAt(f, EAxisDirection::NEGATIVE)) > cNeg))
 						shockwavePresent = true;
 			}
 			

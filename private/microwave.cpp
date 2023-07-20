@@ -94,7 +94,7 @@ ChapmanJougetDetonationSolution SolveChapmanJougetDetonationProblem(const double
 
 void InitialiseDomainFromChapmanJougetDetonationSolution(Domain* domain, const ChapmanJougetDetonationSolution& sol, const double gamma)
 {
-    //Note that it HAS to be in the right direction, as it is a radial system, not x/y.
+    //Note that it HAS to be in the right-left direction, as it is a radial system, not x/y.
     const double tubeRadius = domain->size[1]; // For now, assume a laying down tube. 
     // As the solution is 1D, the solution is the same across all the y - coordinates, and is only different for x coordinates. Hence, iterate over the x- coordinates and set it immediately for all y coordinates.
     for (int xIndex = 0; xIndex < domain->amountOfCells[0]; xIndex++)
