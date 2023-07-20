@@ -80,19 +80,18 @@ ChapmanJougetDetonationSolution SolveChapmanJougetDetonationProblem(const double
     postExpansion.t = postExpansion.p / (postExpansion.density * idealGasConstant);
     postExpansion.u = 0;
     postExpansion.v = 0;
-    postExpansion.e = postExpansion.p / (gamma - 1.0) + 0.5 * postExpansion.density * (std::pow(postExpansion.u, 2) + std::pow(postExpansion.v, 2)); // since u & v are 0, these terms drop out entirely.
-    postExpansion.h = (postExpansion.e + postExpansion.p) / postExpansion.density;
+    postExpansion.e = postExpansion.p/(gamma - 1.0) + 0.5*postExpansion.density*(std::pow(postExpansion.u, 2) + std::pow(postExpansion.v, 2)); // since u & v are 0, these terms drop out entirely.
+    postExpansion.h = (postExpansion.e + postExpansion.p)/postExpansion.density;
     sol.m_msd = Mnext;
     // Computing position of expansion wave front and rear
-    sol.l_exp = (lengthOfCombustionTube / Mnext / a0) * a2;
-    sol.detonation_velocity = Mnext * a0;
-
-    sol.postDetonation = postDetonation;
+    sol.l_exp = (lengthOfCombustionTube/Mnext/a0)*a2;
+    sol.detonation_velocity = Mnext*a0;
+    
     sol.postExpansion = postExpansion;
     return sol;
 }
 
-void InitialiseDomainFromChapmanJougetDetonationSolution(Domain* domain, const ChapmanJougetDetonationSolution& sol, const double gamma)
+void InitialiseDomainFromChapmanJougetDetonationSolution(Domain* domain, const ChapmanJougetDetonationSolution& sol, const double gamma, const double specificGasConstant)
 {
     //Note that it HAS to be in the right-left direction, as it is a radial system, not x/y.
     const double tubeRadius = domain->size[1]; // For now, assume a laying down tube. 
@@ -100,7 +99,7 @@ void InitialiseDomainFromChapmanJougetDetonationSolution(Domain* domain, const C
     for (int xIndex = 0; xIndex < domain->amountOfCells[0]; xIndex++)
     {
         double xPos = domain->localCellCenterPositions[0].at(xIndex);
-        CellValues cellValues = sol.FieldPropertiesAtPosition(xPos, gamma, tubeRadius);
+        CellValues cellValues = sol.FieldPropertiesAtPosition(xPos, gamma, specificGasConstant);
 #ifdef _DEBUG
         // Make sure we're not setting fields to 0.
         assert(!IsCloseToZero(cellValues.density));
@@ -125,7 +124,7 @@ void InitialiseDomainFromChapmanJougetDetonationSolution(Domain* domain, const C
     }
 }
 
-CellValues ChapmanJougetDetonationSolution::FieldPropertiesAtPosition(const double xPosition, const double gamma, const double tubeRadius) const
+CellValues ChapmanJougetDetonationSolution::FieldPropertiesAtPosition(const double xPosition, const double gamma, const double specificGasConstant) const
 {
     // See if this is the plateau region or if this is the region where stuff gradually increases.
     /*     |           /
@@ -145,14 +144,14 @@ CellValues ChapmanJougetDetonationSolution::FieldPropertiesAtPosition(const doub
     else // It's in the expansion region- Note that the solution is only valid up until the actual x position at the end of the tube.
     {
         CellValues c;
-        c.p = postExpansion.p* std::pow(1.0 - (gamma - 1.0) / (gamma + 1.0) * (1.0 - xPosition / l_exp), 2.0 * gamma / (gamma - 1.0));
-        c.density = postExpansion.density * std::pow(postExpansion.p / c.p, 1.0 / gamma);
-        c.t = postExpansion.p / (postExpansion.density * tubeRadius) * std::pow(c.density / postExpansion.density, gamma - 1.0);
-        c.u = -2.0 / (gamma - 1.0) * (sqrt(gamma * postExpansion.p / postExpansion.density) - std::sqrt(gamma * tubeRadius * c.t));
+        c.p = postExpansion.p*std::pow(1.0 - (gamma - 1.0)/(gamma + 1.0) * (1.0 - xPosition/l_exp), 2.0*gamma/(gamma - 1.0));
+        c.density = postExpansion.density * std::pow(c.p / postExpansion.p, 1.0/gamma);
+        c.t = postExpansion.p / (postExpansion.density * specificGasConstant) * std::pow(c.density / postExpansion.density, gamma - 1.0);
+        c.u = -2.0/(gamma - 1.0) * (sqrt(gamma*postExpansion.p/postExpansion.density) - std::sqrt(gamma*specificGasConstant*c.t));
         c.v = 0.0;
 
-        c.e = c.p / (gamma - 1.0) + 0.5 * c.density * (std::pow(c.u, 2) + std::pow(c.v, 2));
-        c.h= (c.e + c.p) / c.density;
+        c.e = c.p/(gamma - 1.0) + 0.5*c.density*(c.u*c.u + c.v*c.v);
+        c.h= (c.e + c.p)/c.density;
 
         return c;
     }

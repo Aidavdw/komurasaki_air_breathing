@@ -19,11 +19,10 @@ struct ChapmanJougetDetonationSolution
     double m1 = 0;                      // post-detonation mach number
     double detonation_velocity = 0;     // Velocity of the detonation front
     double l_exp = 0;                   // The position of the tail of the expansion region
+    
+    CellValues postExpansion;           // Post-expansion conditions; the 'plateau' region. This is what 'creeps in' from the rear, going towards the thrust wall.
 
-    CellValues postDetonation;          // Post-detonation conditions, immediately behind the detonation front. This is what holds at the thrust wall. (subscript 1). Not serialised as of now.
-    CellValues postExpansion;           // Post-expansion conditions. This is what 'creeps in' from the rear, going towards the thrust wall.
-
-    CellValues FieldPropertiesAtPosition(const double xPosition, const double gamma, const double tubeRadius) const;
+    CellValues FieldPropertiesAtPosition(const double xPosition, const double gamma, const double specificGasConstant) const;
 };
 
 /* Function to solve to find MSD Mach number */
@@ -36,4 +35,4 @@ double eval_msd_deriv(double x, double c);
 ChapmanJougetDetonationSolution SolveChapmanJougetDetonationProblem(const double temperatureAmbient, const double pressureAmbient, const double eta, const double s0, const double idealGasConstant, const double gamma, const double lengthOfCombustionTube, const double radiusOfCombustionTube, const double convergenceThreshold = 1.0E-10);
 
 // Populates a domain with the values in a Chapman-Jouget detonation. As the solution is 1D, the solution is the same across all the y-coordinates, and is only different for x coordinates.
-void InitialiseDomainFromChapmanJougetDetonationSolution(Domain* domain, const ChapmanJougetDetonationSolution& sol, const double gamma);
+void InitialiseDomainFromChapmanJougetDetonationSolution(Domain* domain, const ChapmanJougetDetonationSolution& sol, const double gamma, const double specificGasConstant);

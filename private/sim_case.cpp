@@ -136,7 +136,7 @@ void SimCase::ApplyInitialConditionsToDomainsAndValves()
 				// TODO: Move logic for determining tube length and radius to this level to allow for standing-up rockets too.
 				const double tubeLength = domain.size[0];
 				ChapmanJougetDetonationSolution detonationConditions = SolveChapmanJougetDetonationProblem(ambientConditions.temperature, ambientConditions.staticPressure, chapmanJougetInitialConditionParameters.energyAbsorptionCoefficient, chapmanJougetInitialConditionParameters.beamPower, chapmanJougetInitialConditionParameters.idealGasConstant, chapmanJougetInitialConditionParameters.gamma, tubeLength, domain.size[1]);
-				InitialiseDomainFromChapmanJougetDetonationSolution(&domain, detonationConditions, chapmanJougetInitialConditionParameters.gamma);
+				InitialiseDomainFromChapmanJougetDetonationSolution(&domain, detonationConditions, chapmanJougetInitialConditionParameters.gamma, domain.GasConstant()); //Expects a fixed value here for R. Might not be so nice if you want to take variable R, will require a bit of refactoring.
 				break;
 			}
 		case EInitialisationMethod::FROM_INPUT_RHO_P_U_V:
