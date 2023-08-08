@@ -395,7 +395,11 @@ void Domain::CacheEulerConservationTerms(const double dt)
 					// Verifying with old AUSMDV implementation
 					double legacyFlux[4];
 					const char horOrVer = (bIsVertical) ? 'V' : 'H';
-					AUSM_DV(legacyFlux, horOrVer, negativeNormalFlow.density, positiveNormalFlow.density, negativeNormalFlow.u, positiveNormalFlow.u, negativeNormalFlow.v, positiveNormalFlow.v, negativeNormalFlow.p, positiveNormalFlow.p, negativeNormalFlow.h, positiveNormalFlow.h, 287, gamma, solverSettings.AUSMSwitchBias, solverSettings.entropyFix);
+					const double uL = (bIsVertical) ? negativeNormalFlow.v : negativeNormalFlow.u;
+					const double vL = (bIsVertical) ? negativeNormalFlow.u : negativeNormalFlow.v;
+					const double uR = (bIsVertical) ? positiveNormalFlow.v : positiveNormalFlow.u;
+					const double vR = (bIsVertical) ? positiveNormalFlow.u : positiveNormalFlow.v;
+					AUSM_DV(legacyFlux, horOrVer, negativeNormalFlow.density, positiveNormalFlow.density, uL, uR, vL, vR, negativeNormalFlow.p, positiveNormalFlow.p, negativeNormalFlow.h, positiveNormalFlow.h, 287, gamma, solverSettings.AUSMSwitchBias, solverSettings.entropyFix);
 					EulerContinuity legacyContinuity = {legacyFlux[0], legacyFlux[1], legacyFlux[2],legacyFlux[3] };
 					assert(IsCloseToZero(continuityAtFace[f].mass - legacyContinuity.mass));
 					assert(IsCloseToZero(continuityAtFace[f].momentumX - legacyContinuity.momentumX));

@@ -93,6 +93,13 @@ EulerContinuity AUSMDVFluxSplitting(CellValues l, CellValues r, const bool bIsVe
     l.Validate();
     r.Validate();
 #endif
+
+    // TODO: Triple check if this actually needs to be here. I think I placed this because of how indexing is different in the ref code.
+    if (bIsVertical)
+    {
+        SwapValues(l.u, l.v);
+        SwapValues(r.u, r.v);
+    }
     
     const double alphaLPartial=l.p/l.density;
     const double alphaRPartial=r.p/r.density;
