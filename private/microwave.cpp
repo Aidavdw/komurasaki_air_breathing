@@ -7,6 +7,8 @@
 #include <stdexcept>
 #include "AuxFunctions.h"
 
+#define MAX_CHAPMAN_JOUGET_ITERS 200
+
 
 double eval_msd_function(double x, double c)
 {
@@ -20,22 +22,19 @@ double eval_msd_deriv(double x, double c)
 
 ChapmanJougetDetonationSolution SolveChapmanJougetDetonationProblem(const double temperatureAmbient, const double pressureAmbient, const double eta, const double s0, const double idealGasConstant, const double gamma, const double lengthOfCombustionTube, const double radiusOfCombustionTube, const double convergenceThreshold)
 {
-
-    const static int MAX_ITERS = 200;
-
     double rho0 = pressureAmbient / (idealGasConstant * temperatureAmbient); // Ambient density
     double a0 = std::sqrt(gamma * idealGasConstant * temperatureAmbient); // Ambient speed of sound
     double powerDensity = eta * s0 / (M_PI * radiusOfCombustionTube * radiusOfCombustionTube); // Mean power density
     
-    const double cFactor = (std::pow(gamma, 2) - 1) / (2 * std::pow(a0, 3) * rho0) * powerDensity; // Constant factor for Newton-Raphson method
+    const double cFactor = (std::pow(gamma, 2) - 1)/(2*std::pow(a0, 3)*rho0)*powerDensity; // Constant factor for Newton-Raphson method
 
-    double Mcur = 1, Mnext = 0.0;
-    Mnext = eval_msd_function(1.0,cFactor);
+    double Mcur = 1;
+    double Mnext = eval_msd_function(1.0,cFactor);
     int iters_performed = 0;
 
     while (std::abs(Mcur - Mnext) > convergenceThreshold)
     {
-        if (iters_performed > MAX_ITERS)
+        if (iters_performed > MAX_CHAPMAN_JOUGET_ITERS)
             throw std::runtime_error("Chapman-Jouget detonation took more than the maximum amount of iterations to solve. Are you sure you're doing this right?");
         Mcur = Mnext;
         Mnext = Mcur - eval_msd_function(Mcur, cFactor) / eval_msd_deriv(Mcur, cFactor);
@@ -46,31 +45,15 @@ ChapmanJougetDetonationSolution SolveChapmanJougetDetonationProblem(const double
         iters_performed++;
     }
 
-    // Do the same calculation, but now with ETA factor for comparison
-    // A: This appears to not have been implemented fully. Leaving here for the time being
-    //TODO: either remove this eta case, or implement it.
-    /*
-    const double C_eta = (std::pow(GAMMA, 2) - 1) / (2 * std::pow(a0, 3) * rho0) * 0.49 * Sd;
-    Mcur = 0.0;
-    double Meta = 0.0;
-    Meta = eval_msd_function(1.0, C_eta);
-    while (fabs(Mcur - Meta) > convergenceThreshold)
-    {
-        Mcur = Meta;
-        Meta = Mcur - eval_msd_function(Mcur, C_eta) / eval_msd_deriv(Mcur, C_eta);
-    }
-    //printf("Detonation velocity with ETA=0.49 is: %f m/s.\n",Meta*a0);
-    */
-
     // This is equation 3.11 from Florian (2017)
     ChapmanJougetDetonationSolution sol;
-    sol.m1 = (std::pow(Mnext, 2) - 1.0) / (1.0 + gamma * std::pow(Mnext, 2));
+    sol.m1 = (std::pow(Mnext, 2) - 1.0)/(1.0 + gamma*std::pow(Mnext, 2));
 
     // Post-detonation conditions, immediately behind the detonation front (subscript 1). These are required for calculating the plateau conditions, and afterwards discarded. The calculation of the values behind the shockwave is x-location dependent, and is defined in ChapmanJougetDetonationSolution::FieldPropertiesAtPosition()
     CellValues postDetonation;           // The values of the flow after the expansion
-    postDetonation.p = (1.0 + gamma * std::pow(Mnext, 2)) / (gamma + 1) * pressureAmbient;
-    postDetonation.u = a0 * Mnext * (std::pow(Mnext, 2.0) - 1.0) / std::pow(Mnext, 2.0) / (gamma + 1.0);
-    postDetonation.density = (1.0 + gamma) * std::pow(Mnext, 2) / (1.0 + gamma * std::pow(Mnext, 2)) * rho0;
+    postDetonation.p = (1.0 + gamma*std::pow(Mnext, 2)) / (gamma + 1)*pressureAmbient;
+    postDetonation.u = a0*Mnext*(std::pow(Mnext, 2.0) - 1.0) / std::pow(Mnext, 2.0) / (gamma + 1.0);
+    postDetonation.density = (1.0 + gamma)*std::pow(Mnext, 2) / (1.0 + gamma*std::pow(Mnext, 2))*rho0;
 
     // Post-expansion wave conditions subscript 2
     CellValues postExpansion;           // The values of the flow after the expansion

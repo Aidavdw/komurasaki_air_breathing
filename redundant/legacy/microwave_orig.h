@@ -48,6 +48,7 @@ int solve_MSD(double *m_msd, double *p1, double *u1, double *rho1, double *m1, d
     // Detonation Mach number
     *m_msd = Mnext;
 
+    // ETA case is not actually used other than for printing.
     // With eta factor for comparison
     C = (pow(gamma,2)-1)/(2*pow(a0,3)*rho0)*0.49*Sd;
     Mcur=0.0;
