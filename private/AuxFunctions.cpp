@@ -198,7 +198,7 @@ EAxisDirection GetUpDirectionOfBoundary(const EFace boundary)
 
 void SwapValues(double& a, double& b)
 {
-    double buf = a;
+    const double buf = a;
     a = b;
-    b = a;
+    b = buf;
 }
