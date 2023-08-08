@@ -10,6 +10,8 @@
 #include "euler_container.h"
 #include "flux_splitting.h"
 
+#include "legacy/ausm.h"
+
 
 Domain::Domain(const std::string& name, SimCase* simCase, const Position& position, const std::pair<double, double> sizeArg, const std::pair<MeshSpacingSolution, MeshSpacingSolution> meshSpacingArg, const EInitialisationMethod initialisationMethod, const int ghostCellDepth) :
 	name(name),
@@ -352,6 +354,12 @@ void Domain::CacheEulerConservationTerms(const double dt)
 					if ((std::abs(vMUSCL.GetAt(f, EAxisDirection::POSITIVE)) > cPos) != (std::abs(vMUSCL.GetAt(f, EAxisDirection::NEGATIVE)) > cNeg))
 						shockwavePresent = true;
 			}
+
+#ifdef _DEBUG
+			if (shockwavePresent)
+				std::cout << "Shockwave present at cell (" << std::to_string(xIdx) << ", " << std::to_string(yIdx) << "). Using HANEL scheme.";
+#endif
+			
 			
 			// Now, for every face, determine which flux scheme to use based on whether or not it is critical (sonic), and perform the flux transfer.
 			EulerContinuity continuityAtFace[4]; // These here contain 4 terms for the euler equations. They all represent the flux of those variables at each side of the cell.
@@ -380,18 +388,26 @@ void Domain::CacheEulerConservationTerms(const double dt)
 				if (shockwavePresent)
 					continuityAtFace[f] = HanelFluxSplitting(negativeNormalFlow, positiveNormalFlow, bIsVertical, gamma, solverSettings.entropyFix);
 				else // No shockwave
+				{
 					continuityAtFace[f] = AUSMDVFluxSplitting(negativeNormalFlow, positiveNormalFlow, bIsVertical,gamma, solverSettings.AUSMSwitchBias, solverSettings.entropyFix);
 
+#ifdef _DEBUG
+					// Verifying with old AUSMDV implementation
+					double legacyFlux[4];
+					const char horOrVer = (bIsVertical) ? 'v' : 'h';
+					AUSM_DV(legacyFlux, horOrVer, negativeNormalFlow.density, positiveNormalFlow.density, negativeNormalFlow.u, positiveNormalFlow.u, negativeNormalFlow.v, positiveNormalFlow.v, negativeNormalFlow.p, positiveNormalFlow.p, negativeNormalFlow.h, positiveNormalFlow.h, 287, gamma, solverSettings.AUSMSwitchBias, solverSettings.entropyFix);
+					EulerContinuity legacyContinuity = {legacyFlux[0], legacyFlux[1], legacyFlux[2],legacyFlux[3] };
+					assert(IsCloseToZero(continuityAtFace[f].mass - legacyContinuity.mass));
+					assert(IsCloseToZero(continuityAtFace[f].momentumX - legacyContinuity.momentumX));
+					assert(IsCloseToZero(continuityAtFace[f].momentumY - legacyContinuity.momentumY));
+					assert(IsCloseToZero(continuityAtFace[f].energy - legacyContinuity.energy));
+#endif
+				}
 			}
 
 			// Total accumulation is what goes in - what goes out
 			const auto cellSizes = GetCellSizes(cix);
-			EulerContinuity accumulationAuto = ((continuityAtFace[RIGHT] - continuityAtFace[LEFT])/cellSizes.first + (continuityAtFace[TOP] - continuityAtFace[BOTTOM])/cellSizes.second)*dt; 
-			EulerContinuity accumulation;
-			accumulation.mass = ((continuityAtFace[RIGHT].mass - continuityAtFace[LEFT].mass)/cellSizes.first + (continuityAtFace[TOP].mass - continuityAtFace[BOTTOM].mass)/cellSizes.second)*dt;
-			accumulation.momentumX = ((continuityAtFace[RIGHT].momentumX - continuityAtFace[LEFT].momentumX)/cellSizes.first + (continuityAtFace[TOP].momentumX - continuityAtFace[BOTTOM].momentumX)/cellSizes.second)*dt;
-			accumulation.momentumY = ((continuityAtFace[RIGHT].momentumY - continuityAtFace[LEFT].momentumY)/cellSizes.first + (continuityAtFace[TOP].momentumY - continuityAtFace[BOTTOM].momentumY)/cellSizes.second)*dt;
-			accumulation.energy = ((continuityAtFace[RIGHT].energy - continuityAtFace[LEFT].energy)/cellSizes.first + (continuityAtFace[TOP].energy - continuityAtFace[BOTTOM].energy)/cellSizes.second)*dt;
+			EulerContinuity accumulation = ((continuityAtFace[RIGHT] - continuityAtFace[LEFT])/cellSizes.first + (continuityAtFace[TOP] - continuityAtFace[BOTTOM])/cellSizes.second)*dt; 
 			// dy = dr in this case, if you compensate for the squashification.
 
 			// Extra term to compensate for the fact that the cell sizes are not uniform because we are in a cylindrical coordinate system. In Florian (2017), this is the term *** Hr ***.
