@@ -93,13 +93,6 @@ EulerContinuity AUSMDVFluxSplitting(CellValues l, CellValues r, const bool bIsVe
     l.Validate();
     r.Validate();
 #endif
-
-    // Just trust me on this one. This is how Florian did it apparently.
-    if (bIsVertical)
-    {
-        SwapValues(l.u, l.v);
-        SwapValues(r.u, r.v);
-    }
     
     const double alphaLPartial=l.p/l.density;
     const double alphaRPartial=r.p/r.density;
@@ -114,13 +107,13 @@ EulerContinuity AUSMDVFluxSplitting(CellValues l, CellValues r, const bool bIsVe
     // Definition of UL(plus), PL(plus), UR(minus) and PR(minus)
     if (abs(l.u)<=cM)
     {
-        uLplus=0.5*(l.u + abs(l.u)) + alphaL*(0.25/cM*std::pow(l.u + cM,2)-0.5*(l.u + abs(l.u)));
+        uLplus=0.5*(l.u + abs(l.u)) + alphaL*(0.25/cM*std::pow(l.u + cM,2) - 0.5*(l.u + abs(l.u)));
         pLplus=0.25*l.p*std::pow(l.u/cM + 1.0,2)*(2.0 - l.u/cM);
     }
     else
     {
-        uLplus=0.5*(l.u+abs(l.u));
-        pLplus=0.5*l.p*(1.0+abs(l.u)/l.u);
+        uLplus=0.5*(l.u + abs(l.u));
+        pLplus=0.5*l.p*(1.0 + abs(l.u)/l.u);
     }
 
     double uRminus,pRminus;
@@ -132,11 +125,8 @@ EulerContinuity AUSMDVFluxSplitting(CellValues l, CellValues r, const bool bIsVe
     else
     {
         uRminus=0.5*(r.u-abs(r.u));
-        pRminus=0.5*r.p*(1.0-abs(r.u)/r.u);
+        pRminus=0.5*r.p*(1.0 - abs(r.u)/r.u);
     }
-
-    // Bias function for pressure gradient
-    double s = 0.5 * std::min(1.0, AUSMkFactor * abs(r.p - l.p) / std::min(r.p, l.p));
 
     // AUSM-V and AUSM-D momentum flux terms
     double uhalf = uLplus + uRminus;
@@ -146,11 +136,11 @@ EulerContinuity AUSMDVFluxSplitting(CellValues l, CellValues r, const bool bIsVe
     const double rhou2Mv = uLplus*l.density*l.u + uRminus*r.density*r.u;
 
     EulerContinuity flux;
-    // AUSM-DV otherwise
+    const double s = 0.5 * std::min(1.0, AUSMkFactor * abs(r.p - l.p) / std::min(r.p, l.p));  // Bias function for pressure gradient
     flux.mass = uLplus*l.density + uRminus*r.density;
-    flux.momentumX = (0.5+s)*rhou2Mv+(0.5-s)*rhoU2Md+phalf;
-    flux.momentumY = 0.5*(rhoUHalf*(l.v+r.v)-abs(rhoUHalf)*(r.v-l.v));
-    flux.energy = 0.5*(rhoUHalf*(l.h+r.h)-abs(rhoUHalf)*(r.h-l.h));
+    flux.momentumX = (0.5 + s)*rhou2Mv + (0.5 - s)*rhoU2Md + phalf;
+    flux.momentumY = 0.5*(rhoUHalf*(l.v + r.v) - abs(rhoUHalf)*(r.v - l.v));
+    flux.energy = 0.5*(rhoUHalf*(l.h + r.h) - abs(rhoUHalf)*(r.h - l.h));
 
     // Entropy fix (numerical dissipation for single expansion waves)
     if((l.u-cL<0.0 && r.u-cR>0.0)&(!(l.u+cL<0.0 && r.u+cR>0.0)))
