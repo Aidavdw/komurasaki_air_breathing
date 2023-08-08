@@ -451,6 +451,11 @@ void Domain::SetNextTimeStepValuesBasedOnCachedEulerContinuities(const int curre
 			u.nextTimeStepBuffer(cix) = nextU;
 			v.nextTimeStepBuffer(cix) = nextV;
 			E.nextTimeStepBuffer(cix) = nextE;
+
+#ifdef _DEBUG
+			assert(rho.nextTimeStepBuffer(cix) > 0);
+			assert(E.nextTimeStepBuffer(cix) > 0);
+#endif
 			
 			// The others are not state variables; they can be calculated using the known variables. Calculate them now.
 			//todo: set a build mode where these are not calculated unless a record has been set.
@@ -462,11 +467,9 @@ void Domain::SetNextTimeStepValuesBasedOnCachedEulerContinuities(const int curre
 			H.nextTimeStepBuffer(cix) = nextH;
 
 #ifdef _DEBUG
-			assert(rho.nextTimeStepBuffer(cix) > 0);
-			assert(E.nextTimeStepBuffer(cix) > 0);
 			assert(p.nextTimeStepBuffer(cix) > 0);
 			assert(H.nextTimeStepBuffer(cix) > 0);
-			assert(T.nextTimeStepBuffer(cix) > 0); // Kelvins, not C.
+			assert(T.nextTimeStepBuffer(cix) > 0); // Kelvin, not C.
 #endif
 			
 		}
